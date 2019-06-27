@@ -3,7 +3,7 @@
 I'm very grateful to the Mangos community, in particular to Kyoril, for help and hints. 
 
 ## Before start
-This is works on Python v3.5. Not tested another versions yet.
+This works on Python v3.5. Not tested another versions yet.
 
 Dependencies:
 1. MySQL (https://github.com/PyMySQL/mysqlclient-python)
