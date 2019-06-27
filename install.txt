@@ -1,0 +1,7 @@
+Should be installed:
+https://github.com/PyMySQL/mysqlclient-python
+redis-server
+
+Dep:
+- sqlalchemy
+- pyyaml
