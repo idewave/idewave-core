@@ -1,4 +1,5 @@
 **Welcome** ! This is python wowcore for version 2.4.3. Developed for Linux, but I think you can run it on Windows too.
+I'm very grateful to the Mangos community, in particular to Kyoril. 
 
 ## Before start
 This is works on Python v3.5. Not tested another versions yet.
