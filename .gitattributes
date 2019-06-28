@@ -1,1 +1,1 @@
-DB/Fixtures linguist-detectable=false
+DB/Fixtures/**/*.sql linguist-detectable=false
