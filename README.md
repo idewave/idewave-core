@@ -40,6 +40,8 @@ Finally, you can run the server, just call from the root of project:
 
 `python3 Run.py`
 
+**For opening the core on vps or dedicated servers** be sure to set correct IP in config !
+
 ## How it works ?
 OK, I promise, I will add the detailed documentation in nearest future. But, in short:
 
