@@ -19,7 +19,7 @@ MAP_DIRNAME_TO_DBNAME = {
 
 def load_world_data():
     def get_command(db_name):
-        return 'mysql -h{host} -u{username} -p{password} -D{db_name}'.format(
+        return 'mysql -h{host} -u"{username}" -p"{password}" -D"{db_name}"'.format(
             host=Config.Database.Connection.host,
             username=Config.Database.Connection.username,
             password=Config.Database.Connection.password,
