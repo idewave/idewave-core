@@ -8,7 +8,7 @@ from Config.Run.config import Config
 class WebServer(object):
 
     @staticmethod
-    async def websocket_handler(request: web.web_request):
+    async def websocket_handler(request):
         ws = web.WebSocketResponse()
         await ws.prepare(request)
 

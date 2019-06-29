@@ -1,14 +1,16 @@
 import argparse
+
 from DB.CreateDB import create_db, create_tables
 from DB.DropDB import drop_db
 from DB.Fixtures.Loader.load_world_data import load_world_data
+
 from Account.AccountManager import AccountManager
 from World.Object.Item.ItemManager import ItemManager
-from World.Object.Unit.Player.Inventory.Equipment import EquipmentManager
 from World.Object.Unit.Spell.SpellManager import SpellManager
 from World.Object.Unit.Player.Skill.SkillManager import SkillManager
 from World.Region.RegionManager import RegionManager
 from World.Object.Unit.UnitManager import UnitManager
+
 from Utils.Debug.Logger import Logger
 
 
@@ -86,33 +88,6 @@ def process():
             ).save()
 
             Logger.success('Item "{}" created successfully!'.format(args[0].entry))
-
-    # default equipment
-    # default_equip_parser = commands.add_parser('default_equipment')
-    # default_equip_parser.add_argument('-d', '--display_id')
-    # default_equip_parser.add_argument('-i', '--item_type')
-    # default_equip_parser.add_argument('-e', '--entry')
-    # default_equip_parser.add_argument('-c', '--char_class')
-    # default_equip_parser.add_argument('-r', '--race')
-    # default_equip_parser.add_argument('-s', '--slot_id')
-    #
-    # args = default_equip_parser.parse_known_args()
-    # parser_name = args[1][0]
-    # subcommand = args[1].pop()
-
-    # FIXME: currently method do not exists
-    # if parser_name == 'default_equipment':
-    #     if subcommand == 'create':
-    #         EquipmentManager().create_default_equip(
-    #             display_id=args[0].display_id,
-    #             item_type=args[0].item_type,
-    #             entry=int(args[0].entry),
-    #             char_class=args[0].char_class,
-    #             race=args[0].race,
-    #             slot_id=args[0].slot_id,
-    #         ).save()
-    #
-    #         Logger.success('Item "{}" created successfully!'.format(args[0].entry))
 
     # spells
     spell_parser = commands.add_parser('spell')
