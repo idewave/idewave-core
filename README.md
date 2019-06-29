@@ -9,6 +9,17 @@ Dependencies:
 1. MySQL (https://github.com/PyMySQL/mysqlclient-python)
 2. redis-server (https://redis.io/topics/quickstart)
 
+For MySQL you also need to create new user:
+
+`CREATE USER 'user'@'localhost' IDENTIFIED BY 'password'`
+
+And add to this user permissions:
+
+`GRANT ALL PRIVILEGES ON *.* TO 'user'@'localhost'; FLUSH PRIVILEGES;`
+
+**Notice**: Giving all privileges to the user can be insecure, so after successfully creating databases you can reduce
+priveleges to only this databases.
+
 Next install Python packets:
 1. `pip3 install asyncio_redis`
 2. `pip3 install SQLAlchemy`
