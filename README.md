@@ -15,7 +15,7 @@ For MySQL you also need to create new user:
 
 And add to this user permissions:
 
-`GRANT ALL PRIVILEGES ON *.* TO 'user'@'localhost'; FLUSH PRIVILEGES;`
+`GRANT ALL PRIVILEGES ON *.* TO 'user'@'localhost' IDENTIFIED BY 'password'; FLUSH PRIVILEGES;`
 
 **Notice**: Giving all privileges to the user can be insecure, so after successfully creating databases you can reduce
 privileges to only this databases.
