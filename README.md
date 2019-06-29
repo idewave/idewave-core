@@ -24,7 +24,7 @@ Next install Python packets:
 1. `pip3 install asyncio_redis`
 2. `pip3 install SQLAlchemy`
 3. `pip3 install aiohttp`
-4. `pip3 install yaml`
+4. `pip3 install pyyaml`
 
 ## Dependencies successfully installed
 Well, now you are ready to start. You need to install DB, just run the command from console in the root of project:
