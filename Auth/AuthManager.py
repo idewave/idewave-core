@@ -70,7 +70,7 @@ class AuthManager(object):
                     try:
                         handler = AuthManager.AUTH_HANDLERS[LoginOpCode(opcode)]
                     except ValueError:
-                        Logger.error('Incorrect opcode')
+                        Logger.error('[AuthManager]: Incorrect request, check the opcode')
                         pass
                     else:
                         response = await handler(packet=packet, srp=self.srp, temp_ref=self.temp_ref).process()
