@@ -67,11 +67,16 @@ class AuthManager(object):
                 request = await asyncio.wait_for(self.reader.read(1024), timeout=1.0)
                 if request:
                     opcode, packet = request[0], request[1:]
-                    handler = AuthManager.AUTH_HANDLERS[LoginOpCode(opcode)]
-                    response = await handler(packet=packet, srp=self.srp, temp_ref=self.temp_ref).process()
+                    try:
+                        handler = AuthManager.AUTH_HANDLERS[LoginOpCode(opcode)]
+                    except ValueError:
+                        Logger.error('Incorrect opcode')
+                        pass
+                    else:
+                        response = await handler(packet=packet, srp=self.srp, temp_ref=self.temp_ref).process()
 
-                    if response:
-                        self.writer.write(response)
+                        if response:
+                            self.writer.write(response)
             except TimeoutError:
                 continue
 
