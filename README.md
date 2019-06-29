@@ -18,7 +18,7 @@ And add to this user permissions:
 `GRANT ALL PRIVILEGES ON *.* TO 'user'@'localhost'; FLUSH PRIVILEGES;`
 
 **Notice**: Giving all privileges to the user can be insecure, so after successfully creating databases you can reduce
-priveleges to only this databases.
+privileges to only this databases.
 
 Next install Python packets:
 1. `pip3 install asyncio_redis`
