@@ -7,6 +7,8 @@ from World.Object.Constants.TypeMask import TypeMask
 from World.Object.Constants.ObjectType import ObjectType
 from World.Object.Constants.HighGuid import HighGuid
 
+from World.Object.Unit.Player.Inventory.Equipment.model import Equipment
+
 from Config.Run.config import Config
 
 
