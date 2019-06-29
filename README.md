@@ -10,8 +10,9 @@ Dependencies:
 2. redis-server (https://redis.io/topics/quickstart)
 
 Next install Python packets:
-1. `pip install asyncio_redis`
-2. `pip install SQLAlchemy`
+1. `pip3 install asyncio_redis`
+2. `pip3 install SQLAlchemy`
+3. `pip3 install aiohttp`
 
 ## Dependencies successfully installed
 Well, now you are ready to start. You need to install DB, just run the command from console in the root of project:
