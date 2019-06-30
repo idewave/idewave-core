@@ -1,31 +1,3 @@
--- phpMyAdmin SQL Dump
--- version 4.5.4.1deb2ubuntu2.1
--- http://www.phpmyadmin.net
---
--- Host: localhost
--- Generation Time: Apr 29, 2019 at 10:44 PM
--- Server version: 5.7.23-0ubuntu0.16.04.1
--- PHP Version: 7.0.32-0ubuntu0.16.04.1
-
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: `wowdb_world`
---
-
--- --------------------------------------------------------
-
---
--- Dumping data for table `spell_template`
---
-
 INSERT INTO `spell_template` (`id`, `entry`, `name`, `cost`, `school`, `range`) VALUES
 (1, 668, 'Language Common', 0, 0, 0),
 (2, 671, 'Language Darnassian', 0, 0, 0),
@@ -87,7 +59,3 @@ INSERT INTO `spell_template` (`id`, `entry`, `name`, `cost`, `school`, `range`) 
 (58, 28734, 'Mana Tap', 0, 6, 30),
 (59, 20592, 'Arcane Resistance', 0, 0, 0),
 (60, 28878, 'Inspiring Presence', 0, 0, 0);
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
