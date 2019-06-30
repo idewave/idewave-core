@@ -1,4 +1,7 @@
+from colorama import init
 from enum import Enum
+
+init()
 
 
 class ANSIColor(Enum):
