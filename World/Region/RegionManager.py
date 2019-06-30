@@ -8,7 +8,7 @@ from DB.Connection.WorldConnection import WorldConnection
 from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from Utils.Debug.Logger import Logger
-from Config.Run.queues import update_packets_queue
+from Server.Wrapper.QueuesRegistry import QueuesRegistry
 
 from Config.Run.config import Config
 
@@ -139,7 +139,7 @@ class RegionManager(object):
                             batch_builder = unit_mgr.prepare().build_update_packet(RegionManager.UNIT_SPAWN_FIELDS)
 
                             update_packets.append(batch_builder)
-                            await update_packets_queue.put((player.name, update_packets))
+                            await QueuesRegistry.update_packets_queue.put((player.name, update_packets))
 
     @staticmethod
     def _is_unit_in_spawn_radius(unit: Unit, player: Player):

@@ -25,7 +25,8 @@ class BaseModel(AbstractConcreteBase):
         if _type is None:
             raise Exception('[DB/BaseModel]: type should be set')
 
-        length = kwargs.pop('length', 255)
+        # https://stackoverflow.com/a/1814594
+        length = kwargs.pop('length', 128)
 
         col = {
             'string': VARCHAR(length=length),

@@ -9,7 +9,7 @@ from Server.BaseServer import BaseServer
 from Utils.Debug.Logger import Logger
 from Auth.AuthManager import AuthManager
 from Auth.Constants.AuthStep import AuthStep
-from Config.Run.queues import connections_queue, update_packets_queue
+from Server.Wrapper.QueuesRegistry import QueuesRegistry
 from World.WorldPacket.WorldPacketManager import WorldPacketManager
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 
@@ -64,7 +64,7 @@ class WorldServer(BaseServer):
         while True:
             try:
                 player_name, reader, writer, header_crypt = await asyncio.wait_for(
-                    connections_queue.get(), timeout=1.0
+                    QueuesRegistry.connections_queue.get(), timeout=1.0
                 )
             except TimeoutError:
                 pass
@@ -79,7 +79,10 @@ class WorldServer(BaseServer):
     async def send_update_packet_to_player(self):
         while True:
             try:
-                player_name, update_packets = await asyncio.wait_for(update_packets_queue.get(), timeout=1.0)
+                player_name, update_packets = await asyncio.wait_for(
+                    QueuesRegistry.update_packets_queue.get(),
+                    timeout=1.0
+                )
             except TimeoutError:
                 pass
             else:

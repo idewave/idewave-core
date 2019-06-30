@@ -1,5 +1,5 @@
 from World.Object.Unit.Player.PlayerManager import PlayerManager
-from Config.Run.queues import connections_queue
+from Server.Wrapper.QueuesRegistry import QueuesRegistry
 
 
 class PlayerInit(object):
@@ -15,7 +15,9 @@ class PlayerInit(object):
 
     async def process(self):
         self._load_player()
-        await connections_queue.put((self.temp_ref.player.name, self.reader, self.writer, self.header_crypt))
+        await QueuesRegistry.connections_queue.put(
+            (self.temp_ref.player.name, self.reader, self.writer, self.header_crypt)
+        )
         return None, None
 
     def _load_player(self):

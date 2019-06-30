@@ -1,7 +1,7 @@
 import json
 from aiohttp import web
-from Config.Run.queues import web_data_queue
 from Utils.Debug.Logger import Logger
+from Server.Wrapper.QueuesRegistry import QueuesRegistry
 from Config.Run.config import Config
 
 
@@ -13,7 +13,7 @@ class WebServer(object):
         await ws.prepare(request)
 
         async for msg in ws:
-            d = await web_data_queue.get_object_field()
+            d = await QueuesRegistry.web_data_queue.get_object_field()
             data = json.loads(msg.data)
             if data['type'] == 'REQUEST_POSITION':
                 ws.send_str(str(d))

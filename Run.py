@@ -7,7 +7,9 @@ from multiprocessing import cpu_count
 from Server.LoginServer import LoginServer
 from Server.WorldServer import WorldServer
 from Server.WebServer import WebServer
+from Server.Wrapper.QueuesRegistry import QueuesRegistry
 from World.WorldManager import WorldManager
+from Server.Queue.MultiProcessQueue import MultiProcessQueue
 
 from Utils.Debug.Logger import Logger
 
@@ -18,8 +20,14 @@ if __name__ == '__main__':
     login_server = LoginServer.create()
     world_server = WorldServer.create()
 
+    QueuesRegistry.web_data_queue = MultiProcessQueue.get_instance()
+    QueuesRegistry.players_queue = asyncio.Queue()
+    QueuesRegistry.connections_queue = asyncio.Queue()
+    QueuesRegistry.update_packets_queue = asyncio.Queue()
+
     executor = ProcessPoolExecutor(max_workers=cpu_count())
 
+    # TODO: check how this works for windows
     subprocess.run('redis-server --daemonize yes', shell=True)
 
     try:
@@ -39,7 +47,7 @@ if __name__ == '__main__':
             )
         )
     except Exception as e:
-        Logger.error('Exception on Run step: {}'.format(e))
+        Logger.error('[Run]: {}'.format(e))
         traceback.print_exc()
 
     try:
@@ -47,7 +55,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
     except Exception as e:
-        Logger.error('Exception: {}'.format(e))
+        Logger.error('[Run]: {}'.format(e))
         pass
 
     loop.close()
