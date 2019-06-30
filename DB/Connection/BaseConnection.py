@@ -1,6 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
+from Config.Run.config import Config
+
 
 class BaseConnection(object):
 
@@ -8,8 +10,10 @@ class BaseConnection(object):
         if not user or not password or not host or not db_name:
             raise Exception('[BaseConnection]: not enough params')
 
+        connection_string = Config.Database.Connection.sqlalchemy_connection_string
+
         engine = create_engine(
-            'mysql://{user}:{password}@{host}/{db_name}'.format(
+            connection_string.format(
                 user=user,
                 password=password,
                 host=host,

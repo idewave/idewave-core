@@ -3,6 +3,7 @@ Database:
     host: 127.0.0.1
     username: wowdb
     password: wowdb
+    sqlalchemy_connection_string: "mysql+pymysql://{user}:{password}@{host}/{db_name}?charset=utf8mb4"
 
   DBNames:
     login_db: wowdb_login
