@@ -6,8 +6,7 @@ I'm very grateful to the Mangos community, in particular to Kyoril, for help and
 This works on Python v3.5. Not tested another versions yet.
 
 Dependencies:
-1. MySQL (https://github.com/PyMySQL/mysqlclient-python)
-2. redis-server (https://redis.io/topics/quickstart)
+1. redis-server (https://redis.io/topics/quickstart)
 
 For MySQL you also need to create new user:
 
