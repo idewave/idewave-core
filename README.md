@@ -21,9 +21,8 @@ And add to this user permissions:
 privileges to only this databases.
 
 Next install Python packets:
-1. `pip3 install asyncio_redis`
-2. `pip3 install SQLAlchemy`
-3. `pip3 install aiohttp`
+
+`pip3 install -r requirements.txt`
 
 ## Dependencies successfully installed
 Well, now you are ready to start. You need to install DB, just run the command from console in the root of project:
@@ -58,8 +57,7 @@ players/units/objects positions (movement), statistics (for example, ore spawn) 
 
 
 ## Known issues
-1. To relogin the server should be restarted
-2. packet decryption not works correctly for some packets, so workaround was added (see WorldPacketManager)
+1. packet decryption not works correctly for some packets, so workaround was added (see WorldPacketManager)
 
 
 ## You want participate
