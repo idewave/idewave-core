@@ -58,8 +58,7 @@ players/units/objects positions (movement), statistics (for example, ore spawn) 
 
 
 ## Known issues
-1. To relogin the server should be restarted
-2. packet decryption not works correctly for some packets, so workaround was added (see WorldPacketManager)
+1. packet decryption not works correctly for some packets, so workaround was added (see WorldPacketManager)
 
 
 ## You want participate
