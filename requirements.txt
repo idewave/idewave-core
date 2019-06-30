@@ -1,0 +1,4 @@
+aiohttp==2.3.10
+asyncio-redis==0.15.1
+mysqlclient==1.4.2.post1
+SQLAlchemy==1.2.18
