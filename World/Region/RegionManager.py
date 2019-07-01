@@ -71,8 +71,12 @@ class RegionManager(object):
     def get_region(self, **kwargs):
         # TODO: fix args receiving
         region_id = kwargs.pop('region_id', None)
-        region = self.session.query(Region).filter_by(region_id=region_id).first()
-        return region
+        try:
+            region = self.session.query(Region).filter_by(region_id=region_id).first()
+        except Exception as e:
+            raise Exception('[Region Manager]: get_region exception "{}"'.format(e))
+        else:
+            return region
 
     def create(self, **kwargs):
         region_id = kwargs.pop('region_id', None)
@@ -111,6 +115,8 @@ class RegionManager(object):
                 region_units = region.units.copy()
             except DetachedInstanceError as e:
                 Logger.error('[Region Manager]: {}'.format(e))
+            except Exception as e:
+                Logger.error('[Region Manager]: another exception {}'.format(e))
             else:
                 units = region_units.copy()
 
