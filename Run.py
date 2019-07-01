@@ -7,7 +7,7 @@ from multiprocessing import cpu_count
 from Server.LoginServer import LoginServer
 from Server.WorldServer import WorldServer
 from Server.WebServer import WebServer
-from Server.Wrapper.QueuesRegistry import QueuesRegistry
+from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldManager import WorldManager
 from Server.Queue.MultiProcessQueue import MultiProcessQueue
 

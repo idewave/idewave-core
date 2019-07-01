@@ -9,7 +9,7 @@ from Server.BaseServer import BaseServer
 from Utils.Debug.Logger import Logger
 from Auth.AuthManager import AuthManager
 from Auth.Constants.AuthStep import AuthStep
-from Server.Wrapper.QueuesRegistry import QueuesRegistry
+from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldPacket.WorldPacketManager import WorldPacketManager
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 

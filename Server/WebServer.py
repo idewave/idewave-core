@@ -1,7 +1,7 @@
 import json
 from aiohttp import web
 from Utils.Debug.Logger import Logger
-from Server.Wrapper.QueuesRegistry import QueuesRegistry
+from Server.Registry.QueuesRegistry import QueuesRegistry
 from Config.Run.config import Config
 
 

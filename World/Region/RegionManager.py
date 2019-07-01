@@ -8,7 +8,7 @@ from DB.Connection.WorldConnection import WorldConnection
 from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from Utils.Debug.Logger import Logger
-from Server.Wrapper.QueuesRegistry import QueuesRegistry
+from Server.Registry.QueuesRegistry import QueuesRegistry
 
 from Config.Run.config import Config
 

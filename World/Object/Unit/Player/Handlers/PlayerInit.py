@@ -1,5 +1,5 @@
 from World.Object.Unit.Player.PlayerManager import PlayerManager
-from Server.Wrapper.QueuesRegistry import QueuesRegistry
+from Server.Registry.QueuesRegistry import QueuesRegistry
 
 
 class PlayerInit(object):
