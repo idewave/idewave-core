@@ -139,13 +139,14 @@ class RegionManager(object):
 
                         for unit in units:
                             unit_mgr = UnitManager()
-                            unit_mgr.set(unit)
-                            unit_mgr.movement.set_update_flags(movement_flags)
+                            with unit_mgr:
+                                unit_mgr.set(unit)
+                                unit_mgr.movement.set_update_flags(movement_flags)
 
-                            batch_builder = unit_mgr.prepare().build_update_packet(RegionManager.UNIT_SPAWN_FIELDS)
+                                batch_builder = unit_mgr.prepare().build_update_packet(RegionManager.UNIT_SPAWN_FIELDS)
 
-                            update_packets.append(batch_builder)
-                            await QueuesRegistry.update_packets_queue.put((player.name, update_packets))
+                                update_packets.append(batch_builder)
+                                await QueuesRegistry.update_packets_queue.put((player.name, update_packets))
 
     @staticmethod
     def _is_unit_in_spawn_radius(unit: Unit, player: Player):

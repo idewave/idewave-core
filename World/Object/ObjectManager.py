@@ -121,5 +121,13 @@ class ObjectManager(object):
         self.init_movement()
         return self
 
-    def __del__(self):
+    def __enter__(self):
+        pass
+
+    # safe
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.session.close()
+
+    # unsafe, should be removed due to context manager (with)
+    # def __del__(self):
+    #     self.session.close()
