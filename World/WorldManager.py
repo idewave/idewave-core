@@ -21,8 +21,13 @@ class WorldManager(object):
                 await asyncio.wait_for(self.update(), timeout=1.0)
             except TimeoutError:
                 Logger.warning('[World Manager]: Timeout...')
+            except Exception as e:
+                Logger.error('[World Manager]: another exception "{}"'.format(e))
             finally:
                 await asyncio.sleep(self.heartbeat)
 
     async def update(self):
-        await self.region_mgr.refresh()
+        try:
+            await self.region_mgr.refresh()
+        except Exception as e:
+            Logger.error('[World Manager]: on update "{}"'.format(e))
