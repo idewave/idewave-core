@@ -6,8 +6,6 @@ from DB.Connection.LoginConnection import LoginConnection
 class AccountManager(object):
 
     def __init__(self):
-        connection = LoginConnection()
-        self.session = connection.session
         self.account = None
 
     def create(self, **kwargs):
@@ -49,5 +47,11 @@ class AccountManager(object):
         self.session.query(Account).delete()
         return self
 
-    def __del__(self):
+    # enter/exit are safe, should be used instead of __del__
+    def __enter__(self):
+        connection = LoginConnection()
+        self.session = connection.session
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.session.close()

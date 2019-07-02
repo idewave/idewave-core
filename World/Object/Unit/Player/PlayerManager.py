@@ -143,7 +143,8 @@ class PlayerManager(UnitManager):
         # self.movement.position = position
 
     def _set_default_equipment(self):
-        self.equipment = EquipmentManager(session=self.session).set_default_equipment(player=self.player).get_items()
+        with EquipmentManager(session=self.session) as equipment_mgr:
+            self.equipment = equipment_mgr.set_default_equipment(player=self.player).get_items()
 
     def _set_faction_template_id(self):
         race = CharacterRace(self.player.race)
@@ -168,7 +169,9 @@ class PlayerManager(UnitManager):
         self.player.facial_hair = kwargs.pop('facial_hair', None)
 
         self.player.level = Config.World.Object.Unit.Player.Defaults.min_level
-        self.player.account = self.temp_ref.account
+
+        account = self.session.merge(self.temp_ref.account)
+        self.player.account = account
 
         self._set_start_location()
         self._set_display_id()
@@ -186,9 +189,11 @@ class PlayerManager(UnitManager):
 
     def prepare(self):
         super(PlayerManager, self).prepare()
-        self.equipment = EquipmentManager(session=self.session).get_equipment(player=self.player).get_items()
-        self.add_player_fields()
-        return self
+
+        with EquipmentManager(session=self.session) as equipment_mgr:
+            self.equipment = equipment_mgr.get_equipment(player=self.player).get_items()
+            self.add_player_fields()
+            return self
 
     def __del__(self):
         self.session.close()

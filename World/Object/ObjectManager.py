@@ -16,21 +16,15 @@ class ObjectManager(object):
 
         if external_session:
             self.session = external_session
-        else:
-            connection = RealmConnection()
-            # this one uses in create_tables command
-            self.engine = connection.engine
-            self.session = connection.session
 
-        self.objects = {}
+        # self.objects = {}
 
         self.update_packet_builder = UpdatePacketBatch()
         self.fields = {}
 
         self.object_update_type = ObjectUpdateType.CREATE_OBJECT.value
         self.movement = Movement()
-        # this property contains any world object (Object, Unit, Item, Player etc)
-        # currently processing by current manager. Inheritable.
+
         self.world_object = Object()
 
     def find(self, **kwargs):
@@ -44,12 +38,6 @@ class ObjectManager(object):
         self.session.add(self.world_object)
         self.session.commit()
         return self
-
-    # def refresh(self):
-    #     self.session.add(self.world_object)
-    #     self.session.refresh(self.world_object)
-    #     self.session.expire(self.world_object)
-    #     return self
 
     def delete(self, **kwargs):
         self.session.query(Object).filter_by(**kwargs).delete()
@@ -121,13 +109,12 @@ class ObjectManager(object):
         self.init_movement()
         return self
 
+    # enter/exit are safe, should be used instead of __del__
     def __enter__(self):
-        pass
+        connection = RealmConnection()
+        self.session = connection.session
+        return self
 
-    # safe
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.session.close()
-
-    # unsafe, should be removed due to context manager (with)
-    # def __del__(self):
-    #     self.session.close()
+        return True

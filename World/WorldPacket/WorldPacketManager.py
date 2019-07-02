@@ -48,15 +48,19 @@ class WorldPacketManager(object):
             packets = list()
 
             for handler in handlers:
-                opcode, response = await handler(
-                    packet,
-                    temp_ref=self.temp_ref,
-                    reader=self.reader,
-                    writer=self.writer,
-                    header_crypt=self.header_crypt
-                ).process()
-                if opcode and response:
-                    packets.append(WorldPacketManager.generate_packet(opcode, response, self.header_crypt))
+                try:
+                    opcode, response = await handler(
+                        packet,
+                        temp_ref=self.temp_ref,
+                        reader=self.reader,
+                        writer=self.writer,
+                        header_crypt=self.header_crypt
+                    ).process()
+                except Exception as e:
+                    Logger.error(handler)
+                else:
+                    if opcode and response:
+                        packets.append(WorldPacketManager.generate_packet(opcode, response, self.header_crypt))
 
             return packets
         else:

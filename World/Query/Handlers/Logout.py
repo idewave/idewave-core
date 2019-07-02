@@ -15,7 +15,8 @@ class Logout(object):
 
     async def process(self):
 
-        PlayerManager().set(self.temp_ref.player).save()
+        with PlayerManager() as player_mgr:
+            player_mgr.set(self.temp_ref.player).save()
 
         response = pack(
             '<IB',

@@ -18,21 +18,22 @@ class CharacterCreate(object):
     async def process(self):
         data = self._parse_packet()
 
-        PlayerManager(temp_ref=self.temp_ref).new(
-            name=data['name'],
-            race=data['race'],
-            char_class=data['char_class'],
-            gender=data['gender'],
-            skin=data['skin'],
-            face=data['face'],
-            hair_style=data['hair_style'],
-            hair_color=data['hair_color'],
-            facial_hair=data['facial_hair'],
-        ).set_stats().save()
+        with PlayerManager(temp_ref=self.temp_ref) as player_mgr:
+            player_mgr.new(
+                name=data['name'],
+                race=data['race'],
+                char_class=data['char_class'],
+                gender=data['gender'],
+                skin=data['skin'],
+                face=data['face'],
+                hair_style=data['hair_style'],
+                hair_color=data['hair_color'],
+                facial_hair=data['facial_hair'],
+            ).set_stats().save()
 
-        Logger.notify('Character created')
+            Logger.notify('Character "{}" created'.format(data['name']))
 
-        return WorldOpCode.SMSG_CHAR_CREATE, pack('<B', CharCreateResponseCode.CHAR_CREATE_SUCCESS.value)
+            return WorldOpCode.SMSG_CHAR_CREATE, pack('<B', CharCreateResponseCode.CHAR_CREATE_SUCCESS.value)
 
     def _parse_packet(self):
         # omit first 6 bytes, cause 01-02 = packet size, 03-04 = opcode (0x1ED), 05-06 - unknown null-bytes

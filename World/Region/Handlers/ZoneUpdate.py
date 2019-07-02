@@ -19,11 +19,12 @@ class ZoneUpdate(object):
         region_id = unpack('<I', self.packet[-4:])[0]
 
         if not self.temp_ref.player.region.region_id == region_id:
-            region = RegionManager().get_region(region_id=region_id)
-            self.temp_ref.player.region = region
+            with RegionManager() as region_mgr:
+                region = region_mgr.get_region(region_id=region_id)
+                self.temp_ref.player.region = region
 
-            player_mgr = PlayerManager()
-            player_mgr.set(self.temp_ref.player).save()
-            Logger.notify('[Zone Update]: saving player')
+            with PlayerManager() as player_mgr:
+                player_mgr.set(self.temp_ref.player).save()
+                Logger.notify('[Zone Update]: saving player')
 
         return None, None

@@ -23,6 +23,6 @@ class PlayerInit(object):
     def _load_player(self):
         # size (first 2 bytes) - opcode (next 4 bytes) - guid (remaining bytes)
         guid = int.from_bytes(self.packet[6:], 'little')
-        player_mgr = PlayerManager().load(id=guid)
-
-        self.temp_ref.player = player_mgr.player
+        with PlayerManager() as player_mgr:
+            player_mgr.load(id=guid)
+            self.temp_ref.player = player_mgr.player

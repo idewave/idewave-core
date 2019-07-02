@@ -138,8 +138,7 @@ class RegionManager(object):
                             units = [unit for unit in units if RegionManager._is_unit_in_spawn_radius(unit, player)]
 
                         for unit in units:
-                            unit_mgr = UnitManager()
-                            with unit_mgr:
+                            with UnitManager() as unit_mgr:
                                 unit_mgr.set(unit)
                                 unit_mgr.movement.set_update_flags(movement_flags)
 

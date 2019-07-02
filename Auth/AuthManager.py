@@ -117,7 +117,8 @@ class AuthManager(object):
         self.account_name = self._parse_account_name(tmp_buf)
 
         # set account for using in world packet handlers
-        self.temp_ref.account = AccountManager().get(name=self.account_name).account
+        with AccountManager() as account_mgr:
+            self.temp_ref.account = account_mgr.get(name=self.account_name).account
 
         self.client_seed = tmp_buf.read(4)
         self.client_hash = tmp_buf.read(20)

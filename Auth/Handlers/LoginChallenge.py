@@ -38,22 +38,22 @@ class LoginChallenge(object):
         self._parse_data()
 
         try:
-            account_mgr = AccountManager()
-            account = account_mgr.get(name=self.account_name).account
+            with AccountManager() as account_mgr:
+                account = account_mgr.get(name=self.account_name).account
 
-            if account is None:
-                raise Exception('Account \'{}\' is not found'.format(self.account_name))
+                if account is None:
+                    raise Exception('Account \'{}\' is not found'.format(self.account_name))
 
-            account.os = self.os
-            account.ip = '.'.join([str(i) for i in self.ip_addr])
-            account.platform = self.platform
-            account.timezone = self.timezone
-            account.locale = self.locale
+                account.os = self.os
+                account.ip = '.'.join([str(i) for i in self.ip_addr])
+                account.platform = self.platform
+                account.timezone = self.timezone
+                account.locale = self.locale
 
-            account_mgr.update()
+                account_mgr.update()
 
-            self.account = account
-            self.temp_ref.account = account
+                self.account = account
+                self.temp_ref.account = account
 
         # TODO: define account exceptions
         except Exception as e:

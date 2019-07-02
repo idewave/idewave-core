@@ -119,10 +119,11 @@ class PlayerSpawn(object):
         self._set_player_power()
 
     async def process(self):
-        response = PlayerManager()\
-            .set(self.player).prepare().build_update_packet(PlayerSpawn.SPAWN_FIELDS).get_update_packet(build=True)
+        with PlayerManager() as player_mgr:
+            response = player_mgr\
+                .set(self.player).prepare().build_update_packet(PlayerSpawn.SPAWN_FIELDS).get_update_packet(build=True)
 
-        return WorldOpCode.SMSG_UPDATE_OBJECT, response
+            return WorldOpCode.SMSG_UPDATE_OBJECT, response
 
     def _set_player_power(self):
         char_class = CharacterClass(self.player.char_class)

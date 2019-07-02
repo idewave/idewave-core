@@ -66,8 +66,9 @@ def process():
 
     if parser_name == 'account':
         if subcommand == 'create':
-            AccountManager().create(name=args[0].name, password=args[0].password)
-            Logger.success('Account "{}" created successfully!'.format(args[0].name))
+            with AccountManager() as account_mgr:
+                account_mgr.create(name=args[0].name, password=args[0].password)
+                Logger.success('Account "{}" created successfully!'.format(args[0].name))
 
     # items
     item_parser = commands.add_parser('item')
@@ -81,13 +82,14 @@ def process():
 
     if parser_name == 'item':
         if subcommand == 'create':
-            ItemManager().create(
-                display_id=args[0].display_id,
-                item_type=args[0].item_type,
-                entry=int(args[0].entry)
-            ).save()
+            with ItemManager() as item_mgr:
+                item_mgr.create(
+                    display_id=args[0].display_id,
+                    item_type=args[0].item_type,
+                    entry=int(args[0].entry)
+                ).save()
 
-            Logger.success('Item "{}" created successfully!'.format(args[0].entry))
+                Logger.success('Item "{}" created successfully!'.format(args[0].entry))
 
     # spells
     spell_parser = commands.add_parser('spell')
@@ -179,34 +181,36 @@ def process():
 
     if parser_name == 'region':
         if subcommand == 'create':
-            RegionManager().create(
-                region_id=args[0].region_id,
-                y1=args[0].y1,
-                y2=args[0].y2,
-                x1=args[0].x1,
-                x2=args[0].x2,
-                continent_id=args[0].continent_id,
-            ).save()
+            with RegionManager() as region_mgr:
+                region_mgr.create(
+                    region_id=args[0].region_id,
+                    y1=args[0].y1,
+                    y2=args[0].y2,
+                    x1=args[0].x1,
+                    x2=args[0].x2,
+                    continent_id=args[0].continent_id,
+                ).save()
 
-            Logger.notify('Region "{}" created successfully!'.format(args[0].region_id))
+                Logger.notify('Region "{}" created successfully!'.format(args[0].region_id))
 
         elif subcommand == 'add_unit':
-            unit = UnitManager().new(
-                entry=args[0].unit_entry,
-                region_id=args[0].region_id,
-                x=args[0].x,
-                y=args[0].y,
-                z=args[0].z
-            ).set_stats().save().unit
+            with UnitManager() as unit_mgr:
+                unit = unit_mgr.new(
+                    entry=args[0].unit_entry,
+                    region_id=args[0].region_id,
+                    x=args[0].x,
+                    y=args[0].y,
+                    z=args[0].z
+                ).set_stats().save().unit
 
-            Logger.notify(
-                'Unit "{}" IN ({} - {} - {}) created successfully!'.format(
-                    args[0].unit_entry,
-                    args[0].x,
-                    args[0].y,
-                    args[0].z
+                Logger.notify(
+                    'Unit "{}" IN ({} - {} - {}) created successfully!'.format(
+                        args[0].unit_entry,
+                        args[0].x,
+                        args[0].y,
+                        args[0].z
+                    )
                 )
-            )
 
 
 process()

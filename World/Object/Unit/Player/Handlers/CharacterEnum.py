@@ -1,4 +1,5 @@
 from struct import pack
+
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Character.Constants.CharacterEquipSlot import CharacterEquipSlot
 from World.Region.Constants.Kalimdor import Kalimdor

@@ -11,5 +11,6 @@ class Exit(object):
 
     async def process(self):
         # TODO: correctly process disconnect
-        PlayerManager().set(self.temp_ref.player).save()
+        with PlayerManager() as player_mgr:
+            player_mgr.set(self.temp_ref.player).save()
         return None, None
