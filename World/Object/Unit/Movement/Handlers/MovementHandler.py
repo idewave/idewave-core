@@ -4,7 +4,7 @@ from struct import pack, unpack
 
 from World.Object.Unit.Constants.MovementFlags import MovementFlags
 from World.Object.Position import Position
-from World.Object.Unit.Player.PlayerManager import PlayerManager
+from Server.Registry.QueuesRegistry import QueuesRegistry
 from Utils.Timer import Timer
 
 
@@ -53,7 +53,7 @@ class MovementHandler(object):
         #     'orientation': self.position.orientation,
         # }))
 
-        # await players_queue.put(player)
+        await QueuesRegistry.players_queue.put(player)
 
         await asyncio.sleep(0)
 

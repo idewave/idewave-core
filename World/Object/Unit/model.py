@@ -1,5 +1,4 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy import event
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import orm
 
@@ -201,10 +200,3 @@ class Unit(Object):
         self.y = new_position.y
         self.z = new_position.z
         self.orientation = new_position.orientation
-
-
-@event.listens_for(Unit.x, 'set', propagate=True)
-@event.listens_for(Unit.y, 'set', propagate=True)
-@event.listens_for(Unit.z, 'set', propagate=True)
-def receive_set(target, value, oldvalue, initiator):
-    pass

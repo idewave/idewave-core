@@ -65,7 +65,6 @@ class RegionManager(object):
             self.session = connection.session
 
         self.region = None
-
         self.regions = self.load_all()
 
     def get_region(self, **kwargs):
@@ -109,14 +108,15 @@ class RegionManager(object):
         self.session.flush()
         return self
 
-    async def refresh(self):
+    async def refresh(self, player: Player):
         for region in self.regions:
+
+            region.online_players = player
+
             try:
                 region_units = region.units.copy()
             except DetachedInstanceError as e:
                 Logger.error('[Region Manager]: {}'.format(e))
-            except Exception as e:
-                Logger.error('[Region Manager]: another exception {}'.format(e))
             else:
                 units = region_units.copy()
 
@@ -133,7 +133,10 @@ class RegionManager(object):
                 spawn_dist = Config.World.Gameplay.spawn_dist
 
                 if not spawn_dist == 0:
-                    for player in region.players:
+                    # TODO: currently this is very slow, should be optimized
+                    for player_name in region.online_players:
+                        player = region.online_players[player_name]
+
                         if spawn_dist > 0:
                             units = [unit for unit in units if RegionManager._is_unit_in_spawn_radius(unit, player)]
 

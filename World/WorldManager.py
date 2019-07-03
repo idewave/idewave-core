@@ -3,7 +3,9 @@ from concurrent.futures import TimeoutError
 
 from Utils.Debug.Logger import Logger
 from Utils.Timer import Timer
+from World.Object.Unit.Player.model import Player
 from World.Region.RegionManager import RegionManager
+from Server.Registry.QueuesRegistry import QueuesRegistry
 
 
 class WorldManager(object):
@@ -18,16 +20,14 @@ class WorldManager(object):
             self.last_update = Timer.get_ms_time()
 
             try:
-                await asyncio.wait_for(self.update(), timeout=1.0)
+                player = await asyncio.wait_for(QueuesRegistry.players_queue.get(), timeout=1.0)
+                await asyncio.wait_for(self.update(player), timeout=1.0)
             except TimeoutError:
-                Logger.warning('[World Manager]: Timeout...')
+                pass
             except Exception as e:
                 Logger.error('[World Manager]: another exception "{}"'.format(e))
             finally:
                 await asyncio.sleep(self.heartbeat)
 
-    async def update(self):
-        try:
-            await self.region_mgr.refresh()
-        except Exception as e:
-            Logger.error('[World Manager]: on update "{}"'.format(e))
+    async def update(self, player: Player):
+        await self.region_mgr.refresh(player)

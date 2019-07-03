@@ -15,9 +15,14 @@ class PlayerInit(object):
 
     async def process(self):
         self._load_player()
-        await QueuesRegistry.connections_queue.put(
-            (self.temp_ref.player.name, self.reader, self.writer, self.header_crypt)
-        )
+
+        await QueuesRegistry.connections_queue.put((
+            self.temp_ref.player.name,
+            self.reader, self.writer,
+            self.header_crypt
+        ))
+        await QueuesRegistry.players_queue.put(self.temp_ref.player)
+
         return None, None
 
     def _load_player(self):
