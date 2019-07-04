@@ -121,9 +121,6 @@ class WorldServer(BaseServer):
                         writer.write(response)
                         await writer.drain()
 
-                finally:
-                    await asyncio.sleep(1)
-
     @staticmethod
     def create():
         Logger.info('[World Server]: init')

@@ -20,6 +20,8 @@ if __name__ == '__main__':
     login_server = LoginServer.create()
     world_server = WorldServer.create()
 
+    world_manager = WorldManager()
+
     QueuesRegistry.web_data_queue = MultiProcessQueue.get_instance()
     QueuesRegistry.players_queue = asyncio.Queue()
     QueuesRegistry.connections_queue = asyncio.Queue()
@@ -43,7 +45,7 @@ if __name__ == '__main__':
                 # https://stackoverflow.com/questions/49275895/asyncio-multiple-concurrent-servers/49280706#49280706
                 loop.run_in_executor(executor, WebServer.run),
 
-                asyncio.ensure_future(WorldManager().run())
+                asyncio.ensure_future(world_manager.run())
             )
         )
     except Exception as e:

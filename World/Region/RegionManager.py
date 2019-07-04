@@ -1,3 +1,4 @@
+import asyncio
 from sqlalchemy.orm.exc import DetachedInstanceError
 
 from World.Region.model import Region
@@ -108,11 +109,12 @@ class RegionManager(object):
         self.session.flush()
         return self
 
-    async def refresh(self, player: Player):
+    async def refresh_players(self, player: Player):
         for region in self.regions:
-
             region.online_players = player
 
+    async def refresh_creatures(self):
+        for region in self.regions:
             try:
                 region_units = region.units.copy()
             except DetachedInstanceError as e:
@@ -145,10 +147,14 @@ class RegionManager(object):
                                 unit_mgr.set(unit)
                                 unit_mgr.movement.set_update_flags(movement_flags)
 
-                                batch_builder = unit_mgr.prepare().build_update_packet(RegionManager.UNIT_SPAWN_FIELDS)
+                                batch_builder = unit_mgr.prepare() \
+                                    .build_update_packet(RegionManager.UNIT_SPAWN_FIELDS)
 
                                 update_packets.append(batch_builder)
-                                await QueuesRegistry.update_packets_queue.put((player.name, update_packets))
+                                asyncio.ensure_future(
+                                    QueuesRegistry.update_packets_queue.put((player.name, update_packets))
+                                )
+
 
     @staticmethod
     def _is_unit_in_spawn_radius(unit: Unit, player: Player):

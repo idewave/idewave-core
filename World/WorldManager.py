@@ -30,4 +30,5 @@ class WorldManager(object):
                 await asyncio.sleep(self.heartbeat)
 
     async def update(self, player: Player):
-        await self.region_mgr.refresh(player)
+        await self.region_mgr.refresh_players(player)
+        await self.region_mgr.refresh_creatures()
