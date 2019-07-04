@@ -5,8 +5,9 @@ from World.Region.model import Region
 from World.Object.Unit.model import Unit
 from World.Object.Unit.UnitManager import UnitManager
 from World.Object.Unit.Player.model import Player
+from World.Object.Unit.Player.PlayerManager import PlayerManager
 from DB.Connection.WorldConnection import WorldConnection
-from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField
+from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField, PlayerField
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from Utils.Debug.Logger import Logger
 from Server.Registry.QueuesRegistry import QueuesRegistry
@@ -16,11 +17,65 @@ from Config.Run.config import Config
 
 class RegionManager(object):
 
-    UNITS_PLAYER_FIELDS = [
+    PLAYER_SPAWN_FIELDS = [
         # Object fields
         ObjectField.GUID,
         ObjectField.TYPE,
         ObjectField.SCALE_X,
+
+        # Unit fields
+        UnitField.HEALTH,
+        UnitField.MAXHEALTH,
+        UnitField.LEVEL,
+        UnitField.FACTIONTEMPLATE,
+        UnitField.BYTES_0,
+        UnitField.FLAGS,
+        UnitField.DISPLAYID,
+        UnitField.NATIVEDISPLAYID,
+        UnitField.BASE_HEALTH,
+
+        # Player fields
+        PlayerField.FLAGS,
+        PlayerField.BYTES_1,
+        PlayerField.BYTES_2,
+
+        PlayerField.VISIBLE_ITEM_1_0,
+        PlayerField.VISIBLE_ITEM_2_0,
+        PlayerField.VISIBLE_ITEM_3_0,
+        PlayerField.VISIBLE_ITEM_4_0,
+        PlayerField.VISIBLE_ITEM_5_0,
+        PlayerField.VISIBLE_ITEM_6_0,
+        PlayerField.VISIBLE_ITEM_7_0,
+        PlayerField.VISIBLE_ITEM_8_0,
+        PlayerField.VISIBLE_ITEM_9_0,
+        PlayerField.VISIBLE_ITEM_10_0,
+        PlayerField.VISIBLE_ITEM_11_0,
+        PlayerField.VISIBLE_ITEM_12_0,
+        PlayerField.VISIBLE_ITEM_13_0,
+        PlayerField.VISIBLE_ITEM_14_0,
+        PlayerField.VISIBLE_ITEM_15_0,
+        PlayerField.VISIBLE_ITEM_16_0,
+        PlayerField.VISIBLE_ITEM_17_0,
+
+        PlayerField.INV_SLOT_HEAD,
+        PlayerField.INV_SLOT_NECK,
+        PlayerField.INV_SLOT_SHOULDERS,
+        PlayerField.INV_SLOT_BODY,
+        PlayerField.INV_SLOT_CHEST,
+        PlayerField.INV_SLOT_WAIST,
+        PlayerField.INV_SLOT_LEGS,
+        PlayerField.INV_SLOT_FEET,
+        PlayerField.INV_SLOT_WRISTS,
+        PlayerField.INV_SLOT_HANDS,
+        PlayerField.INV_SLOT_FINGER1,
+        PlayerField.INV_SLOT_FINGER2,
+        PlayerField.INV_SLOT_TRINKET1,
+        PlayerField.INV_SLOT_TRINKET2,
+        PlayerField.INV_SLOT_BACK,
+        PlayerField.INV_SLOT_MAINHAND,
+        PlayerField.INV_SLOT_OFFHAND,
+        PlayerField.INV_SLOT_RANGED,
+        PlayerField.INV_SLOT_TABARD
     ]
 
     UNIT_SPAWN_FIELDS = [
@@ -109,9 +164,39 @@ class RegionManager(object):
         self.session.flush()
         return self
 
-    async def refresh_players(self, player: Player):
+    async def refresh_players(self, current_player: Player):
         for region in self.regions:
-            region.online_players = player
+            region.online_players = current_player
+
+        players = [
+            current_player.region.online_players[name]
+            for name in current_player.region.online_players
+            if not name == current_player.name
+        ]
+
+        # finally building packet for player that contains player list
+        movement_flags = (
+                UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
+                UpdateObjectFlags.UPDATEFLAG_LIVING.value |
+                UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
+        )
+
+        update_packets = []
+
+        for player in players:
+            with PlayerManager() as player_mgr:
+                player_mgr.set(player)
+                player_mgr.movement.set_update_flags(movement_flags)
+
+                batch_builder = player_mgr.prepare() \
+                    .build_update_packet(RegionManager.PLAYER_SPAWN_FIELDS)
+
+                update_packets.append(batch_builder)
+
+        asyncio.ensure_future(
+            QueuesRegistry.update_packets_queue.put((current_player.name, update_packets))
+        )
+
 
     async def refresh_creatures(self):
         for region in self.regions:
@@ -129,15 +214,14 @@ class RegionManager(object):
                         UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
                 )
 
-                # list of unit managers each ready to build the update packet
-                update_packets = []
-
                 spawn_dist = Config.World.Gameplay.spawn_dist
 
                 if not spawn_dist == 0:
-                    # TODO: currently this is very slow, should be optimized
                     for player_name in region.online_players:
                         player = region.online_players[player_name]
+
+                        # list of unit managers each ready to build the update packet
+                        update_packets = []
 
                         if spawn_dist > 0:
                             units = [unit for unit in units if RegionManager._is_unit_in_spawn_radius(unit, player)]
@@ -151,9 +235,10 @@ class RegionManager(object):
                                     .build_update_packet(RegionManager.UNIT_SPAWN_FIELDS)
 
                                 update_packets.append(batch_builder)
-                                asyncio.ensure_future(
-                                    QueuesRegistry.update_packets_queue.put((player.name, update_packets))
-                                )
+
+                        asyncio.ensure_future(
+                            QueuesRegistry.update_packets_queue.put((player.name, update_packets))
+                        )
 
 
     @staticmethod

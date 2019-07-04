@@ -57,7 +57,7 @@ class WorldPacketManager(object):
                         header_crypt=self.header_crypt
                     ).process()
                 except Exception as e:
-                    Logger.error(handler)
+                    Logger.error(e)
                 else:
                     if opcode and response:
                         packets.append(WorldPacketManager.generate_packet(opcode, response, self.header_crypt))

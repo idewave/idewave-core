@@ -29,10 +29,6 @@ Realm:
     WorldServer:
       host: 127.0.0.1
       port: 8085
-
-    RealmServer:
-      host: 127.0.0.1
-      port: 8085
       realm_name: Idewave-core
 
   General:
@@ -66,7 +62,7 @@ World:
 
           Movement:
             speed_walk: 2.5
-            speed_run: 97.0
+            speed_run: 7.0
             speed_run_back: 4.5
             speed_swim: 4.722222
             speed_swim_back: 2.5
