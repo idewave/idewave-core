@@ -168,11 +168,10 @@ class RegionManager(object):
         for region in self.regions:
             region.online_players = current_player
 
-        players = [
-            current_player.region.online_players[name]
-            for name in current_player.region.online_players
-            if not name == current_player.name
-        ]
+        current_region = next(region for region in self.regions if region.id == current_player.region.id)
+        online_players = current_region.online_players
+
+        players = [online_players[name] for name in online_players if not name == current_player.name]
 
         # finally building packet for player that contains player list
         movement_flags = (
