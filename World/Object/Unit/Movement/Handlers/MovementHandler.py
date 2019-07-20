@@ -1,11 +1,9 @@
 import io
-import asyncio
-from struct import pack, unpack
+from struct import unpack
 
 from World.Object.Unit.Constants.MovementFlags import MovementFlags
 from World.Object.Position import Position
 from Server.Registry.QueuesRegistry import QueuesRegistry
-from Utils.Timer import Timer
 
 
 class MovementHandler(object):
@@ -31,33 +29,9 @@ class MovementHandler(object):
         self._parse_packet()
 
         player = self.temp_ref.player
-
-        response = player.packed_guid + pack(
-            '<IBI4ff',
-            self.move_flags,            # unit movement flags
-            self.move_flags2,           # extra move flags
-            Timer.get_ms_time(),
-            self.position.x,
-            self.position.y,
-            self.position.z,
-            self.position.orientation,
-            0
-        )
-
         player.position = self.position
-
-        # await web_data_queue.put(json.dumps({
-        #     'x': self.position.x,
-        #     'y': self.position.y,
-        #     'z': self.position.z,
-        #     'orientation': self.position.orientation,
-        # }))
-
         await QueuesRegistry.players_queue.put(player)
 
-        await asyncio.sleep(0)
-
-        # should return nothing
         return None, None
 
     def _parse_packet(self):

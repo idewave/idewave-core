@@ -1,12 +1,13 @@
 import asyncio
 import subprocess
 import traceback
-from concurrent.futures import ProcessPoolExecutor
+
 from multiprocessing import cpu_count
 
 from Server.LoginServer import LoginServer
 from Server.WorldServer import WorldServer
-from Server.WebServer import WebServer
+from Server.WebsocketServer.WebsocketServer import WebsocketServer
+
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldManager import WorldManager
 from Server.Queue.MultiProcessQueue import MultiProcessQueue
@@ -19,6 +20,7 @@ if __name__ == '__main__':
 
     login_server = LoginServer.create()
     world_server = WorldServer.create()
+    websocket_server = WebsocketServer.create()
 
     world_manager = WorldManager()
 
@@ -26,8 +28,6 @@ if __name__ == '__main__':
     QueuesRegistry.players_queue = asyncio.Queue()
     QueuesRegistry.connections_queue = asyncio.Queue()
     QueuesRegistry.update_packets_queue = asyncio.Queue()
-
-    executor = ProcessPoolExecutor(max_workers=cpu_count())
 
     # TODO: check how this works for windows
     subprocess.run('redis-server --daemonize yes', shell=True)
@@ -41,9 +41,8 @@ if __name__ == '__main__':
                 asyncio.ensure_future(world_server.refresh_connections()),
                 asyncio.ensure_future(world_server.send_update_packet_to_player()),
 
-                # FIXME: anti-pattern
-                # https://stackoverflow.com/questions/49275895/asyncio-multiple-concurrent-servers/49280706#49280706
-                loop.run_in_executor(executor, WebServer.run),
+                websocket_server.get_instance(),
+                asyncio.ensure_future(websocket_server.get_web_data()),
 
                 asyncio.ensure_future(world_manager.run())
             )
@@ -58,6 +57,7 @@ if __name__ == '__main__':
         pass
     except Exception as e:
         Logger.error('[Run]: {}'.format(e))
+        traceback.print_exc()
         pass
-
-    loop.close()
+    finally:
+        loop.close()

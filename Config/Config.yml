@@ -10,7 +10,7 @@ Database:
     world_db: wowdb_world
     realm_db: wowdb_realm
 
-WebServer:
+WebsocketServer:
   Connection:
     host: 127.0.0.1
     port: 9001

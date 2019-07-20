@@ -5,8 +5,6 @@ from sqlalchemy import orm
 from DB.BaseModel import BaseModel
 from World.Object.Unit.Player.model import Player
 
-from Utils.Debug.Logger import Logger
-
 from Config.Run.config import Config
 
 

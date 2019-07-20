@@ -55,18 +55,7 @@ class Account(BaseModel):
 
     def _generate_srp_data(self):
         self.salt = urandom(32)
-        self.verifier = SRP._generate_verifier(
+        self.verifier = SRP.generate_verifier(
                 self.name,
                 self.password,
                 self.salt)
-
-    def json(self):
-        return json.dumps({
-            'name': self.name,
-            'verifier': self.verifier,
-            'salt': b64encode(self.salt).decode('utf-8'),
-            'ip': self.ip,
-            'timezone': self.timezone,
-            'locale': self.locale,
-            'id': self.id
-        })

@@ -3,7 +3,7 @@ from struct import pack, unpack
 from Auth.Crypto.HeaderCrypt import HeaderCrypt
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
-from World.WorldPacket.Constants.Handlers import HANDLERS
+from World.WorldPacket.Constants.MapHandlerToOpcode import MAP_HANDLER_TO_OPCODE
 from Utils.Debug.Logger import Logger
 
 
@@ -42,9 +42,9 @@ class WorldPacketManager(object):
         size = unpack('>H', packet[:2])[0]
         opcode = WorldOpCode(unpack('<I', packet[2:6])[0])
 
-        if opcode in HANDLERS:
+        if opcode in MAP_HANDLER_TO_OPCODE:
             Logger.debug('[World Packet]: processing {} opcode ({} bytes)'.format(WorldOpCode(opcode).name, size))
-            handlers = HANDLERS[opcode]
+            handlers = MAP_HANDLER_TO_OPCODE[opcode]
             packets = list()
 
             for handler in handlers:

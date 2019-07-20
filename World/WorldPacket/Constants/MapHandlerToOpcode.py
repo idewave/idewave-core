@@ -26,7 +26,7 @@ from World.Object.Item.Handlers.SwapItem import SwapItem
 from World.Region.Handlers.ZoneUpdate import ZoneUpdate
 
 
-HANDLERS = {
+MAP_HANDLER_TO_OPCODE = {
     WorldOpCode.CMSG_PING: [PingHandler],
 
     # Character
