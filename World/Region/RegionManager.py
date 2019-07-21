@@ -123,7 +123,6 @@ class RegionManager(object):
         self.region = None
         self.regions = self.load_all()
         self.regions_as_json = [region.to_json() for region in self.regions]
-        Logger.debug(self.regions_as_json)
 
     def get_region(self, **kwargs):
         # TODO: fix args receiving

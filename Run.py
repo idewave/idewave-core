@@ -38,11 +38,11 @@ if __name__ == '__main__':
                 login_server.get_instance(),
 
                 world_server.get_instance(),
-                asyncio.ensure_future(world_server.refresh_connections()),
-                asyncio.ensure_future(world_server.send_update_packet_to_player()),
+                # asyncio.ensure_future(world_server.refresh_connections()),
+                # asyncio.ensure_future(world_server.send_update_packet_to_player()),
 
                 websocket_server.get_instance(),
-                asyncio.ensure_future(websocket_server.get_web_data()),
+                # asyncio.ensure_future(websocket_server.get_web_data()),
 
                 asyncio.ensure_future(world_manager.run())
             )

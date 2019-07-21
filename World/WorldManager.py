@@ -29,7 +29,7 @@ class WorldManager(object):
             except Exception as e:
                 Logger.error('[World Manager]: another exception "{}"'.format(e))
             finally:
-                await QueuesRegistry.web_data_queue.put(json.dumps(self.region_mgr.regions_as_json))
+                await QueuesRegistry.web_data_queue.put(self.region_mgr.regions_as_json)
                 await asyncio.sleep(self.heartbeat)
 
     async def update(self, player: Player):

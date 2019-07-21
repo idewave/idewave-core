@@ -28,32 +28,42 @@ class WebsocketServer(object):
             try:
                 self.web_data = await asyncio.wait_for(QueuesRegistry.web_data_queue.get(), timeout=0.5)
             except TimeoutError:
-                continue
+                pass
+            finally:
+                await asyncio.sleep(1)
 
     async def accept_connection(self, websocket: WebSocketCommonProtocol):
         while True:
             try:
                 request = await asyncio.wait_for(websocket.recv(), timeout=1.0)
             except TimeoutError:
-                continue
+                pass
+            except ConnectionClosedOK:
+                return
             else:
                 parsed_request = json.loads(request)
                 if 'type' in parsed_request and parsed_request['type'] == RequestType.SUBSCRIBE.value:
                     Logger.success('[Websocket Server]: new connection was added, {}'.format(websocket.local_address))
                     self.connections.append(websocket)
+            finally:
+                await asyncio.sleep(1)
 
     async def handle_connection(self, websocket: WebSocketCommonProtocol, path):
         asyncio.create_task(self.accept_connection(websocket))
+        asyncio.create_task(self.get_web_data())
 
         while True:
             try:
-                await websocket.send(json.dumps(self.web_data))
+                response = {'type': 'UNIT_FETCH_LIST_RESPONSE', 'payload': self.web_data}
+                await websocket.send(json.dumps(response))
             except ConnectionClosedOK:
                 Logger.error('[Websocket Server]: Connection was closed')
                 return
             except Exception as e:
                 Logger.error('[Websocket Server]: {}'.format(type(e)))
                 continue
+            finally:
+                await asyncio.sleep(1)
 
     @staticmethod
     def create():
