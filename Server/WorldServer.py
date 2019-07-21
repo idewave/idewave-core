@@ -36,8 +36,7 @@ class WorldServer(BaseServer):
         auth = AuthManager(reader, writer, temp_ref=temp_ref, world_packet_manager=world_packet_manager)
         await auth.process(step=AuthStep.SECOND)
 
-        asyncio.create_task(self.refresh_connections())
-        asyncio.create_task(self.send_update_packet_to_player())
+        self._register_tasks()
 
         while True:
             try:
@@ -123,7 +122,10 @@ class WorldServer(BaseServer):
                         )
                         writer.write(response)
                         await writer.drain()
-                        Logger.warning(response)
+
+    def _register_tasks(self):
+        asyncio.create_task(self.refresh_connections())
+        asyncio.create_task(self.send_update_packet_to_player())
 
     @staticmethod
     def create():

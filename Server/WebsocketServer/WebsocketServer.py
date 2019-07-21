@@ -49,12 +49,11 @@ class WebsocketServer(object):
                 await asyncio.sleep(1)
 
     async def handle_connection(self, websocket: WebSocketCommonProtocol, path):
-        asyncio.create_task(self.accept_connection(websocket))
-        asyncio.create_task(self.get_web_data())
+        self._register_tasks(websocket=websocket)
 
         while True:
             try:
-                response = {'type': 'UNIT_FETCH_LIST_RESPONSE', 'payload': self.web_data}
+                response = {'type': 'REGIONS_FETCH_LIST_RESPONSE', 'payload': self.web_data}
                 await websocket.send(json.dumps(response))
             except ConnectionClosedOK:
                 Logger.error('[Websocket Server]: Connection was closed')
@@ -64,6 +63,12 @@ class WebsocketServer(object):
                 continue
             finally:
                 await asyncio.sleep(1)
+
+    def _register_tasks(self, **kwargs):
+        websocket = kwargs.pop('websocket')
+
+        asyncio.create_task(self.accept_connection(websocket))
+        asyncio.create_task(self.get_web_data())
 
     @staticmethod
     def create():
