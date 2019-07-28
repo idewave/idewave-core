@@ -1,6 +1,7 @@
 import asyncio
 import websockets
 import json
+import traceback
 
 from websockets.exceptions import ConnectionClosedOK
 from websockets import WebSocketCommonProtocol
@@ -59,7 +60,9 @@ class WebsocketServer(object):
                 Logger.error('[Websocket Server]: Connection was closed')
                 return
             except Exception as e:
-                Logger.error('[Websocket Server]: {}'.format(type(e)))
+                Logger.error('[Websocket Server]: {}'.format(e))
+                Logger.warning(self.web_data)
+                traceback.print_exc()
                 continue
             finally:
                 await asyncio.sleep(1)

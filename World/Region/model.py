@@ -1,5 +1,5 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy import orm
 
 from DB.BaseModel import BaseModel
@@ -24,26 +24,26 @@ class Region(BaseModel):
     }
 
     def __init__(self):
-        self._players = {}
+        self.online_players = {}
 
     # this uses on session.query() etc
     @orm.reconstructor
     def init_on_load(self):
-        self._players = {}
+        self.online_players = {}
 
     # specify only creatures, we can detect them by unit_template field which is NULL for players and NOT NULL for NPC
     units = relationship('Unit', primaryjoin="and_((Region.id == Unit.region_id), (Unit.unit_template_id))")
 
     players = relationship('Player', lazy='joined')
 
-    @hybrid_property
-    def online_players(self):
-        return self._players
+    @hybrid_method
+    def get_online_players(self):
+        return self.online_players
 
-    @online_players.setter
-    def online_players(self, player: Player):
+    @hybrid_method
+    def set_online_players(self, player: Player):
         if player.region.id == self.id:
-            self._players[player.name] = player
+            self.online_players[player.name] = player
         else:
-            if player.name in self._players:
-                del self._players[player.name]
+            if player.name in self.online_players:
+                del self.online_players[player.name]

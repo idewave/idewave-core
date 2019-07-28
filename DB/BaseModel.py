@@ -28,6 +28,12 @@ class BaseModel(AbstractConcreteBase):
     @hybrid_method
     def to_json(self):
         exclude_keys = ['_sa_instance_state']
+
+        # TODO: I think this can be refactored in the future,
+        # this check need to avoid RecursionError
+        if type(self).__name__ in ['Unit', 'Player', 'Item']:
+            exclude_keys += ['region']
+
         result = {}
         try:
             for key in self.__dict__:
@@ -36,15 +42,27 @@ class BaseModel(AbstractConcreteBase):
                         result[key] = [obj.to_json() for obj in self.__dict__[key]]
                     elif isinstance(self.__dict__[key], BaseModel):
                         result[key] = self.__dict__[key].to_json()
+                    elif isinstance(self.__dict__[key], dict):
+                        sub_result = {}
+                        for _key in self.__dict__[key]:
+                            item = self.__dict__[key][_key]
+                            if isinstance(item, BaseModel):
+                                sub_result[_key] = item.to_json()
+                            else:
+                                sub_result[_key] = item
+                        result[key] = sub_result
                     elif isinstance(self.__dict__[key], (bytes, bytearray)):
                         pass
                     else:
                         result[key] = self.__dict__[key]
         except AttributeError as e:
-            Logger.error('[Player]: {}'.format(e))
+            Logger.error('[BaseModel][Player]: {}'.format(e))
+            raise e
+        except RecursionError as e:
+            Logger.error('[BaseModel]: {}'.format(e))
             raise e
         except Exception as e:
-            traceback.print_exc()
+            raise e
         else:
             return result
 

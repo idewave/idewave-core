@@ -1,5 +1,5 @@
 import asyncio
-import json
+import traceback
 
 from concurrent.futures import TimeoutError
 
@@ -28,9 +28,14 @@ class WorldManager(object):
                 pass
             except Exception as e:
                 Logger.error('[World Manager]: another exception "{}"'.format(e))
+                traceback.print_exc()
             finally:
-                await QueuesRegistry.web_data_queue.put(self.region_mgr.regions_as_json)
-                await asyncio.sleep(self.heartbeat)
+                try:
+                    await QueuesRegistry.web_data_queue.put(self.region_mgr.get_regions_as_json())
+                    await asyncio.sleep(self.heartbeat)
+                except Exception as e:
+                    Logger.error('[World Manager]: error')
+                    traceback.print_exc()
 
     async def update(self, player: Player):
         await self.region_mgr.refresh_players(player)

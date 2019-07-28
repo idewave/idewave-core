@@ -122,7 +122,9 @@ class RegionManager(object):
 
         self.region = None
         self.regions = self.load_all()
-        self.regions_as_json = [region.to_json() for region in self.regions]
+
+    def get_regions_as_json(self):
+        return [region.to_json() for region in self.regions];
 
     def get_region(self, **kwargs):
         # TODO: fix args receiving
@@ -167,11 +169,11 @@ class RegionManager(object):
 
     async def refresh_players(self, current_player: Player):
         for region in self.regions:
-            region.online_players = current_player
+            region.set_online_players(current_player)
 
         current_region = next(region for region in self.regions if region.id == current_player.region.id)
-        online_players = current_region.online_players
 
+        online_players = current_region.get_online_players()
         players = [online_players[name] for name in online_players if not name == current_player.name]
 
         # finally building packet for player that contains player list
@@ -215,9 +217,11 @@ class RegionManager(object):
 
                 spawn_dist = Config.World.Gameplay.spawn_dist
 
+                online_players = region.get_online_players()
+
                 if not spawn_dist == 0:
-                    for player_name in region.online_players:
-                        player = region.online_players[player_name]
+                    for player_name in online_players:
+                        player = online_players[player_name]
 
                         # list of unit managers each ready to build the update packet
                         update_packets = []
