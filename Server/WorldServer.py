@@ -77,6 +77,8 @@ class WorldServer(BaseServer):
                     'header_crypt': header_crypt
                 }
                 Logger.info('[World Server]: new connection for player "{}"'.format(player_name))
+            finally:
+                await asyncio.sleep(1)
 
     async def send_update_packet_to_player(self):
         while True:
@@ -92,14 +94,14 @@ class WorldServer(BaseServer):
                     writer = self.connections[player_name]['writer']
                     header_crypt = self.connections[player_name]['header_crypt']
                 except KeyError:
-                    # do nothing for this because on login step player not saved in self.connections
+                    # on login step player object not registered in self.connections,
+                    # just ignore
                     pass
                 else:
 
                     responses = []
 
                     while update_packets:
-                        # batches with chained with this packet
                         head_update_packet_builder = update_packets.pop(0)
 
                         for index in range(0, WorldServer.MAX_UPDATE_PACKETS_INCLUDED):
@@ -123,9 +125,11 @@ class WorldServer(BaseServer):
                         writer.write(response)
                         await writer.drain()
 
+            await asyncio.sleep(1)
+
     def _register_tasks(self):
         asyncio.create_task(self.refresh_connections())
-        asyncio.create_task(self.send_update_packet_to_player())
+        asyncio.ensure_future(self.send_update_packet_to_player())
 
     @staticmethod
     def create():

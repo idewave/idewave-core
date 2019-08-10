@@ -29,7 +29,7 @@ class CharacterCreate(object):
                 hair_style=data['hair_style'],
                 hair_color=data['hair_color'],
                 facial_hair=data['facial_hair'],
-            ).set_stats().save()
+            ).set_stats().save().set_default_equipment()
 
             Logger.notify('Character "{}" created'.format(data['name']))
 

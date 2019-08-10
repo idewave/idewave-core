@@ -70,8 +70,8 @@ class WebsocketServer(object):
     def _register_tasks(self, **kwargs):
         websocket = kwargs.pop('websocket')
 
-        asyncio.create_task(self.accept_connection(websocket))
-        asyncio.create_task(self.get_web_data())
+        asyncio.ensure_future(self.accept_connection(websocket))
+        asyncio.ensure_future(self.get_web_data())
 
     @staticmethod
     def create():

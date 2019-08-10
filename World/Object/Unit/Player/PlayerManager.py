@@ -85,8 +85,6 @@ class PlayerManager(UnitManager):
 
         # equipment
         for slot in range(CharacterEquipSlot.HEAD.value, CharacterEquipSlot.BAG1.value):
-            # item = self.equipment.get_object_field(CharacterEquipSlot(slot))
-            # item = self.equipment.get_item(CharacterEquipSlot(slot))
             item = self.equipment[CharacterEquipSlot(slot)].item
 
             if item is not None:
@@ -116,17 +114,20 @@ class PlayerManager(UnitManager):
     def equip_item(self, slot: CharacterEquipSlot, item: Item):
         self.player.equipment.set_object_field(slot, item)
 
+    def set_default_equipment(self):
+        self.session.expunge(self.player.region)
+        self.session.expunge(self.player.account)
+        self.session.expunge(self.player)
+
+        with EquipmentManager(session=self.session) as equipment_mgr:
+            try:
+                self.equipment = equipment_mgr.set_default_equipment(player=self.player).get_items()
+            except Exception as e:
+                Logger.error('[PlayerMgr]: equipment error = {}'.format(e))
+
     def _set_start_location(self):
         race = CharacterRace(self.player.race)
         coords = START_LOCATION[race]
-
-        # position = Position(
-        #     x=coords['x'],
-        #     y=coords['y'],
-        #     z=coords['z'],
-        #     region_id=coords['region_id'],
-        #     map_id=coords['map_id']
-        # )
 
         self.player.x = coords['x']
         self.player.y = coords['y']
@@ -135,16 +136,11 @@ class PlayerManager(UnitManager):
 
         region = self.session.query(Region).filter_by(region_id=coords['region_id']).first()
 
-        # self.player.region_id = position.region_id
         self.player.region = region
         self.player.map_id = coords['map_id']
 
         # initialize movement data for building update packets
         # self.movement.position = position
-
-    def _set_default_equipment(self):
-        with EquipmentManager(session=self.session) as equipment_mgr:
-            self.equipment = equipment_mgr.set_default_equipment(player=self.player).get_items()
 
     def _set_faction_template_id(self):
         race = CharacterRace(self.player.race)
@@ -181,16 +177,14 @@ class PlayerManager(UnitManager):
         self.session.add(self.player)
         self.session.flush()
 
-        self._set_default_equipment()
-
-        self.stats_builder = StatsBuilder(self.world_object)
+        self.stats_builder = StatsBuilder(self.player)
 
         return self
 
     def prepare(self):
         super(PlayerManager, self).prepare()
 
-        with EquipmentManager(session=self.session) as equipment_mgr:
+        with EquipmentManager() as equipment_mgr:
             self.equipment = equipment_mgr.get_equipment(player=self.player).get_items()
             self.add_player_fields()
             return self

@@ -1,8 +1,5 @@
 import asyncio
 import subprocess
-import traceback
-
-from multiprocessing import cpu_count
 
 from Server.LoginServer import LoginServer
 from Server.WorldServer import WorldServer
@@ -36,28 +33,21 @@ if __name__ == '__main__':
         loop.run_until_complete(
             asyncio.gather(
                 login_server.get_instance(),
-
                 world_server.get_instance(),
-                # asyncio.ensure_future(world_server.refresh_connections()),
-                # asyncio.ensure_future(world_server.send_update_packet_to_player()),
-
                 websocket_server.get_instance(),
-                # asyncio.ensure_future(websocket_server.get_web_data()),
-
                 asyncio.ensure_future(world_manager.run())
             )
         )
     except Exception as e:
-        Logger.error('[Run]: {}'.format(e))
-        traceback.print_exc()
+        Logger.error('[Run]: (run until complete) {}'.format(e))
+        raise e
 
     try:
         loop.run_forever()
     except KeyboardInterrupt:
         pass
     except Exception as e:
-        Logger.error('[Run]: {}'.format(e))
-        traceback.print_exc()
-        pass
+        Logger.error('[Run]: (run forever) {}'.format(e))
+        raise e
     finally:
         loop.close()

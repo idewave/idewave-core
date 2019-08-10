@@ -34,7 +34,7 @@ class WorldManager(object):
                     await QueuesRegistry.web_data_queue.put(self.region_mgr.get_regions_as_json())
                     await asyncio.sleep(self.heartbeat)
                 except Exception as e:
-                    Logger.error('[World Manager]: error')
+                    Logger.error('[World Manager]: {}'.format(e))
                     traceback.print_exc()
 
     async def update(self, player: Player):
