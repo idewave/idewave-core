@@ -31,7 +31,7 @@ class WorldManager(object):
                 traceback.print_exc()
             finally:
                 try:
-                    await QueuesRegistry.web_data_queue.put(self.region_mgr.get_regions_as_json())
+                    # await QueuesRegistry.web_data_queue.put(self.region_mgr.get_regions_as_json())
                     await asyncio.sleep(self.heartbeat)
                 except Exception as e:
                     Logger.error('[World Manager]: {}'.format(e))

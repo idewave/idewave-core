@@ -121,7 +121,7 @@ class WorldServer(BaseServer):
                         await writer.drain()
 
     def _register_tasks(self):
-        asyncio.create_task(self.refresh_connections())
+        asyncio.ensure_future(self.refresh_connections())
         asyncio.ensure_future(self.send_update_packet_to_player())
 
     @staticmethod

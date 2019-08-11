@@ -34,7 +34,7 @@ if __name__ == '__main__':
             asyncio.gather(
                 login_server.get_instance(),
                 world_server.get_instance(),
-                websocket_server.get_instance(),
+                # websocket_server.get_instance(),
                 asyncio.ensure_future(world_manager.run())
             )
         )
