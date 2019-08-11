@@ -90,7 +90,7 @@ class EquipmentManager(ObjectManager):
 
                 equipment = Equipment()
                 equipment.item = item
-                equipment.player = player
+                equipment.player = self.session.merge(player)
                 equipment.slot_id = slot_id
                 items.append(equipment)
 

@@ -119,7 +119,7 @@ class PlayerManager(UnitManager):
         self.session.expunge(self.player.account)
         self.session.expunge(self.player)
 
-        with EquipmentManager(session=self.session) as equipment_mgr:
+        with EquipmentManager() as equipment_mgr:
             try:
                 self.equipment = equipment_mgr.set_default_equipment(player=self.player).get_items()
             except Exception as e:

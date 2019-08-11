@@ -57,9 +57,6 @@ class WorldServer(BaseServer):
                 traceback.print_exc()
                 break
 
-            finally:
-                await asyncio.sleep(1)
-
         writer.close()
 
     async def refresh_connections(self):
@@ -77,8 +74,6 @@ class WorldServer(BaseServer):
                     'header_crypt': header_crypt
                 }
                 Logger.info('[World Server]: new connection for player "{}"'.format(player_name))
-            finally:
-                await asyncio.sleep(1)
 
     async def send_update_packet_to_player(self):
         while True:
@@ -124,8 +119,6 @@ class WorldServer(BaseServer):
                         )
                         writer.write(response)
                         await writer.drain()
-
-            await asyncio.sleep(1)
 
     def _register_tasks(self):
         asyncio.create_task(self.refresh_connections())

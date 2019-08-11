@@ -11,12 +11,6 @@ from Utils.Debug.Logger import Logger
 class ObjectManager(object):
 
     def __init__(self, **kwargs):
-
-        # pass external session to prevent 'Object already attached to another session' error
-        external_session = kwargs.pop('session', None)
-        if external_session:
-            self.session = external_session
-
         self.update_packet_builder = UpdatePacketBatch()
         self.fields = {}
 
