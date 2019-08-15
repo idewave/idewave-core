@@ -202,12 +202,10 @@ class RegionManager(object):
     async def refresh_creatures(self):
         for region in self.regions:
             try:
-                region_units = region.units.copy()
+                units = region.units.copy()
             except DetachedInstanceError as e:
                 Logger.error('[Region Manager]: {}'.format(e))
             else:
-                units = region_units.copy()
-
                 # finally building packet for player that contains unit list
                 movement_flags = (
                         UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
@@ -242,6 +240,8 @@ class RegionManager(object):
                         asyncio.ensure_future(
                             QueuesRegistry.update_packets_queue.put((player.name, update_packets))
                         )
+
+                del units
 
 
     @staticmethod

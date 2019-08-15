@@ -12,6 +12,7 @@ Database:
 
 WebsocketServer:
   Connection:
+    # if located on vps or any another external server, you should set external ip of that server
     host: 127.0.0.1
     port: 9001
 
@@ -27,17 +28,19 @@ Realm:
       port: 3724
 
     WorldServer:
+      # if located on vps or any another external server, you should set external ip of that server
       host: 127.0.0.1
       port: 8085
       realm_name: Idewave-core
 
   General:
-    motd: Welcome to the idw-core server
+    motd: Welcome to the idewave-core server
 
 World:
   Gameplay:
     game_speed: 0.01666667
     # -1 for infinite distance, 0 for disable spawn, more than 0 for any distance
+    # this value works only for player
     spawn_dist: 100
 
   Object:

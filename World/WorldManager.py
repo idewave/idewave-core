@@ -1,5 +1,6 @@
 import asyncio
 import traceback
+import gc
 
 from concurrent.futures import TimeoutError
 
@@ -22,9 +23,14 @@ class WorldManager(object):
             self.last_update = Timer.get_ms_time()
 
             try:
-                player = await asyncio.wait_for(QueuesRegistry.players_queue.get(), timeout=1.0)
-                await asyncio.wait_for(self.update(player), timeout=1.0)
-            except TimeoutError:
+                player = QueuesRegistry.players_queue.get_nowait()
+                self.update(player)
+            except asyncio.QueueEmpty:
+                pass
+            except MemoryError:
+                Logger.error('[World Mgr]: MemoryError')
+                gc.collect()
+                del gc.garbage[:]
                 pass
             except Exception as e:
                 Logger.error('[World Manager]: another exception "{}"'.format(e))
@@ -37,6 +43,6 @@ class WorldManager(object):
                     Logger.error('[World Manager]: {}'.format(e))
                     traceback.print_exc()
 
-    async def update(self, player: Player):
-        await self.region_mgr.refresh_players(player)
-        await self.region_mgr.refresh_creatures()
+    def update(self, player: Player):
+        asyncio.ensure_future(self.region_mgr.refresh_players(player))
+        asyncio.ensure_future(self.region_mgr.refresh_creatures())
