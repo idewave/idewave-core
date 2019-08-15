@@ -1,32 +1,16 @@
-from colorama import init
+from colorama import Fore, Back, Style
 from enum import Enum
-
-init()
-
-
-class ANSIColor(Enum):
-
-    BLACK = 30
-    RED = 31
-    GREEN = 32
-    YELLOW = 33
-    BLUE = 34
-    MAGENTA = 35
-    CYAN = 36
-    WHITE = 37
-    RESET = 0
-
 
 class DebugColorLevel(Enum):
 
-    WARNING         = ANSIColor.YELLOW.value
-    INFO            = ANSIColor.WHITE.value
-    DEBUG           = ANSIColor.CYAN.value
-    CRITICAL        = ANSIColor.YELLOW.value
-    ERROR           = ANSIColor.RED.value
-    TEST            = ANSIColor.MAGENTA.value
-    SUCCESS         = ANSIColor.GREEN.value
-    NOTIFICATION    = ANSIColor.BLUE.value
+    INFO            = Back.WHITE + Fore.BLACK
+    WARNING         = Fore.YELLOW
+    CRITICAL        = Fore.YELLOW + Style.BRIGHT
+    ERROR           = Fore.RED + Style.BRIGHT
+    SUCCESS         = Fore.GREEN + Style.BRIGHT
+    DEBUG           = Fore.CYAN + Style.BRIGHT
+    TEST            = Fore.MAGENTA + Style.BRIGHT
+    NOTIFICATION    = Fore.BLUE + Style.BRIGHT
 
 
 class Logger(object):
@@ -34,12 +18,12 @@ class Logger(object):
     LABEL = ''
 
     @staticmethod
-    def _colorize_message(color: int, msg: str):
-        msg_format = u'\u001b[1m[{label}]: \u001b[1;{msg_color_code}m{msg}\u001b[{reset_color}m'
+    def _colorize_message(color: str, msg: str):
+        msg_format =  color + '{label}{reset_color}  {msg}'
         return msg_format.format(label=Logger.LABEL,
                 msg_color_code=color,
                 msg=msg,
-                reset_color=ANSIColor.RESET.value)
+                reset_color=Style.RESET_ALL)
 
     @staticmethod
     def warning(msg: str):
@@ -53,7 +37,7 @@ class Logger(object):
 
     @staticmethod
     def debug(msg: str):
-        Logger.LABEL = 'DEBUG'
+        Logger.LABEL = '[DEBUG]'
         print(Logger._colorize_message(DebugColorLevel.DEBUG.value, msg))
 
     @staticmethod
@@ -63,20 +47,20 @@ class Logger(object):
 
     @staticmethod
     def error(msg: str):
-        Logger.LABEL = 'ERROR'
+        Logger.LABEL = '[ERROR]'
         print(Logger._colorize_message(DebugColorLevel.ERROR.value, msg))
 
     @staticmethod
     def test(msg: str):
-        Logger.LABEL = 'TEST'
+        Logger.LABEL = '[TEST]'
         print(Logger._colorize_message(DebugColorLevel.TEST.value, msg))
 
     @staticmethod
     def success(msg: str):
-        Logger.LABEL = 'SUCCESS'
+        Logger.LABEL = '[SUCCESS]'
         print(Logger._colorize_message(DebugColorLevel.SUCCESS.value, msg))
 
     @staticmethod
     def notify(msg: str):
-        Logger.LABEL = 'NOTIFICATION'
+        Logger.LABEL = '[NOTIFICATION]'
         print(Logger._colorize_message(DebugColorLevel.NOTIFICATION.value, msg))

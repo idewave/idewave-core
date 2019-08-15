@@ -1,6 +1,8 @@
 import asyncio
 import subprocess
 
+from colorama import init
+
 from Server.LoginServer import LoginServer
 from Server.WorldServer import WorldServer
 from Server.WebsocketServer.WebsocketServer import WebsocketServer
@@ -13,6 +15,9 @@ from Utils.Debug.Logger import Logger
 
 
 if __name__ == '__main__':
+    # initialize colorama for make ansi codes works in Windows
+    init()
+
     loop = asyncio.get_event_loop()
 
     login_server = LoginServer.create()
