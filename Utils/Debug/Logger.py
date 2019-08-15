@@ -37,6 +37,11 @@ class Logger(object):
         print(Logger._colorize_message(DebugColorLevel.WARNING.value, msg))
 
     @staticmethod
+    def critical(msg: str):
+        Logger.LABEL = '[CRITICAL]'
+        print(Logger._colorize_message(DebugColorLevel.CRITICAL.value, msg))
+
+    @staticmethod
     def error(msg: str):
         Logger.LABEL = '[ERROR]'
         print(Logger._colorize_message(DebugColorLevel.ERROR.value, msg))
