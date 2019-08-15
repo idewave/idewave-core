@@ -14,4 +14,6 @@ class LoginOpCode(Enum):
 
 class LoginResult(Enum):
     ''' Error codes '''
-    SUCCESS     = 0x00
+    SUCCESS             = 0x00
+    FAIL_UNKNOWN_ACCT   = 0x04
+    FAIL_INCORRECT_PASS = 0X05
