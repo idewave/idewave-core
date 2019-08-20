@@ -1,6 +1,6 @@
 from World.Object.Constants.UpdateObjectFields import ObjectField
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
-from World.WorldPacket.UpdatePacket.UpdatePacketBuilder import UpdatePacketBuilder
+from World.WorldPacket.UpdatePacket.Builders.UpdatePacketBuilder import UpdatePacketBuilder
 from World.Object.model import Object
 from World.Object.Unit.Movement.Movement import Movement
 from DB.Connection.RealmConnection import RealmConnection

@@ -187,6 +187,12 @@ class RegionManager(object):
         for target in players_for_broadcast:
             RegionManager._notify_nearest_players(target, [player])
 
+    def update_player(self, player: Player):
+        pass
+
+    def remove_player(self, player: Player):
+        pass
+
     @staticmethod
     def _notify_nearest_players(player: Player, targets: List[Player]):
         movement_flags = (

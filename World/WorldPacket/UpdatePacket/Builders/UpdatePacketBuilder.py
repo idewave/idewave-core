@@ -1,7 +1,7 @@
 from struct import pack
 
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
-from World.WorldPacket.UpdatePacket.UpdateBlocksBuilder import UpdateBlocksBuilder
+from World.WorldPacket.UpdatePacket.Builders.UpdateBlocksBuilder import UpdateBlocksBuilder
 
 
 class UpdatePacketBuilder(object):
@@ -44,7 +44,6 @@ class UpdatePacketBuilder(object):
         self.movement = kwargs.pop('movement')
         self.update_blocks_builder = UpdateBlocksBuilder()
 
-        # self.packet = bytes()
         self.batches = []
         self.packets = []
 
