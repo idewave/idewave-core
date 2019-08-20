@@ -1,8 +1,8 @@
-from World.WorldPacket.UpdatePacket.UpdatePacketBuilder import UpdatePacketBuilder
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Constants.UpdateObjectFields import ObjectField, ItemField, UnitField, PlayerField
 from World.Character.Constants.CharacterClass import CharacterClass
 from World.Object.Unit.Player.PlayerManager import PlayerManager
+from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
 
 
 class PlayerSpawn(object):
@@ -118,6 +118,7 @@ class PlayerSpawn(object):
 
     async def process(self):
         with PlayerManager() as player_mgr:
+            player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT2)
             batch = player_mgr.set(self.player).prepare().create_batch(PlayerSpawn.SPAWN_FIELDS)
             response = player_mgr.add_batch(batch).build_update_packet().get_update_packets()
 

@@ -50,6 +50,9 @@ class ObjectManager(object):
         self.set_object_field(ObjectField.ENTRY, self.world_object.entry)
         self.set_object_field(ObjectField.SCALE_X, self.world_object.scale_x)
 
+    def set_object_update_type(self, object_update_type: ObjectUpdateType):
+        self.object_update_type = object_update_type.value
+
     def create_batch(self, fields: list):
         for field in fields:
             self.update_packet_builder.add_field(field, self.get_object_field(field))

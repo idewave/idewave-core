@@ -2,9 +2,7 @@ from World.Object.ObjectManager import ObjectManager
 from World.Object.Constants.UpdateObjectFields import UnitField
 from World.Object.Unit.model import Unit, UnitTemplate
 from World.Region.model import Region
-# from World.Object.Unit.UnitStats import UnitStats
 from World.Object.Unit.Builders.StatsBuilder import StatsBuilder
-from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
 from World.Object.Position import Position
 
 from Config.Run.config import Config
@@ -15,7 +13,7 @@ class UnitManager(ObjectManager):
     def __init__(self, **kwargs):
         super(UnitManager, self).__init__(**kwargs)
         # TODO: should research update types and set own for creation, own for updating
-        self.object_update_type = ObjectUpdateType.CREATE_OBJECT2.value
+        # self.object_update_type = ObjectUpdateType.CREATE_OBJECT2.value
         self.world_object = Unit()
         self.stats_builder = None
 

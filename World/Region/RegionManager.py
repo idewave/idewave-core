@@ -11,6 +11,7 @@ from DB.Connection.WorldConnection import WorldConnection
 from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField, PlayerField
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from Server.Registry.QueuesRegistry import QueuesRegistry
+from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
 
 from Config.Run.config import Config
 
@@ -173,10 +174,16 @@ class RegionManager(object):
             raise Exception('[RegionMgr]: player has unknown region id')
 
         online_players = current_region.get_online_players()
-        players_for_broadcast = [online_players[name] for name in online_players if not name == player.name]
+        players_for_broadcast = [
+            online_players[name]
+            for name in online_players
+            if not name == player.name and RegionManager._is_target_visible(player, online_players[name])
+        ]
 
+        # notify player about players in region
         RegionManager._notify_nearest_players(player, players_for_broadcast)
 
+        # notify each player about new player
         for target in players_for_broadcast:
             RegionManager._notify_nearest_players(target, [player])
 
@@ -191,6 +198,7 @@ class RegionManager(object):
         targets = targets.copy()
 
         with PlayerManager() as head_player_mgr:
+            head_player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT2)
             head_player_mgr.set(targets.pop(0))
             head_player_mgr.movement.set_update_flags(movement_flags)
 
@@ -200,6 +208,7 @@ class RegionManager(object):
             if targets:
                 for target in targets:
                     with PlayerManager() as player_mgr:
+                        player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT2)
                         player_mgr.set(target)
                         player_mgr.movement.set_update_flags(movement_flags)
 
@@ -259,7 +268,7 @@ class RegionManager(object):
 
     @staticmethod
     def _is_target_visible(unit: Unit, target: Unit):
-        spawn_dist = Config.World.Gameplay.spawn_dist
-        if spawn_dist > 0:
-            return (unit.x - spawn_dist <= target.x <= unit.x + spawn_dist + 1) and \
-                   (unit.y - spawn_dist <= target.y <= unit.y + spawn_dist + 1)
+        update_dist = Config.World.Gameplay.update_dist
+        if update_dist > 0:
+            return (unit.x - update_dist <= target.x <= unit.x + update_dist + 1) and \
+                   (unit.y - update_dist <= target.y <= unit.y + update_dist + 1)
