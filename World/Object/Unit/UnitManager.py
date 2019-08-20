@@ -1,15 +1,11 @@
-import random
-
 from World.Object.ObjectManager import ObjectManager
 from World.Object.Constants.UpdateObjectFields import UnitField
 from World.Object.Unit.model import Unit, UnitTemplate
 from World.Region.model import Region
 # from World.Object.Unit.UnitStats import UnitStats
 from World.Object.Unit.Builders.StatsBuilder import StatsBuilder
-from World.Update.Constants.ObjectUpdateType import ObjectUpdateType
+from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
 from World.Object.Position import Position
-from DB.Connection.WorldConnection import WorldConnection
-from Utils.Debug.Logger import Logger
 
 from Config.Run.config import Config
 
@@ -62,11 +58,6 @@ class UnitManager(ObjectManager):
         self.set_object_field(UnitField.FACTIONTEMPLATE, self.unit.faction_template)
         self.set_object_field(UnitField.FLAGS, stats.unit_flags)
 
-        # TODO: set to current values
-        # self.set_object_field(UnitField.AURA, 2457)
-        # self.set_object_field(UnitField.AURAFLAGS, 31)
-        # self.set_object_field(UnitField.AURALEVELS, self.unit.level)
-
         self.set_object_field(UnitField.BASEATTACKTIME, stats.attack_time_mainhand)
         self.set_object_field(UnitField.OFFHANDATTACKTIME, stats.attack_time_offhand)
 
@@ -80,7 +71,6 @@ class UnitManager(ObjectManager):
             # TODO: this should be checked
             self.set_object_field(UnitField.DISPLAYID, self.unit.display_id_1)
             self.set_object_field(UnitField.NATIVEDISPLAYID, self.unit.display_id_1)
-        #self.set(UnitField.MOUNTDISPLAYID, unit.mount_display_id)
 
         self.set_object_field(UnitField.MINDAMAGE, self.unit.min_damage)
         self.set_object_field(UnitField.MAXDAMAGE, self.unit.max_damage)
@@ -149,7 +139,7 @@ class UnitManager(ObjectManager):
         z = kwargs.pop('z', None)
 
         # notice: at this step unit already created in constructor
-        # also notice: here processes query to another DB (from current realm_db to external world_db)
+        # also notice: here processed query to another DB (from current realm_db to external world_db)
         unit_template = self.session.query(UnitTemplate).filter_by(entry=entry).first()
         self.world_object.unit_template = unit_template
 

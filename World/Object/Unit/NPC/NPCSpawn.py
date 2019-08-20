@@ -1,5 +1,5 @@
 from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField
-from World.Update.UpdatePacketBatch import UpdatePacketBatch
+from World.WorldPacket.UpdatePacket.UpdatePacketBuilder import UpdatePacketBuilder
 from World.Object.Unit.NPC.Beast.Beast import Beast
 
 
@@ -47,7 +47,7 @@ class NPCSpawn(object):
 
     def __init__(self, packet: bytes):
         self.packet = packet
-        self.update_packet_builder = UpdatePacketBatch()
+        self.update_packet_builder = UpdatePacketBuilder()
 
     async def process(self):
         beast = Beast()

@@ -30,7 +30,7 @@ class MovementHandler(object):
 
         player = self.temp_ref.player
         player.position = self.position
-        await QueuesRegistry.players_queue.put(player)
+        await QueuesRegistry.movement_queue.put(player)
 
         return None, None
 

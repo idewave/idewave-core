@@ -1,5 +1,6 @@
 import asyncio
 from sqlalchemy.orm.exc import DetachedInstanceError
+from typing import List
 
 from World.Region.model import Region
 from World.Object.Unit.model import Unit
@@ -9,7 +10,6 @@ from World.Object.Unit.Player.PlayerManager import PlayerManager
 from DB.Connection.WorldConnection import WorldConnection
 from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField, PlayerField
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
-from Utils.Debug.Logger import Logger
 from Server.Registry.QueuesRegistry import QueuesRegistry
 
 from Config.Run.config import Config
@@ -162,91 +162,104 @@ class RegionManager(object):
         self.session.commit()
         return self
 
-    def flush(self):
-        self.session.add(self.region)
-        self.session.flush()
-        return self
-
-    async def refresh_players(self, current_player: Player):
+    def add_player(self, player: Player):
+        current_region = None
         for region in self.regions:
-            region.set_online_players(current_player)
+            region.set_online_players(player)
+            if region.region_id == player.region.region_id:
+                current_region = region
 
-        current_region = next(region for region in self.regions if region.id == current_player.region.id)
+        if current_region is None:
+            raise Exception('[RegionMgr]: player has unknown region id')
 
         online_players = current_region.get_online_players()
-        players = [online_players[name] for name in online_players if not name == current_player.name]
+        players_for_broadcast = [online_players[name] for name in online_players if not name == player.name]
 
-        # finally building packet for player that contains player list
+        RegionManager._notify_nearest_players(player, players_for_broadcast)
+
+        for target in players_for_broadcast:
+            RegionManager._notify_nearest_players(target, [player])
+
+    @staticmethod
+    def _notify_nearest_players(player: Player, targets: List[Player]):
         movement_flags = (
                 UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
                 UpdateObjectFlags.UPDATEFLAG_LIVING.value |
                 UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
         )
 
-        update_packets = []
+        targets = targets.copy()
 
-        for player in players:
-            with PlayerManager() as player_mgr:
-                player_mgr.set(player)
-                player_mgr.movement.set_update_flags(movement_flags)
+        with PlayerManager() as head_player_mgr:
+            head_player_mgr.set(targets.pop(0))
+            head_player_mgr.movement.set_update_flags(movement_flags)
 
-                batch_builder = player_mgr.prepare() \
-                    .build_update_packet(RegionManager.PLAYER_SPAWN_FIELDS)
+            batch = head_player_mgr.prepare().create_batch(RegionManager.PLAYER_SPAWN_FIELDS)
+            head_player_mgr.add_batch(batch)
 
-                update_packets.append(batch_builder)
+            if targets:
+                for target in targets:
+                    with PlayerManager() as player_mgr:
+                        player_mgr.set(target)
+                        player_mgr.movement.set_update_flags(movement_flags)
 
-        asyncio.ensure_future(
-            QueuesRegistry.update_packets_queue.put((current_player.name, update_packets))
-        )
+                        batch = player_mgr.prepare().create_batch(RegionManager.PLAYER_SPAWN_FIELDS)
+                        head_player_mgr.add_batch(batch)
 
-    async def refresh_creatures(self):
-        for region in self.regions:
-            try:
-                units = region.units.copy()
-            except DetachedInstanceError as e:
-                Logger.error('[Region Manager]: {}'.format(e))
-            else:
-                # finally building packet for player that contains unit list
-                movement_flags = (
-                        UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
-                        UpdateObjectFlags.UPDATEFLAG_LIVING.value |
-                        UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
-                )
+            update_packets = head_player_mgr.build_update_packet().get_update_packets()
 
-                spawn_dist = Config.World.Gameplay.spawn_dist
+            asyncio.ensure_future(
+                QueuesRegistry.update_packets_queue.put((player.name, update_packets))
+            )
 
-                online_players = region.get_online_players()
-
-                if not spawn_dist == 0:
-                    for player_name in online_players:
-                        player = online_players[player_name]
-
-                        # list of unit managers each ready to build the update packet
-                        update_packets = []
-
-                        if spawn_dist > 0:
-                            units = [unit for unit in units if RegionManager._is_unit_in_spawn_radius(unit, player)]
-
-                        for unit in units:
-                            with UnitManager() as unit_mgr:
-                                unit_mgr.set(unit)
-                                unit_mgr.movement.set_update_flags(movement_flags)
-
-                                batch_builder = unit_mgr.prepare() \
-                                    .build_update_packet(RegionManager.UNIT_SPAWN_FIELDS)
-
-                                update_packets.append(batch_builder)
-
-                        asyncio.ensure_future(
-                            QueuesRegistry.update_packets_queue.put((player.name, update_packets))
-                        )
-
-                del units
+    # async def refresh_creatures(self):
+    #     for region in self.regions:
+    #         try:
+    #             units = region.units.copy()
+    #         except DetachedInstanceError as e:
+    #             Logger.error('[Region Manager]: {}'.format(e))
+    #         else:
+    #             # finally building packet for player that contains unit list
+    #             movement_flags = (
+    #                     UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
+    #                     UpdateObjectFlags.UPDATEFLAG_LIVING.value |
+    #                     UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
+    #             )
+    #
+    #             spawn_dist = Config.World.Gameplay.spawn_dist
+    #
+    #             online_players = region.get_online_players()
+    #
+    #             if not spawn_dist == 0:
+    #                 for player_name in online_players:
+    #                     player = online_players[player_name]
+    #
+    #                     # list of unit managers each ready to build the update packet
+    #                     update_packets = []
+    #
+    #                     if spawn_dist > 0:
+    #                         units = [unit for unit in units if RegionManager._is_unit_in_spawn_radius(unit, player)]
+    #
+    #                     for unit in units:
+    #                         with UnitManager() as unit_mgr:
+    #                             unit_mgr.set(unit)
+    #                             unit_mgr.movement.set_update_flags(movement_flags)
+    #
+    #                             batch_builder = unit_mgr.prepare() \
+    #                                 .build_update_packet(RegionManager.UNIT_SPAWN_FIELDS)
+    #
+    #                             update_packets.append(batch_builder)
+    #
+    #                     asyncio.ensure_future(
+    #                         QueuesRegistry.update_packets_queue.put((player.name, update_packets))
+    #                     )
+    #
+    #             del units
 
 
     @staticmethod
-    def _is_unit_in_spawn_radius(unit: Unit, player: Player):
+    def _is_target_visible(unit: Unit, target: Unit):
         spawn_dist = Config.World.Gameplay.spawn_dist
         if spawn_dist > 0:
-            return (player.x - spawn_dist <= unit.x <= player.x + spawn_dist + 1) and \
-                   (player.y - spawn_dist <= unit.y <= player.y + spawn_dist + 1)
+            return (unit.x - spawn_dist <= target.x <= unit.x + spawn_dist + 1) and \
+                   (unit.y - spawn_dist <= target.y <= unit.y + spawn_dist + 1)

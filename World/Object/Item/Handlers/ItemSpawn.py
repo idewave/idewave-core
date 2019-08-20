@@ -1,7 +1,7 @@
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Constants.UpdateObjectFields import ObjectField, ItemField
-from World.Update.UpdatePacket import UpdatePacket
-from World.Update.Constants.ObjectUpdateType import ObjectUpdateType
+from World.WorldPacket.UpdatePacket import UpdatePacket
+from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
 from World.Object.Item.model import Item
 from World.Object.Item.ItemManager import ItemManager
 from Login.SessionStorage import session
@@ -41,7 +41,7 @@ class ItemSpawn(object):
         for field in self.SPAWN_FIELDS:
             spawned_item.add_field(field, test_item1.get_object_field(field))
 
-        response = spawned_item.update(send_packed_guid=True)
+        response = spawned_item.generate(send_packed_guid=True)
 
         Logger.error('[ItemSpawn]: {}'.format(response))
 

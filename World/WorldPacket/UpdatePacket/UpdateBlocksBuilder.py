@@ -3,7 +3,7 @@ from enum import Enum
 from struct import Struct, error as StructError
 
 from World.Object.Constants.FieldType import FieldType, FIELD_TYPE_MAP
-from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField, PlayerField
+
 from Utils.Debug.Logger import Logger
 
 
@@ -25,7 +25,7 @@ class UpdateBlocksBuilder(object):
         try:
             field_type = FIELD_TYPE_MAP[field]
         except KeyError:
-            Logger.error('[Update Block Builder]: no type associated with {}'.format(str(field)))
+            Logger.error('[UpdatePacket Block Builder]: no type associated with {}'.format(str(field)))
             return
         else:
             field_struct = self.FIELD_BIN_MAP[field_type]
@@ -34,18 +34,9 @@ class UpdateBlocksBuilder(object):
 
             self._set_field_mask_bits(field_index, field_struct)
             try:
-                # field = None
-                # if field_index < ObjectField.END.value:
-                #     field = ObjectField(field_index)
-                # elif field_index < UnitField.END.value:
-                #     field = UnitField(field_index)
-                # elif field_index < PlayerField.END.value:
-                #     field = PlayerField(field_index)
-
-                # Logger.test('[Update Blocks]: {} = {}'.format(field, value))
                 self._set_field_value(field_index, field_struct, value)
             except StructError:
-                # Logger.warning('Field with index {} should be set'.format(field_index))
+                Logger.warning('Field with index {} should be set'.format(field_index))
                 pass
 
     @staticmethod

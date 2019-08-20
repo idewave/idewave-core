@@ -1,3 +1,4 @@
+import traceback
 from struct import pack, unpack
 
 from Auth.Crypto.HeaderCrypt import HeaderCrypt
@@ -57,10 +58,16 @@ class WorldPacketManager(object):
                         header_crypt=self.header_crypt
                     ).process()
                 except Exception as e:
-                    Logger.error(e)
+                    Logger.error('[WorldPacketMgr]: {}'.format(e))
+                    traceback.print_exc()
                 else:
                     if opcode and response:
-                        packets.append(WorldPacketManager.generate_packet(opcode, response, self.header_crypt))
+                        if isinstance(response, list):
+                            for packet in response:
+                                packets.append(WorldPacketManager.generate_packet(opcode, packet, self.header_crypt))
+
+                        else:
+                            packets.append(WorldPacketManager.generate_packet(opcode, response, self.header_crypt))
 
             return packets
         else:

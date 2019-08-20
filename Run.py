@@ -28,6 +28,7 @@ if __name__ == '__main__':
 
     QueuesRegistry.web_data_queue = MultiProcessQueue.get_instance()
     QueuesRegistry.players_queue = asyncio.Queue()
+    QueuesRegistry.movement_queue = asyncio.Queue()
     QueuesRegistry.connections_queue = asyncio.Queue()
     QueuesRegistry.update_packets_queue = asyncio.Queue()
 

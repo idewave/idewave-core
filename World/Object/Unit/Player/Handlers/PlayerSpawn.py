@@ -1,8 +1,7 @@
-from World.Update.UpdatePacketBatch import UpdatePacketBatch
+from World.WorldPacket.UpdatePacket.UpdatePacketBuilder import UpdatePacketBuilder
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Constants.UpdateObjectFields import ObjectField, ItemField, UnitField, PlayerField
 from World.Character.Constants.CharacterClass import CharacterClass
-from Utils.Debug.Logger import Logger
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 
 
@@ -115,13 +114,12 @@ class PlayerSpawn(object):
             raise Exception('[Player Spawn]: temp_ref does not exists')
 
         self.player = self.temp_ref.player
-        self.update_packet_builder = UpdatePacketBatch()
         self._set_player_power()
 
     async def process(self):
         with PlayerManager() as player_mgr:
-            response = player_mgr\
-                .set(self.player).prepare().build_update_packet(PlayerSpawn.SPAWN_FIELDS).get_update_packet(build=True)
+            batch = player_mgr.set(self.player).prepare().create_batch(PlayerSpawn.SPAWN_FIELDS)
+            response = player_mgr.add_batch(batch).build_update_packet().get_update_packets()
 
             return WorldOpCode.SMSG_UPDATE_OBJECT, response
 

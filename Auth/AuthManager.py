@@ -78,7 +78,9 @@ class AuthManager(object):
                         if response:
                             self.writer.write(response)
             except TimeoutError:
-                continue
+                pass
+            finally:
+                await asyncio.sleep(1)
 
     async def authenticate_on_world_server(self):
         self.send_auth_challenge()
@@ -97,6 +99,9 @@ class AuthManager(object):
 
         except TimeoutError:
             Logger.error('[Auth Manager]: Timeout on step2')
+            pass
+        finally:
+            await asyncio.sleep(1)
 
     def send_auth_challenge(self):
         # auth seed need to generate header_crypt

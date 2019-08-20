@@ -31,7 +31,7 @@ class Region(BaseModel):
     def init_on_load(self):
         self.online_players = {}
 
-    # specify only creatures, we can detect them by unit_template field which is NULL for players and NOT NULL for NPC
+    # we can detect NPC by unit_template field which is NULL for players and NOT NULL for NPC
     units = relationship('Unit', primaryjoin="and_((Region.id == Unit.region_id), (Unit.unit_template_id))")
 
     players = relationship('Player', lazy='joined')

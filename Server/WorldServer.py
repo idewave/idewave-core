@@ -40,9 +40,9 @@ class WorldServer(BaseServer):
 
         while True:
             try:
-                request = await asyncio.wait_for(reader.read(4096), timeout=1.0)
+                request = await asyncio.wait_for(reader.read(4096), timeout=0.01)
                 if request:
-                    response = await asyncio.wait_for(world_packet_manager.process(request), timeout=1.0)
+                    response = await asyncio.wait_for(world_packet_manager.process(request), timeout=0.01)
 
                     if response:
                         for packet in response:
@@ -56,16 +56,16 @@ class WorldServer(BaseServer):
                 Logger.error('[World Server]: exception, {}'.format(e))
                 traceback.print_exc()
                 break
+            finally:
+                await asyncio.sleep(0.01)
 
         writer.close()
 
     async def refresh_connections(self):
         while True:
             try:
-                player_name, reader, writer, header_crypt = await asyncio.wait_for(
-                    QueuesRegistry.connections_queue.get(), timeout=1.0
-                )
-            except TimeoutError:
+                player_name, reader, writer, header_crypt = QueuesRegistry.connections_queue.get_nowait()
+            except asyncio.QueueEmpty:
                 pass
             else:
                 self.connections[player_name] = {
@@ -74,6 +74,8 @@ class WorldServer(BaseServer):
                     'header_crypt': header_crypt
                 }
                 Logger.info('[World Server]: new connection for player "{}"'.format(player_name))
+            finally:
+                await asyncio.sleep(0.01)
 
     async def send_update_packet_to_player(self):
         while True:
@@ -93,25 +95,7 @@ class WorldServer(BaseServer):
                     # just ignore
                     pass
                 else:
-
-                    responses = []
-
-                    while update_packets:
-                        head_update_packet_builder = update_packets.pop(0)
-
-                        for index in range(0, WorldServer.MAX_UPDATE_PACKETS_INCLUDED):
-
-                            if not update_packets:
-                                break
-
-                            batch = update_packets.pop(0).get_update_packet()
-                            head_update_packet_builder.add_batch(batch)
-
-                        update_packet = head_update_packet_builder.get_update_packet(build=True)
-
-                        responses.append(update_packet)
-
-                    for update_packet in responses:
+                    for update_packet in update_packets:
                         response = WorldPacketManager.generate_packet(
                             opcode=WorldOpCode.SMSG_UPDATE_OBJECT,
                             data=update_packet,

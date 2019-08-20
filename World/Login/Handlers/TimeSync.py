@@ -9,5 +9,4 @@ class TimeSync(object):
 
     async def process(self):
         # TODO: correctly evaluate value
-        Logger.notify('[TimeSync]: init')
         return WorldOpCode.SMSG_TIME_SYNC_REQ, b'\x00\x00\x00\x00'

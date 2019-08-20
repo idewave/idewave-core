@@ -40,8 +40,7 @@ World:
   Gameplay:
     game_speed: 0.01666667
     # -1 for infinite distance, 0 for disable spawn, more than 0 for any distance
-    # this value works only for player
-    spawn_dist: 100
+    update_dist: 100
 
   Object:
     Defaults:
