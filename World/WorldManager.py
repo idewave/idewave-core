@@ -14,7 +14,7 @@ from Server.Registry.QueuesRegistry import QueuesRegistry
 class WorldManager(object):
 
     def __init__(self):
-        self.heartbeat = 1
+        self.heartbeat = 0.01
         self.last_update = None
         self.region_mgr = RegionManager()
 
@@ -23,6 +23,9 @@ class WorldManager(object):
             self.last_update = Timer.get_ms_time()
 
             asyncio.ensure_future(self.process_player_enter_world())
+            asyncio.ensure_future(self.process_player_movement())
+            asyncio.ensure_future(self.process_player_exit_world())
+
             await asyncio.sleep(self.heartbeat)
 
             # try:
@@ -58,4 +61,24 @@ class WorldManager(object):
         else:
             self.region_mgr.add_player(player)
         finally:
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.01)
+
+    async def process_player_movement(self):
+        try:
+            player = QueuesRegistry.movement_queue.get_nowait()
+        except asyncio.QueueEmpty:
+            return
+        else:
+            self.region_mgr.update_player(player)
+        finally:
+            await asyncio.sleep(0.01)
+
+    async def process_player_exit_world(self):
+        try:
+            player = QueuesRegistry.remove_player_queue.get_nowait()
+        except asyncio.QueueEmpty:
+            return
+        else:
+            self.region_mgr.remove_player(player)
+        finally:
+            await asyncio.sleep(0.01)

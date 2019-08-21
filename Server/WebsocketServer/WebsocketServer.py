@@ -36,7 +36,7 @@ class WebsocketServer(object):
     async def accept_connection(self, websocket: WebSocketCommonProtocol):
         while True:
             try:
-                request = await asyncio.wait_for(websocket.recv(), timeout=1.0)
+                request = await asyncio.wait_for(websocket.recv(), timeout=0.01)
             except TimeoutError:
                 pass
             except ConnectionClosedOK:

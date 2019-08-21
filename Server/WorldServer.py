@@ -61,7 +61,7 @@ class WorldServer(BaseServer):
 
         writer.close()
 
-    async def refresh_connections(self):
+    async def add_connection(self):
         while True:
             try:
                 player_name, reader, writer, header_crypt = QueuesRegistry.connections_queue.get_nowait()
@@ -73,7 +73,22 @@ class WorldServer(BaseServer):
                     'writer': writer,
                     'header_crypt': header_crypt
                 }
-                Logger.info('[World Server]: new connection for player "{}"'.format(player_name))
+                Logger.info('[World Server]: added connection for player "{}"'.format(player_name))
+            finally:
+                await asyncio.sleep(0.01)
+
+    async def remove_connection(self):
+        while True:
+            try:
+                player_name = QueuesRegistry.disconnect_queue.get_nowait()
+            except asyncio.QueueEmpty:
+                pass
+            else:
+                if not player_name or not self.connections or player_name not in self.connections:
+                    continue
+
+                del self.connections[player_name]
+                Logger.info('[World Server]: player "{}" disconnected'.format(player_name))
             finally:
                 await asyncio.sleep(0.01)
 
@@ -82,7 +97,7 @@ class WorldServer(BaseServer):
             try:
                 player_name, update_packets = await asyncio.wait_for(
                     QueuesRegistry.update_packets_queue.get(),
-                    timeout=1.0
+                    timeout=0.01
                 )
             except TimeoutError:
                 pass
@@ -103,10 +118,13 @@ class WorldServer(BaseServer):
                         )
                         writer.write(response)
                         await writer.drain()
+            finally:
+                await asyncio.sleep(0.01)
 
     def _register_tasks(self):
-        asyncio.ensure_future(self.refresh_connections())
+        asyncio.ensure_future(self.add_connection())
         asyncio.ensure_future(self.send_update_packet_to_player())
+        asyncio.ensure_future(self.remove_connection())
 
     @staticmethod
     def create():

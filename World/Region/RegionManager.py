@@ -166,32 +166,52 @@ class RegionManager(object):
     def add_player(self, player: Player):
         current_region = None
         for region in self.regions:
-            region.set_online_players(player)
             if region.region_id == player.region.region_id:
+                region.update_player(player)
                 current_region = region
+                break
 
         if current_region is None:
             raise Exception('[RegionMgr]: player has unknown region id')
 
+        nearest_players = RegionManager._get_nearest_players(current_region, player)
+
+        # notify player about players in region
+        RegionManager._notify_nearest_players(player, nearest_players)
+
+        # notify each player about new player
+        for target in nearest_players:
+            RegionManager._notify_nearest_players(target, [player])
+
+    def update_player(self, player: Player):
+        current_region = None
+        for region in self.regions:
+            if region.region_id == player.region.region_id:
+                region.update_player(player)
+                current_region = region
+                break
+
+        if current_region is None:
+            raise Exception('[RegionMgr]: player has unknown region id')
+
+        nearest_players = RegionManager._get_nearest_players(current_region, player)
+
+        for target in nearest_players:
+            RegionManager._notify_nearest_players_movement(target, [player])
+
+    def remove_player(self, player: Player):
+        pass
+
+    @staticmethod
+    def _get_nearest_players(current_region: Region, player: Player):
         online_players = current_region.get_online_players()
-        players_for_broadcast = [
+        nearest_players = [
             online_players[name]
             for name in online_players
             if not name == player.name and RegionManager._is_target_visible(player, online_players[name])
         ]
 
-        # notify player about players in region
-        RegionManager._notify_nearest_players(player, players_for_broadcast)
-
-        # notify each player about new player
-        for target in players_for_broadcast:
-            RegionManager._notify_nearest_players(target, [player])
-
-    def update_player(self, player: Player):
-        pass
-
-    def remove_player(self, player: Player):
-        pass
+        return nearest_players
 
     @staticmethod
     def _notify_nearest_players(player: Player, targets: List[Player]):
@@ -220,6 +240,28 @@ class RegionManager(object):
 
                         batch = player_mgr.prepare().create_batch(RegionManager.PLAYER_SPAWN_FIELDS)
                         head_player_mgr.add_batch(batch)
+
+            update_packets = head_player_mgr.build_update_packet().get_update_packets()
+
+            asyncio.ensure_future(
+                QueuesRegistry.update_packets_queue.put((player.name, update_packets))
+            )
+
+    @staticmethod
+    def _notify_nearest_players_movement(player: Player, targets: List[Player]):
+        movement_flags = (
+                UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
+                UpdateObjectFlags.UPDATEFLAG_LIVING.value |
+                UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
+        )
+
+        with PlayerManager() as head_player_mgr:
+            head_player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT2)
+            head_player_mgr.set(targets.pop(0))
+            head_player_mgr.movement.set_update_flags(movement_flags)
+
+            batch = head_player_mgr.prepare().create_batch(RegionManager.PLAYER_SPAWN_FIELDS)
+            head_player_mgr.add_batch(batch)
 
             update_packets = head_player_mgr.build_update_packet().get_update_packets()
 

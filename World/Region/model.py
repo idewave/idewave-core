@@ -41,9 +41,9 @@ class Region(BaseModel):
         return self.online_players
 
     @hybrid_method
-    def set_online_players(self, player: Player):
-        if player.region.id == self.id:
-            self.online_players[player.name] = player
-        else:
-            if player.name in self.online_players:
-                del self.online_players[player.name]
+    def update_player(self, player: Player):
+        self.online_players[player.name] = player
+
+    @hybrid_method
+    def remove_player(self, player: Player):
+        del self.online_players[player.name]

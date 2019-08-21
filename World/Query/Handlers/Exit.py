@@ -1,4 +1,5 @@
 from World.Object.Unit.Player.PlayerManager import PlayerManager
+from Server.Registry.QueuesRegistry import QueuesRegistry
 
 
 class Exit(object):
@@ -13,4 +14,8 @@ class Exit(object):
         # TODO: correctly process disconnect
         with PlayerManager() as player_mgr:
             player_mgr.set(self.temp_ref.player).save()
+
+        await QueuesRegistry.disconnect_queue.put(self.temp_ref.player.name)
+        await QueuesRegistry.remove_player_queue.put(self.temp_ref.player)
+
         return None, None

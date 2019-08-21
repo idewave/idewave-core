@@ -75,6 +75,7 @@ MAP_HANDLER_TO_OPCODE = {
     # Query
     WorldOpCode.CMSG_LOGOUT_REQUEST: [Logout],
     WorldOpCode.CMSG_LOGOUT_CANCEL: [Exit],
+    WorldOpCode.CMSG_CANCEL_TRADE: [Exit],
     WorldOpCode.CMSG_TIME_SYNC_RESP: [],
 
     # Chat
