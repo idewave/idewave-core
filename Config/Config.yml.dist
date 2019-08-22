@@ -1,0 +1,73 @@
+Database:
+  Connection:
+    host: 127.0.0.1
+    username: wowdb
+    password: wowdb
+    sqlalchemy_connection_string: "mysql+pymysql://{user}:{password}@{host}/{db_name}?charset=utf8mb4"
+
+  DBNames:
+    login_db: wowdb_login
+    world_db: wowdb_world
+    realm_db: wowdb_realm
+
+WebsocketServer:
+  Connection:
+    # if located on vps or any another external server, you should set external ip of that server
+    host: 127.0.0.1
+    port: 9001
+
+RedisServer:
+  Connection:
+    host: 127.0.0.1
+    port: 6379
+
+Realm:
+  Connection:
+    LoginServer:
+      host: 0.0.0.0
+      port: 3724
+
+    WorldServer:
+      # if located on vps or any another external server, you should set external ip of that server
+      host: 127.0.0.1
+      port: 8085
+      realm_name: Idewave-core
+
+  General:
+    motd: Welcome to the idewave-core server
+
+World:
+  Gameplay:
+    game_speed: 0.01666667
+    # -1 for infinite distance, 0 for disable spawn, more than 0 for any distance
+    update_dist: 100
+
+  Object:
+    Defaults:
+      scale_x: 1.0
+
+    Unit:
+      Defaults:
+        base_min_damage: 1.0
+        base_max_damage: 2.0
+        base_attack_time: 2000
+        bounding_radius: 0.388999998569489
+        combat_reach: 1.5
+        base_block: 5.0
+        base_parry: 5.0
+
+      Player:
+        Defaults:
+          min_level: 1
+          max_level: 70
+          start_money: 10000
+
+          Movement:
+            speed_walk: 2.5
+            speed_run: 7.0
+            speed_run_back: 4.5
+            speed_swim: 4.722222
+            speed_swim_back: 2.5
+            speed_flight: 7.0
+            speed_flight_back: 4.5
+            speed_turn: 3.141594
