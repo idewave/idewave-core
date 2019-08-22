@@ -37,7 +37,7 @@ Finally, you can run the server, just call from the root of project:
 
 `python3 Run.py`
 
-**For opening the core on vps or dedicated servers** be sure to set correct IP in config !
+**NOTICE: If you run the core on machine with different IP** be sure to replace '127.0.0.1' with destination IP for WorldServer in config !
 
 ## How it works ?
 OK, I promise, I will add the detailed documentation in nearest future. But, in short:
