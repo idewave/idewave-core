@@ -161,14 +161,19 @@ class AuthManager(object):
     def _check_session_key(self):
         Logger.info('[Auth Session Manager]: checking session key')
         key = '#{}-session-key'.format(self.account_name)
-        session_key = self.session_keys[key]
 
-        if not session_key:
-            raise Exception('[AuthMgr]: Session key does not exists')
+        try:
+            session_key = self.session_keys[key]
+        except KeyError:
+            Logger.error('[AuthMgr]: session with this key does not exists')
+            self.writer.close()
+        else:
+            if not session_key:
+                raise Exception('[AuthMgr]: Session key does not exists')
 
-        del self.session_keys[key]
+            del self.session_keys[key]
 
-        self.session_key = b64decode(session_key)
+            self.session_key = b64decode(session_key)
 
     def _generate_server_hash(self):
         Logger.info('[Auth Session Manager]: generating server hash for account "{}"'.format(self.account_name))

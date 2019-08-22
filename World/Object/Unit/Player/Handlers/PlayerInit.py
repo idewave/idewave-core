@@ -1,6 +1,10 @@
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from Server.Registry.QueuesRegistry import QueuesRegistry
 
+from Server.Exceptions.PlayerNotExists import PlayerNotExists
+
+from Utils.Debug.Logger import Logger
+
 
 class PlayerInit(object):
 
@@ -15,6 +19,10 @@ class PlayerInit(object):
 
     async def process(self):
         self._load_player()
+
+        if not self.temp_ref.player:
+            Logger.error('[Player Init]: player not exists')
+            raise PlayerNotExists
 
         await QueuesRegistry.connections_queue.put((
             self.temp_ref.player.name,

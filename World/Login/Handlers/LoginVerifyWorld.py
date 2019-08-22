@@ -1,6 +1,7 @@
 from struct import pack
+
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
-# from Login.SessionStorage import session
+from Utils.Debug.Logger import Logger
 
 
 class LoginVerifyWorld(object):
@@ -15,6 +16,11 @@ class LoginVerifyWorld(object):
 
     def _get_verify_login_packet(self):
         player = self.temp_ref.player
+
+        if not player:
+            Logger.error('[Login Verify]: player not exists')
+            return None
+
         return pack(
             '<I4f',
             player.map_id,            # map id

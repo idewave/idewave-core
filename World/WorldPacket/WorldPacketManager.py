@@ -3,6 +3,8 @@ from struct import pack, unpack
 
 from Auth.Crypto.HeaderCrypt import HeaderCrypt
 
+from Server.Exceptions.PlayerNotExists import PlayerNotExists
+
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.WorldPacket.Constants.MapHandlerToOpcode import MAP_HANDLER_TO_OPCODE
 from Utils.Debug.Logger import Logger
@@ -46,7 +48,7 @@ class WorldPacketManager(object):
         if opcode in MAP_HANDLER_TO_OPCODE:
             Logger.debug('[World Packet]: processing {} opcode ({} bytes)'.format(WorldOpCode(opcode).name, size))
             handlers = MAP_HANDLER_TO_OPCODE[opcode]
-            packets = list()
+            packets = []
 
             for handler in handlers:
                 try:
@@ -57,6 +59,9 @@ class WorldPacketManager(object):
                         writer=self.writer,
                         header_crypt=self.header_crypt
                     ).process()
+                except PlayerNotExists:
+                    self.writer.close()
+                    return None
                 except Exception as e:
                     Logger.error('[WorldPacketMgr]: !{}! {}'.format(handler, e))
                     traceback.print_exc()
