@@ -5,10 +5,9 @@ I'm very grateful to the Mangos community, in particular to Kyoril, for help and
 ## Before start
 This works on Python v3.5 - v3.7. Not tested another versions yet.
 
-Dependencies:
-1. redis-server (https://redis.io/topics/quickstart)
+## Installation
 
-For MySQL you also need to create new user:
+Install MySQL and create new user:
 
 `CREATE USER 'user'@'localhost' IDENTIFIED BY 'password'`
 
@@ -38,7 +37,7 @@ Finally, you can run the server, just call from the root of project:
 
 `python3 Run.py`
 
-**For opening the core on vps or dedicated servers** be sure to set correct IP in config !
+**NOTICE: If you run the core on machine with different IP** be sure to replace '127.0.0.1' with destination IP for WorldServer in config !
 
 ## How it works ?
 OK, I promise, I will add the detailed documentation in nearest future. But, in short:
