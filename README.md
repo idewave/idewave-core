@@ -5,10 +5,9 @@ I'm very grateful to the Mangos community, in particular to Kyoril, for help and
 ## Before start
 This works on Python v3.5 - v3.7. Not tested another versions yet.
 
-Dependencies:
-1. redis-server (https://redis.io/topics/quickstart)
+## Installation
 
-For MySQL you also need to create new user:
+Install MySQL and create new user:
 
 `CREATE USER 'user'@'localhost' IDENTIFIED BY 'password'`
 
