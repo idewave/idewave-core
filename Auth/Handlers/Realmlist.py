@@ -1,7 +1,9 @@
 from struct import pack
+
 from Auth.Constants.LoginOpCode import LoginOpCode
 from World.Realmlist.Sandbox.Sandbox import realm
-from Realm.CONSTANTS import RealmPopulation, RealmFlags
+from Realm.Constants.RealmPopulation import RealmPopulation
+from Realm.Constants.RealmFlags import RealmFlags
 from Utils.Debug.Logger import Logger
 
 

@@ -97,17 +97,11 @@ class LoginChallenge(object):
             Logger.error('[Login Challenge]: exception({})'.format(e.__class__))
 
     def _get_response(self):
-        # session.srp.generate_server_ephemeral(session.account.verifier)
         self.srp.generate_server_ephemeral(self.account.verifier)
 
         generator = int.to_bytes(SRP.GENERATOR, 1, 'little')
         modulus = int.to_bytes(SRP.MODULUS, 32, 'little')
-        # server_eph = int.to_bytes(session.srp.serv_ephemeral, 32, 'little')
         server_eph = int.to_bytes(self.srp.serv_ephemeral, 32, 'little')
-
-        # await RedisConnection.create().set(self.account.name + ':SRP', json.dumps({
-        #     'serv_ephemeral': srp.serv_ephemeral
-        # }))
 
         response = pack('<3B32sB1sB32s32s16sB',
                         LoginOpCode.LOGIN_CHALL.value,

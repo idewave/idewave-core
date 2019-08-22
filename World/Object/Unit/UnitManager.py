@@ -12,8 +12,6 @@ class UnitManager(ObjectManager):
 
     def __init__(self, **kwargs):
         super(UnitManager, self).__init__(**kwargs)
-        # TODO: should research update types and set own for creation, own for updating
-        # self.object_update_type = ObjectUpdateType.CREATE_OBJECT2.value
         self.world_object = Unit()
         self.stats_builder = None
 
@@ -120,7 +118,8 @@ class UnitManager(ObjectManager):
             map_id=self.world_object.map_id,
             region_id=self.world_object.region.id
         )
-        self.movement.position = position
+
+        self.movement.set_position(position)
 
     # overridable
     def load(self, **kwargs):

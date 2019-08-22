@@ -23,15 +23,16 @@ class Movement(object):
 
         self.object_type = None
 
+        self.movement_flags = MovementFlags.NONE.value
+        self.movement_flags2 = None
         self.time = 0
         self.position = Position()
         self.transport_guid = 0
         self.transport_position = Position()
+        self.transport_time = 0
         self.swim_pitch = float(0)
-        self.jump_data = JumpData()
-        self.spline_elevation_unk = float(0)
+        self.fall_time = 0
 
-        # guids
         self.low_guid = None
         self.high_guid = None
 
@@ -41,28 +42,30 @@ class Movement(object):
     def set_object_type(self, object_type):
         self.object_type = object_type
 
-    def set_guids(self, low_guid, high_guid):
-        self.low_guid = low_guid
+    def set_high_guid(self, high_guid):
         self.high_guid = high_guid
+
+    def set_low_guid(self, low_guid):
+        self.low_guid = low_guid
+
+    def set_position(self, position: Position):
+        self.position = position
 
     def to_bytes(self):
         data = bytes()
 
-        move_flags = MovementFlags.NONE.value
-
         data += pack('<B', self.update_flags)
 
         if self.update_flags & UpdateObjectFlags.UPDATEFLAG_LIVING.value:
-            # TODO: get actual movement flags
             if self.object_type == ObjectType.PLAYER.value:
                 # TODO: check for transport
-                move_flags &= ~MovementFlags.ONTRANSPORT.value
+                self.movement_flags &= ~MovementFlags.ONTRANSPORT.value
             elif self.object_type == ObjectType.UNIT.value:
-                move_flags &= ~MovementFlags.ONTRANSPORT.value
+                self.movement_flags &= ~MovementFlags.ONTRANSPORT.value
 
             data += pack(
                 '<IBI',
-                move_flags,
+                self.movement_flags,
                 0,
                 Timer.get_ms_time()
             )

@@ -4,6 +4,7 @@ from typing import List
 
 from World.Region.model import Region
 from World.Object.Unit.model import Unit
+from World.Object.Unit.Movement.Movement import Movement
 from World.Object.Unit.UnitManager import UnitManager
 from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Player.PlayerManager import PlayerManager
@@ -12,6 +13,8 @@ from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField, Pl
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
+
+from Utils.Debug.Logger import Logger
 
 from Config.Run.config import Config
 
@@ -183,7 +186,7 @@ class RegionManager(object):
         for target in nearest_players:
             RegionManager._notify_nearest_players(target, [player])
 
-    def update_player(self, player: Player):
+    def update_player_movement(self, player: Player, movement: Movement):
         current_region = None
         for region in self.regions:
             if region.region_id == player.region.region_id:
@@ -197,7 +200,12 @@ class RegionManager(object):
         nearest_players = RegionManager._get_nearest_players(current_region, player)
 
         for target in nearest_players:
-            RegionManager._notify_nearest_players_movement(target, [player])
+            RegionManager._notify_nearest_players(
+                target,
+                [player],
+                object_update_type=ObjectUpdateType.CREATE_OBJECT2,
+                movement=movement
+            )
 
     def remove_player(self, player: Player):
         pass
@@ -214,8 +222,8 @@ class RegionManager(object):
         return nearest_players
 
     @staticmethod
-    def _notify_nearest_players(player: Player, targets: List[Player]):
-        movement_flags = (
+    def _notify_nearest_players(player: Player, targets: List[Player], **kwargs):
+        update_flags = (
                 UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
                 UpdateObjectFlags.UPDATEFLAG_LIVING.value |
                 UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
@@ -223,10 +231,17 @@ class RegionManager(object):
 
         targets = targets.copy()
 
+        object_update_type = kwargs.pop('object_update_type', ObjectUpdateType.CREATE_OBJECT2)
+        movement = kwargs.pop('movement', None)
+
         with PlayerManager() as head_player_mgr:
-            head_player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT2)
+            head_player_mgr.set_object_update_type(object_update_type=object_update_type)
             head_player_mgr.set(targets.pop(0))
-            head_player_mgr.movement.set_update_flags(movement_flags)
+
+            if movement:
+                head_player_mgr.set_movement(movement)
+
+            head_player_mgr.movement.set_update_flags(update_flags)
 
             batch = head_player_mgr.prepare().create_batch(RegionManager.PLAYER_SPAWN_FIELDS)
             head_player_mgr.add_batch(batch)
@@ -234,34 +249,12 @@ class RegionManager(object):
             if targets:
                 for target in targets:
                     with PlayerManager() as player_mgr:
-                        player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT2)
+                        player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT)
                         player_mgr.set(target)
-                        player_mgr.movement.set_update_flags(movement_flags)
+                        player_mgr.movement.set_update_flags(update_flags)
 
                         batch = player_mgr.prepare().create_batch(RegionManager.PLAYER_SPAWN_FIELDS)
                         head_player_mgr.add_batch(batch)
-
-            update_packets = head_player_mgr.build_update_packet().get_update_packets()
-
-            asyncio.ensure_future(
-                QueuesRegistry.update_packets_queue.put((player.name, update_packets))
-            )
-
-    @staticmethod
-    def _notify_nearest_players_movement(player: Player, targets: List[Player]):
-        movement_flags = (
-                UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
-                UpdateObjectFlags.UPDATEFLAG_LIVING.value |
-                UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
-        )
-
-        with PlayerManager() as head_player_mgr:
-            head_player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT2)
-            head_player_mgr.set(targets.pop(0))
-            head_player_mgr.movement.set_update_flags(movement_flags)
-
-            batch = head_player_mgr.prepare().create_batch(RegionManager.PLAYER_SPAWN_FIELDS)
-            head_player_mgr.add_batch(batch)
 
             update_packets = head_player_mgr.build_update_packet().get_update_packets()
 

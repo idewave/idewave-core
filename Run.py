@@ -1,5 +1,4 @@
 import asyncio
-import subprocess
 
 from colorama import init
 
@@ -9,7 +8,6 @@ from Server.WebsocketServer.WebsocketServer import WebsocketServer
 
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldManager import WorldManager
-from Server.Queue.MultiProcessQueue import MultiProcessQueue
 
 from Utils.Debug.Logger import Logger
 
@@ -26,16 +24,14 @@ if __name__ == '__main__':
 
     world_manager = WorldManager()
 
-    QueuesRegistry.web_data_queue = MultiProcessQueue.get_instance()
+    # QueuesRegistry.web_data_queue = MultiProcessQueue.get_instance()
+    QueuesRegistry.session_keys_queue = asyncio.Queue()
     QueuesRegistry.players_queue = asyncio.Queue()
     QueuesRegistry.remove_player_queue = asyncio.Queue()
     QueuesRegistry.movement_queue = asyncio.Queue()
     QueuesRegistry.connections_queue = asyncio.Queue()
     QueuesRegistry.disconnect_queue = asyncio.Queue()
     QueuesRegistry.update_packets_queue = asyncio.Queue()
-
-    # TODO: check how this works for windows
-    subprocess.run('redis-server --daemonize yes', shell=True)
 
     try:
         loop.run_until_complete(

@@ -1,6 +1,6 @@
 from Realm.Realm import Realm
 from Config.Run.config import Config
-from Realm.CONSTANTS import RealmType
+from Realm.Constants.RealmType import RealmType
 
 # TODO: should be moved to db
 realm = Realm(

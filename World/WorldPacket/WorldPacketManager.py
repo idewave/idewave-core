@@ -58,7 +58,7 @@ class WorldPacketManager(object):
                         header_crypt=self.header_crypt
                     ).process()
                 except Exception as e:
-                    Logger.error('[WorldPacketMgr]: {}'.format(e))
+                    Logger.error('[WorldPacketMgr]: !{}! {}'.format(handler, e))
                     traceback.print_exc()
                 else:
                     if opcode and response:

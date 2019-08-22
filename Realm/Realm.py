@@ -1,5 +1,6 @@
 from struct import pack
-from Realm.CONSTANTS import RealmTimezone
+
+from Realm.Constants.RealmTimeZone import RealmTimezone
 
 
 class Realm(object):

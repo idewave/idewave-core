@@ -1,8 +1,9 @@
 from base64 import b64encode
 from struct import unpack, pack, error as StructError
+
 from Auth.Constants.LoginOpCode import LoginOpCode
 from Auth.Constants.LoginResult import LoginResult
-from Server.Redis.RedisConnection import RedisConnection
+from Server.Registry.QueuesRegistry import QueuesRegistry
 from Utils.Debug.Logger import Logger
 
 
@@ -29,7 +30,7 @@ class LoginProof(object):
         Logger.debug('[Login Proof]: processing...')
         self._parse_data()
 
-        # generate for server-side authentication (next step, after realmlist recv)
+        # generated for server-side authentication (next step, after realmlist recv)
         self.srp.generate_session_key(self.client_ephemeral, self.account.verifier)
         self.srp.generate_client_proof(self.client_ephemeral, self.account)
 
@@ -37,10 +38,10 @@ class LoginProof(object):
             Logger.debug('[Login Proof]: OK')
             self.srp.generate_server_proof(self.client_ephemeral)
 
-            await RedisConnection.create().set(
+            await QueuesRegistry.session_keys_queue.put((
                 '#{}-session-key'.format(self.account.name),
                 b64encode(self.srp.session_key).decode('utf-8')
-            )
+            ))
 
             return self._get_response()
 
@@ -62,9 +63,9 @@ class LoginProof(object):
                             LoginOpCode.LOGIN_PROOF.value,
                             LoginResult.SUCCESS.value,
                             self.srp.server_proof,
-                            0x00800000,  # unk1
-                            0x00,        # unk2
-                            0x00         # unk3
+                            0x00800000,
+                            0x00,
+                            0x00
             )
         except Exception as e:
             Logger.error('[Login Proof]: {}'.format(e))

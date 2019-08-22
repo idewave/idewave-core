@@ -58,7 +58,7 @@ class ItemManager(ObjectManager):
         )
 
         self.world_object.movement.set_update_flags(update_flags=flags)
-        self.world_object.movement.set_guids(self.world_object.id, self.world_object.high_guid)
+        # self.world_object.movement.set_guids(self.world_object.id, self.world_object.high_guid)
 
     # inheritable
     def load(self, id: int):

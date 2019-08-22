@@ -22,10 +22,13 @@ class WorldServer(BaseServer):
 
     def __init__(self, host, port):
         super().__init__(host, port)
+        self.session_keys = {}
         # key = player name, value = (reader, writer)
         self.connections = {}
 
     async def handle_connection(self, reader: StreamReader, writer: StreamWriter):
+        self._register_tasks()
+
         temp_ref = TempRef()
         world_packet_manager = WorldPacketManager(temp_ref=temp_ref, reader=reader, writer=writer)
 
@@ -33,10 +36,14 @@ class WorldServer(BaseServer):
         Logger.debug('[World Server]: Accept connection from {}'.format(peername))
 
         Logger.info('[World Server]: trying to process auth session')
-        auth = AuthManager(reader, writer, temp_ref=temp_ref, world_packet_manager=world_packet_manager)
+        auth = AuthManager(
+            reader,
+            writer,
+            temp_ref=temp_ref,
+            world_packet_manager=world_packet_manager,
+            session_keys=self.session_keys
+        )
         await auth.process(step=AuthStep.SECOND)
-
-        self._register_tasks()
 
         while True:
             try:
@@ -50,7 +57,10 @@ class WorldServer(BaseServer):
                             await writer.drain()
 
             except TimeoutError:
-                continue
+                pass
+
+            except BrokenPipeError:
+                pass
 
             except Exception as e:
                 Logger.error('[World Server]: exception, {}'.format(e))
@@ -84,13 +94,34 @@ class WorldServer(BaseServer):
             except asyncio.QueueEmpty:
                 pass
             else:
-                if not player_name or not self.connections or player_name not in self.connections:
-                    continue
-
-                del self.connections[player_name]
-                Logger.info('[World Server]: player "{}" disconnected'.format(player_name))
+                if player_name and self.connections and player_name in self.connections:
+                    del self.connections[player_name]
+                    Logger.info('[World Server]: player "{}" disconnected'.format(player_name))
             finally:
                 await asyncio.sleep(0.01)
+
+    async def add_session_keys(self):
+        while True:
+            try:
+                key, value = QueuesRegistry.session_keys_queue.get_nowait()
+            except asyncio.QueueEmpty:
+                pass
+            else:
+                self.session_keys[key] = value
+            finally:
+                await asyncio.sleep(0.01)
+
+    # async def remove_session_keys(self):
+    #     while True:
+    #         try:
+    #             key = QueuesRegistry.connections_queue.get_nowait()
+    #         except asyncio.QueueEmpty:
+    #             pass
+    #         else:
+    #             if key and self.session_keys and key in self.session_keys:
+    #                 del self.session_keys[key]
+    #         finally:
+    #             await asyncio.sleep(0.01)
 
     async def send_update_packet_to_player(self):
         while True:
@@ -110,21 +141,31 @@ class WorldServer(BaseServer):
                     # just ignore
                     pass
                 else:
-                    for update_packet in update_packets:
-                        response = WorldPacketManager.generate_packet(
-                            opcode=WorldOpCode.SMSG_UPDATE_OBJECT,
-                            data=update_packet,
-                            header_crypt=header_crypt
-                        )
-                        writer.write(response)
-                        await writer.drain()
+                    try:
+                        for update_packet in update_packets:
+                            response = WorldPacketManager.generate_packet(
+                                opcode=WorldOpCode.SMSG_UPDATE_OBJECT,
+                                data=update_packet,
+                                header_crypt=header_crypt
+                            )
+                            writer.write(response)
+                            await writer.drain()
+                    except BrokenPipeError:
+                        del self.connections[player_name]
+
+                    except ConnectionResetError:
+                        del self.connections[player_name]
             finally:
                 await asyncio.sleep(0.01)
 
     def _register_tasks(self):
-        asyncio.ensure_future(self.add_connection())
-        asyncio.ensure_future(self.send_update_packet_to_player())
-        asyncio.ensure_future(self.remove_connection())
+        asyncio.gather(
+            asyncio.ensure_future(self.add_connection()),
+            asyncio.ensure_future(self.send_update_packet_to_player()),
+            asyncio.ensure_future(self.remove_connection()),
+            asyncio.ensure_future(self.add_session_keys()),
+            # asyncio.ensure_future(self.remove_session_keys()),
+        )
 
     @staticmethod
     def create():

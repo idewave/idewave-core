@@ -1,12 +1,6 @@
 import asyncio
-import traceback
-import gc
 
-from concurrent.futures import TimeoutError
-
-from Utils.Debug.Logger import Logger
 from Utils.Timer import Timer
-from World.Object.Unit.Player.model import Player
 from World.Region.RegionManager import RegionManager
 from Server.Registry.QueuesRegistry import QueuesRegistry
 
@@ -22,9 +16,7 @@ class WorldManager(object):
         while True:
             self.last_update = Timer.get_ms_time()
 
-            asyncio.ensure_future(self.process_player_enter_world())
-            asyncio.ensure_future(self.process_player_movement())
-            asyncio.ensure_future(self.process_player_exit_world())
+            self._register_tasks()
 
             await asyncio.sleep(self.heartbeat)
 
@@ -49,9 +41,9 @@ class WorldManager(object):
             #         Logger.error('[World Manager]: {}'.format(e))
             #         traceback.print_exc()
 
-    def update(self, player: Player):
-        asyncio.ensure_future(self.region_mgr.refresh_players(player))
-        asyncio.ensure_future(self.region_mgr.refresh_creatures())
+    # def update(self, player: Player):
+    #     asyncio.ensure_future(self.region_mgr.refresh_players(player))
+    #     asyncio.ensure_future(self.region_mgr.refresh_creatures())
 
     async def process_player_enter_world(self):
         try:
@@ -65,11 +57,11 @@ class WorldManager(object):
 
     async def process_player_movement(self):
         try:
-            player = QueuesRegistry.movement_queue.get_nowait()
+            player, movement = QueuesRegistry.movement_queue.get_nowait()
         except asyncio.QueueEmpty:
             return
         else:
-            self.region_mgr.update_player(player)
+            self.region_mgr.update_player_movement(player, movement)
         finally:
             await asyncio.sleep(0.01)
 
@@ -82,3 +74,10 @@ class WorldManager(object):
             self.region_mgr.remove_player(player)
         finally:
             await asyncio.sleep(0.01)
+
+    def _register_tasks(self):
+        asyncio.gather(
+            asyncio.ensure_future(self.process_player_enter_world()),
+            asyncio.ensure_future(self.process_player_movement()),
+            asyncio.ensure_future(self.process_player_exit_world()),
+        )

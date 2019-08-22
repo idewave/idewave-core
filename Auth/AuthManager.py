@@ -18,7 +18,6 @@ from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Auth.Constants.WorldServerAuthResponseCodes import ResponseCodes
 from Account.AccountManager import AccountManager
 from Auth.Crypto.HeaderCrypt import HeaderCrypt
-from Server.Redis.RedisConnection import RedisConnection
 from Utils.Debug.Logger import Logger
 
 
@@ -40,6 +39,7 @@ class AuthManager(object):
 
         # uses on second step
         self.world_packet_manager = kwargs.pop('world_packet_manager', None)
+        self.session_keys = kwargs.pop('session_keys', None)
         self.data = bytes()
         self.build = 0
         self.unk = 0
@@ -64,7 +64,7 @@ class AuthManager(object):
     async def authenticate_on_login_server(self):
         while True:
             try:
-                request = await asyncio.wait_for(self.reader.read(1024), timeout=1.0)
+                request = await asyncio.wait_for(self.reader.read(1024), timeout=0.01)
                 if request:
                     opcode, packet = request[0], request[1:]
                     try:
@@ -80,13 +80,13 @@ class AuthManager(object):
             except TimeoutError:
                 pass
             finally:
-                await asyncio.sleep(1)
+                await asyncio.sleep(0.01)
 
     async def authenticate_on_world_server(self):
         self.send_auth_challenge()
         try:
             await self._parse_data()
-            await self._check_session_key()
+            self._check_session_key()
             self._generate_server_hash()
             # after this step next packets will be encrypted
             self._setup_encryption()
@@ -101,7 +101,7 @@ class AuthManager(object):
             Logger.error('[Auth Manager]: Timeout on step2')
             pass
         finally:
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.01)
 
     def send_auth_challenge(self):
         # auth seed need to generate header_crypt
@@ -113,7 +113,7 @@ class AuthManager(object):
         self.writer.write(response)
 
     async def _parse_data(self):
-        data = await asyncio.wait_for(self.reader.read(1024), timeout=1.0)
+        data = await asyncio.wait_for(self.reader.read(1024), timeout=0.01)
         # omit first 6 bytes, cause 01-02 = packet size, 03-04 = opcode (0x1ED), 05-06 - unknown null-bytes
         tmp_buf = BytesIO(data[6:])
         self.build = unpack('<H', tmp_buf.read(2))[0]
@@ -146,16 +146,20 @@ class AuthManager(object):
         else:
             return result
 
-    async def _check_session_key(self):
+    def _check_session_key(self):
         Logger.info('[Auth Session Manager]: checking session key')
-        session_key = await RedisConnection.create().get('#{}-session-key'.format(self.account_name))
+        key = '#{}-session-key'.format(self.account_name)
+        session_key = self.session_keys[key]
+
         if not session_key:
-            raise Exception('Session key does not exists')
+            raise Exception('[AuthMgr]: Session key does not exists')
+
+        del self.session_keys[key]
 
         self.session_key = b64decode(session_key)
 
     def _generate_server_hash(self):
-        Logger.info('[Auth Session Manager]: generating server hash, acc={}, seed={}'.format(self.account_name, self.auth_seed))
+        Logger.info('[Auth Session Manager]: generating server hash for account "{}"'.format(self.account_name))
 
         to_hash = (
             self.account_name.encode('ascii') +
@@ -180,7 +184,7 @@ class AuthManager(object):
         # updating session request
         response = pack('<BIBIB',
                         ResponseCodes.AUTH_OK.value,
-                        0x00,   # BillingTimeRemainingSMSG_AUTH_RESPONSE
+                        0x00,   # BillingTimeRemaining
                         0x00,   # BillingPlanFlags
                         0x00,   # BillingTimeRested
                         0x01    # Expansion, 0 - normal, 1 - TBC, must be set manually for each account

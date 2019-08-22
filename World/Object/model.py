@@ -3,7 +3,6 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from DB.BaseModel import BaseModel
 from World.Object.Constants.TypeMask import TypeMask
 from World.Object.Constants.ObjectType import ObjectType
-from Utils.Debug.Logger import Logger
 
 from Config.Run.config import Config
 
@@ -30,16 +29,11 @@ class Object(BaseModel):
     def high_guid(self):
         return None
 
-    # @hybrid_property
-    # def low_guid(self):
-    #     return self.id
-
     @hybrid_property
     def guid(self):
         _guid = self.id
 
         if hasattr(self, 'low_guid'):
-            Logger.test('has low guid')
             _guid = self.low_guid | (self.high_guid << 48)
 
             if bool(self.entry):
