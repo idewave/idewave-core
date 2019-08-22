@@ -50,6 +50,8 @@ class AuthManager(object):
         self.session_key = bytes()
         self.server_hash = bytes()
 
+        self.is_authenticated = False
+
         # uses in both cases
         self.temp_ref = kwargs.pop('temp_ref', None)
 
@@ -58,8 +60,8 @@ class AuthManager(object):
             await self.authenticate_on_login_server()
         elif step == AuthStep.SECOND:
             await self.authenticate_on_world_server()
-        else:
-            return None
+
+        return self.is_authenticated
 
     async def authenticate_on_login_server(self):
         while True:
@@ -84,6 +86,7 @@ class AuthManager(object):
 
     async def authenticate_on_world_server(self):
         self.send_auth_challenge()
+
         try:
             await self._parse_data()
             self._check_session_key()
@@ -97,9 +100,11 @@ class AuthManager(object):
                 self._send_addon_info()
                 self._send_auth_response()
 
-        except TimeoutError:
+        except TimeoutError as e:
             Logger.error('[Auth Manager]: Timeout on step2')
-            pass
+            self.is_authenticated = False
+        else:
+            self.is_authenticated = True
         finally:
             await asyncio.sleep(0.01)
 
@@ -113,20 +118,27 @@ class AuthManager(object):
         self.writer.write(response)
 
     async def _parse_data(self):
-        data = await asyncio.wait_for(self.reader.read(1024), timeout=0.01)
-        # omit first 6 bytes, cause 01-02 = packet size, 03-04 = opcode (0x1ED), 05-06 - unknown null-bytes
-        tmp_buf = BytesIO(data[6:])
-        self.build = unpack('<H', tmp_buf.read(2))[0]
-        # remove next 6 unknown null-bytes (\x00)
-        tmp_buf.read(6)
-        self.account_name = self._parse_account_name(tmp_buf)
+        data = None
 
-        # set account for using in world packet handlers
-        with AccountManager() as account_mgr:
-            self.temp_ref.account = account_mgr.get(name=self.account_name).account
+        while not data:
+            try:
+                data = await asyncio.wait_for(self.reader.read(1024), timeout=0.01)
+            except TimeoutError:
+                continue
+            else:
+                # omit first 6 bytes, cause 01-02 = packet size, 03-04 = opcode (0x1ED), 05-06 - unknown null-bytes
+                tmp_buf = BytesIO(data[6:])
+                self.build = unpack('<H', tmp_buf.read(2))[0]
+                # remove next 6 unknown null-bytes (\x00)
+                tmp_buf.read(6)
+                self.account_name = self._parse_account_name(tmp_buf)
 
-        self.client_seed = tmp_buf.read(4)
-        self.client_hash = tmp_buf.read(20)
+                # set account for using in world packet handlers
+                with AccountManager() as account_mgr:
+                    self.temp_ref.account = account_mgr.get(name=self.account_name).account
+
+                self.client_seed = tmp_buf.read(4)
+                self.client_hash = tmp_buf.read(20)
 
     def _parse_account_name(self, buffer: BytesIO):
         Logger.info('[Auth Session Manager]: parsing account name')

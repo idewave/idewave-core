@@ -32,9 +32,6 @@ class WorldServer(BaseServer):
         temp_ref = TempRef()
         world_packet_manager = WorldPacketManager(temp_ref=temp_ref, reader=reader, writer=writer)
 
-        peername = writer.get_extra_info('peername')
-        Logger.debug('[World Server]: Accept connection from {}'.format(peername))
-
         Logger.info('[World Server]: trying to process auth session')
         auth = AuthManager(
             reader,
@@ -43,31 +40,37 @@ class WorldServer(BaseServer):
             world_packet_manager=world_packet_manager,
             session_keys=self.session_keys
         )
-        await auth.process(step=AuthStep.SECOND)
 
-        while True:
-            try:
-                request = await asyncio.wait_for(reader.read(4096), timeout=0.01)
-                if request:
-                    response = await asyncio.wait_for(world_packet_manager.process(request), timeout=0.01)
+        is_authenticated = await auth.process(step=AuthStep.SECOND)
 
-                    if response:
-                        for packet in response:
-                            writer.write(packet)
-                            await writer.drain()
+        if is_authenticated:
 
-            except TimeoutError:
-                pass
+            peer_name = writer.get_extra_info('peername')
+            Logger.success('[World Server]: Accept connection from {}'.format(peer_name))
 
-            except BrokenPipeError:
-                pass
+            while True:
+                try:
+                    request = await asyncio.wait_for(reader.read(4096), timeout=0.01)
+                    if request:
+                        response = await asyncio.wait_for(world_packet_manager.process(request), timeout=0.01)
 
-            except Exception as e:
-                Logger.error('[World Server]: exception, {}'.format(e))
-                traceback.print_exc()
-                break
-            finally:
-                await asyncio.sleep(0.01)
+                        if response:
+                            for packet in response:
+                                writer.write(packet)
+                                await writer.drain()
+
+                except TimeoutError:
+                    pass
+
+                except BrokenPipeError:
+                    pass
+
+                except Exception as e:
+                    Logger.error('[World Server]: exception, {}'.format(e))
+                    traceback.print_exc()
+                    break
+                finally:
+                    await asyncio.sleep(0.01)
 
         writer.close()
 
@@ -111,18 +114,6 @@ class WorldServer(BaseServer):
             finally:
                 await asyncio.sleep(0.01)
 
-    # async def remove_session_keys(self):
-    #     while True:
-    #         try:
-    #             key = QueuesRegistry.connections_queue.get_nowait()
-    #         except asyncio.QueueEmpty:
-    #             pass
-    #         else:
-    #             if key and self.session_keys and key in self.session_keys:
-    #                 del self.session_keys[key]
-    #         finally:
-    #             await asyncio.sleep(0.01)
-
     async def send_update_packet_to_player(self):
         while True:
             try:
@@ -164,7 +155,6 @@ class WorldServer(BaseServer):
             asyncio.ensure_future(self.send_update_packet_to_player()),
             asyncio.ensure_future(self.remove_connection()),
             asyncio.ensure_future(self.add_session_keys()),
-            # asyncio.ensure_future(self.remove_session_keys()),
         )
 
     @staticmethod
