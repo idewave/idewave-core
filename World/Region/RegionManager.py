@@ -4,7 +4,9 @@ from typing import List
 
 from World.Region.model import Region
 from World.Object.Unit.model import Unit
-from World.Object.Unit.Movement.Movement import Movement
+from World.Object.model import Object
+
+from World.Object.ObjectManager import ObjectManager
 from World.Object.Unit.UnitManager import UnitManager
 from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Player.PlayerManager import PlayerManager
@@ -13,6 +15,8 @@ from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField, Pl
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
+
+from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 
 from Utils.Debug.Logger import Logger
 
@@ -186,7 +190,7 @@ class RegionManager(object):
         for target in nearest_players:
             RegionManager._notify_nearest_players(target, [player])
 
-    def update_player_movement(self, player: Player, movement: Movement):
+    def update_player_movement(self, player: Player, opcode: WorldOpCode, packet: bytes):
         current_region = None
         for region in self.regions:
             if region.region_id == player.region.region_id:
@@ -203,12 +207,22 @@ class RegionManager(object):
             RegionManager._notify_nearest_players(
                 target,
                 [player],
-                object_update_type=ObjectUpdateType.CREATE_OBJECT2,
-                movement=movement
+                movement_packet=(opcode, packet),
             )
 
     def remove_player(self, player: Player):
-        pass
+        current_region = None
+        for region in self.regions:
+            if region.region_id == player.region.region_id:
+                region.remove_player(player)
+                current_region = region
+                break
+
+        if current_region is None:
+            raise Exception('[RegionMgr]: player has unknown region id')
+
+        # notify nearest players that current player was disconnected
+        nearest_players = RegionManager._get_nearest_players(current_region, player)
 
     @staticmethod
     def _get_nearest_players(current_region: Region, player: Player):
@@ -223,44 +237,63 @@ class RegionManager(object):
 
     @staticmethod
     def _notify_nearest_players(player: Player, targets: List[Player], **kwargs):
-        update_flags = (
-                UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
-                UpdateObjectFlags.UPDATEFLAG_LIVING.value |
-                UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
-        )
 
-        targets = targets.copy()
+        opcode, packet = kwargs.pop('movement_packet', (None, None))
 
-        object_update_type = kwargs.pop('object_update_type', ObjectUpdateType.CREATE_OBJECT2)
-        movement = kwargs.pop('movement', None)
-
-        with PlayerManager() as head_player_mgr:
-            head_player_mgr.set_object_update_type(object_update_type=object_update_type)
-            head_player_mgr.set(targets.pop(0))
-
-            if movement:
-                head_player_mgr.set_movement(movement)
-
-            head_player_mgr.movement.set_update_flags(update_flags)
-
-            batch = head_player_mgr.prepare().create_batch(RegionManager.PLAYER_SPAWN_FIELDS)
-            head_player_mgr.add_batch(batch)
-
-            if targets:
-                for target in targets:
-                    with PlayerManager() as player_mgr:
-                        player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT)
-                        player_mgr.set(target)
-                        player_mgr.movement.set_update_flags(update_flags)
-
-                        batch = player_mgr.prepare().create_batch(RegionManager.PLAYER_SPAWN_FIELDS)
-                        head_player_mgr.add_batch(batch)
-
-            update_packets = head_player_mgr.build_update_packet().get_update_packets()
-
+        if opcode and packet:
+            packet = targets.pop(0).packed_guid + packet
             asyncio.ensure_future(
-                QueuesRegistry.update_packets_queue.put((player.name, update_packets))
+                QueuesRegistry.movement_packets_queue.put((player.name, packet, opcode))
             )
+
+        else:
+            update_flags = (
+                    UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
+                    UpdateObjectFlags.UPDATEFLAG_LIVING.value |
+                    UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
+            )
+
+            targets = targets.copy()
+
+            object_update_type = kwargs.pop('object_update_type', ObjectUpdateType.CREATE_OBJECT2)
+
+            with PlayerManager() as head_player_mgr:
+                RegionManager._init_update_packet_builder(
+                    head_player_mgr,
+                    object_update_type=object_update_type,
+                    update_flags=update_flags,
+                    update_object=targets.pop(0)
+                )
+
+                batch = head_player_mgr.create_batch(RegionManager.PLAYER_SPAWN_FIELDS)
+                head_player_mgr.add_batch(batch)
+
+                if targets:
+                    for target in targets:
+                        with PlayerManager() as player_mgr:
+                            RegionManager._init_update_packet_builder(
+                                player_mgr,
+                                object_update_type=ObjectUpdateType.CREATE_OBJECT2,
+                                update_flags=update_flags,
+                                update_object=target
+                            )
+
+                            batch = player_mgr.create_batch(RegionManager.PLAYER_SPAWN_FIELDS)
+                            head_player_mgr.add_batch(batch)
+
+                update_packets = head_player_mgr.build_update_packet().get_update_packets()
+
+                asyncio.ensure_future(QueuesRegistry.update_packets_queue.put((player.name, update_packets)))
+
+    @staticmethod
+    def _init_update_packet_builder(mgr: ObjectManager, **kwargs):
+        object_update_type = kwargs.pop('object_update_type')
+        update_flags = kwargs.pop('update_flags')
+        update_object = kwargs.pop('update_object')
+
+        mgr.set_object_update_type(object_update_type=object_update_type)
+        mgr.set(update_object)
+        mgr.prepare().set_update_flags(update_flags)
 
     # async def refresh_creatures(self):
     #     for region in self.regions:

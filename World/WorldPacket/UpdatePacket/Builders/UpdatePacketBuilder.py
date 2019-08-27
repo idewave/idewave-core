@@ -2,6 +2,13 @@ from struct import pack
 
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
 from World.WorldPacket.UpdatePacket.Builders.UpdateBlocksBuilder import UpdateBlocksBuilder
+from World.Object.Unit.Movement.Constants.MovementFlags import MovementFlags
+from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
+from World.Object.Constants.ObjectType import ObjectType
+from Utils.Timer import Timer
+from Utils.Debug.Logger import Logger
+
+from Config.Run.config import Config
 
 
 class UpdatePacketBuilder(object):
@@ -38,10 +45,14 @@ class UpdatePacketBuilder(object):
     )
 
     def __init__(self, **kwargs):
+
+        self.update_flags = None
+        self.movement_flags = MovementFlags.NONE.value
+        self.movement_flags2 = 0
+
         self.update_object = kwargs.pop('update_object')
         self.update_type = kwargs.pop('update_type')
         self.object_type = kwargs.pop('object_type')
-        self.movement = kwargs.pop('movement')
         self.update_blocks_builder = UpdateBlocksBuilder()
 
         self.batches = []
@@ -82,7 +93,7 @@ class UpdatePacketBuilder(object):
 
         object_movement = bytes()
         if self.update_type in self.TYPES_WITH_MOVEMENT:
-            object_movement = self.movement.to_bytes()
+            object_movement = self._get_movement_info()
 
         builder_data = bytes()
         if self.update_type in self.TYPES_WITH_FIELDS:
@@ -91,6 +102,72 @@ class UpdatePacketBuilder(object):
         packet = header + object_type + object_movement + builder_data
 
         return packet
+
+    def set_update_flags(self, update_flags: int):
+        self.update_flags = update_flags
+
+    def _get_movement_info(self):
+        data = bytes()
+
+        data += pack('<B', self.update_flags)
+
+        if self.update_flags & UpdateObjectFlags.UPDATEFLAG_LIVING.value:
+            if self.object_type == ObjectType.PLAYER.value:
+                # TODO: check for transport
+                self.movement_flags &= ~MovementFlags.ONTRANSPORT.value
+            elif self.object_type == ObjectType.UNIT.value:
+                self.movement_flags &= ~MovementFlags.ONTRANSPORT.value
+
+            data += pack(
+                '<IBI',
+                self.movement_flags,
+                self.movement_flags2,
+                Timer.get_ms_time()
+            )
+
+        if self.update_flags & UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value:
+            # TODO: check if transport
+            data += self.update_object.position.to_bytes()
+
+        if self.update_flags & UpdateObjectFlags.UPDATEFLAG_LIVING.value:
+            # TODO: check transport, swimming and flying
+            data += pack('<I', 0)  # last fall time
+
+            movement = Config.World.Object.Unit.Player.Defaults.Movement
+
+            data += pack(
+                '<8f',
+                movement.speed_walk,
+                movement.speed_run,
+                movement.speed_run_back,
+                movement.speed_swim,
+                movement.speed_swim_back,
+                movement.speed_flight,
+                movement.speed_flight_back,
+                movement.speed_turn
+            )
+
+        if self.update_flags & UpdateObjectFlags.UPDATEFLAG_LOWGUID.value:
+            if self.object_type == ObjectType.ITEM.value:
+                data += pack('<I', self.update_object.low_guid)
+            elif self.object_type == ObjectType.UNIT.value:
+                data += pack('<I', 0x0000000B)
+            elif self.object_type == ObjectType.PLAYER.value:
+                if self.update_flags & UpdateObjectFlags.UPDATEFLAG_SELF.value:
+                    data += ('<I', 0x00000015)
+                else:
+                    data += ('<I', 0x00000008)
+            else:
+                data += ('<I', 0x00000000)
+
+        if self.update_flags & UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value:
+            # TODO: get high guid for another object types
+            if self.object_type == ObjectType.ITEM.value:
+                data += pack('<I', self.update_object.high_guid)
+            else:
+                data += pack('<I', 0x00000000)  # high guid for unit or player
+
+        return data
 
     def add_batch(self, batch: bytes):
         self.batches.append(batch)

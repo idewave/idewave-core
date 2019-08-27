@@ -32,6 +32,7 @@ if __name__ == '__main__':
     QueuesRegistry.connections_queue = asyncio.Queue()
     QueuesRegistry.disconnect_queue = asyncio.Queue()
     QueuesRegistry.update_packets_queue = asyncio.Queue()
+    QueuesRegistry.movement_packets_queue = asyncio.Queue()
 
     try:
         loop.run_until_complete(

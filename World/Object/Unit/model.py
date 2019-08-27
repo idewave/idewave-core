@@ -8,7 +8,6 @@ from World.Object.Constants.ObjectType import ObjectType
 from World.Object.Constants.HighGuid import HighGuid
 from World.Object.Constants.TypeMask import TypeMask
 from World.Object.Position import Position
-from World.Object.Unit.Movement.Movement import Movement
 
 from Config.Run.config import Config
 

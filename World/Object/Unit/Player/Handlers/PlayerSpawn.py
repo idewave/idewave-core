@@ -3,6 +3,7 @@ from World.Object.Constants.UpdateObjectFields import ObjectField, ItemField, Un
 from World.Character.Constants.CharacterClass import CharacterClass
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
+from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 
 
 class PlayerSpawn(object):
@@ -110,6 +111,13 @@ class PlayerSpawn(object):
         self.packet = packet
         self.temp_ref = kwargs.pop('temp_ref', None)
 
+        self.update_flags = (
+            UpdateObjectFlags.UPDATEFLAG_LIVING.value |
+            UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value |
+            UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
+            UpdateObjectFlags.UPDATEFLAG_SELF.value
+        )
+
         if self.temp_ref is None:
             raise Exception('[Player Spawn]: temp_ref does not exists')
 
@@ -119,7 +127,10 @@ class PlayerSpawn(object):
     async def process(self):
         with PlayerManager() as player_mgr:
             player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT2)
-            batch = player_mgr.set(self.player).prepare().create_batch(PlayerSpawn.SPAWN_FIELDS)
+            # be careful, set_update_flags should be called after prepare(), because of update_packet_builder init
+            player_mgr.set(self.player).prepare().set_update_flags(self.update_flags)
+
+            batch = player_mgr.create_batch(PlayerSpawn.SPAWN_FIELDS)
             response = player_mgr.add_batch(batch).build_update_packet().get_update_packets()
 
             return WorldOpCode.SMSG_UPDATE_OBJECT, response

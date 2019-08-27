@@ -108,18 +108,18 @@ class UnitManager(ObjectManager):
         return self
 
     # inheritable
-    def init_movement(self):
-        super(UnitManager, self).init_movement()
-        position = Position(
-            x=self.world_object.x,
-            y=self.world_object.y,
-            z=self.world_object.z,
-            orientation=self.world_object.orientation,
-            map_id=self.world_object.map_id,
-            region_id=self.world_object.region.id
-        )
-
-        self.movement.set_position(position)
+    # def init_movement(self):
+    #     super(UnitManager, self).init_movement()
+    #     position = Position(
+    #         x=self.world_object.x,
+    #         y=self.world_object.y,
+    #         z=self.world_object.z,
+    #         orientation=self.world_object.orientation,
+    #         map_id=self.world_object.map_id,
+    #         region_id=self.world_object.region.id
+    #     )
+    #
+    #     self.movement.set_position(position)
 
     # overridable
     def load(self, **kwargs):

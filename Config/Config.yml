@@ -34,6 +34,7 @@ Realm:
       realm_name: Idewave-core
 
   General:
+    # Message of the day ('@' for the newline)
     motd: Welcome to the idewave-core server
 
 World:

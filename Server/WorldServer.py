@@ -139,8 +139,46 @@ class WorldServer(BaseServer):
                                 data=update_packet,
                                 header_crypt=header_crypt
                             )
+                            Logger.test('Send update packet to {}'.format(player_name))
                             writer.write(response)
                             await writer.drain()
+                    except BrokenPipeError:
+                        del self.connections[player_name]
+
+                    except ConnectionResetError:
+                        del self.connections[player_name]
+            finally:
+                await asyncio.sleep(0.01)
+
+    async def send_movement_packet_to_player(self):
+        while True:
+            try:
+                player_name, movement_packet, opcode = await asyncio.wait_for(
+                    QueuesRegistry.movement_packets_queue.get(),
+                    timeout=0.01
+                )
+                # player_name, movement_packet, opcode = QueuesRegistry.movement_packets_queue.get_nowait()
+            # except asyncio.QueueEmpty:
+            #     pass
+            except TimeoutError:
+                pass
+            else:
+                try:
+                    writer = self.connections[player_name]['writer']
+                    header_crypt = self.connections[player_name]['header_crypt']
+                except KeyError:
+                    # on login step player object not registered in self.connections,
+                    # just ignore
+                    pass
+                else:
+                    try:
+                        response = WorldPacketManager.generate_packet(
+                            opcode=opcode,
+                            data=movement_packet,
+                            header_crypt=header_crypt
+                        )
+                        writer.write(response)
+                        await writer.drain()
                     except BrokenPipeError:
                         del self.connections[player_name]
 
@@ -152,9 +190,10 @@ class WorldServer(BaseServer):
     def _register_tasks(self):
         asyncio.gather(
             asyncio.ensure_future(self.add_connection()),
-            asyncio.ensure_future(self.send_update_packet_to_player()),
             asyncio.ensure_future(self.remove_connection()),
             asyncio.ensure_future(self.add_session_keys()),
+            asyncio.ensure_future(self.send_update_packet_to_player()),
+            asyncio.ensure_future(self.send_movement_packet_to_player()),
         )
 
     @staticmethod

@@ -2,10 +2,7 @@ from World.Object.model import Object
 from World.Object.Constants.UpdateObjectFields import ObjectField
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
 from World.WorldPacket.UpdatePacket.Builders.UpdatePacketBuilder import UpdatePacketBuilder
-from World.Object.Unit.Movement.Movement import Movement
 from DB.Connection.RealmConnection import RealmConnection
-
-from Utils.Debug.Logger import Logger
 
 
 class ObjectManager(object):
@@ -17,7 +14,6 @@ class ObjectManager(object):
         self.fields = {}
 
         self.object_update_type = ObjectUpdateType.CREATE_OBJECT.value
-        self.movement = Movement()
 
         self.world_object = Object()
 
@@ -70,16 +66,11 @@ class ObjectManager(object):
         self.update_packet_builder.build()
         return self
 
+    def set_update_flags(self, update_flags: int):
+        self.update_packet_builder.set_update_flags(update_flags)
+
     def get_update_packets(self):
         return self.update_packet_builder.get_packets()
-
-    # inheritable
-    def init_movement(self):
-        self.movement.set_object_type(self.world_object.object_type)
-        self.movement.set_high_guid(self.world_object.high_guid)
-
-    def set_movement(self, movement: Movement):
-        self.movement = movement
 
     # overridable
     def load(self, **kwargs):
@@ -99,13 +90,11 @@ class ObjectManager(object):
     def prepare(self):
         # init data for UpdatePacket
         self.add_object_fields()
-        self.init_movement()
 
         self.update_packet_builder = UpdatePacketBuilder(
             update_object=self.world_object,
             update_type=self.object_update_type,
-            object_type=self.world_object.object_type,
-            movement=self.movement
+            object_type=self.world_object.object_type
         )
 
         return self

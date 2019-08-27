@@ -20,31 +20,6 @@ class WorldManager(object):
 
             await asyncio.sleep(self.heartbeat)
 
-            # try:
-            #     player = QueuesRegistry.players_queue.get_nowait()
-            #     self.update(player)
-            # except asyncio.QueueEmpty:
-            #     pass
-            # except MemoryError:
-            #     Logger.error('[World Mgr]: MemoryError')
-            #     gc.collect()
-            #     del gc.garbage[:]
-            #     pass
-            # except Exception as e:
-            #     Logger.error('[World Manager]: another exception "{}"'.format(e))
-            #     traceback.print_exc()
-            # finally:
-            #     try:
-            #         # await QueuesRegistry.web_data_queue.put(self.region_mgr.get_regions_as_json())
-            #         await asyncio.sleep(self.heartbeat)
-            #     except Exception as e:
-            #         Logger.error('[World Manager]: {}'.format(e))
-            #         traceback.print_exc()
-
-    # def update(self, player: Player):
-    #     asyncio.ensure_future(self.region_mgr.refresh_players(player))
-    #     asyncio.ensure_future(self.region_mgr.refresh_creatures())
-
     async def process_player_enter_world(self):
         try:
             player = QueuesRegistry.players_queue.get_nowait()
@@ -57,11 +32,11 @@ class WorldManager(object):
 
     async def process_player_movement(self):
         try:
-            player, movement = QueuesRegistry.movement_queue.get_nowait()
+            player, opcode, packet = QueuesRegistry.movement_queue.get_nowait()
         except asyncio.QueueEmpty:
             return
         else:
-            self.region_mgr.update_player_movement(player, movement)
+            self.region_mgr.update_player_movement(player, opcode, packet)
         finally:
             await asyncio.sleep(0.01)
 
