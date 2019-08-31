@@ -22,7 +22,11 @@ class SkillManager(object):
         min = kwargs.pop('min', None)
         max = kwargs.pop('max', None)
 
-        self.world_object = SkillTemplate(entry=entry, name=name, min=min, max=max)
+        self.world_object = SkillTemplate()
+        self.world_object.entry = entry
+        self.world_object.name = name
+        self.world_object.min = min
+        self.world_object.max = max
 
         return self
 
@@ -36,7 +40,9 @@ class SkillManager(object):
         if skill_template is None:
             raise Exception('Skill with entry {} not found'.format(entry))
 
-        self.world_object = DefaultSkill(race=race, char_class=char_class)
+        self.world_object = DefaultSkill()
+        self.world_object.race = race
+        self.world_object.char_class = char_class
         self.world_object.skill_template = skill_template
 
         return self
@@ -47,8 +53,6 @@ class SkillManager(object):
                 .query(DefaultSkill)\
                 .filter(or_(DefaultSkill.race == player.race, DefaultSkill.char_class == player.char_class))\
                 .all()
-
-            Logger.test('default skills = {}'.format(default_skills))
 
             skills = []
 
@@ -65,9 +69,6 @@ class SkillManager(object):
             Logger.error('[SkillMgr]: {}'.format(e))
         finally:
             return self
-
-    def get_skills(self):
-        return self.skills
 
     def save(self):
         self.session.add(self.world_object)
