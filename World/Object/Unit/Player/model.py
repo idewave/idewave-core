@@ -36,6 +36,7 @@ class Player(Unit):
 
     unit                    = relationship('Unit', lazy='subquery')
     equipment               = relationship('Equipment', lazy='subquery')
+    player_skill            = relationship('PlayerSkill', lazy='subquery')
     account                 = relationship('Account', lazy='subquery')
 
     __table_args__ = {
@@ -59,11 +60,14 @@ class PlayerSkill(BaseModel):
 
     __tablename__ = 'player_skill'
 
-    skill_template_id               = BaseModel.column(type='integer',
-                                                       foreign_key=Config.Database.DBNames.world_db + '.skill_template.id')
+    skill_template_id       = BaseModel.column(type='integer',
+                                               foreign_key=Config.Database.DBNames.world_db + '.skill_template.id')
 
-    player_id                       = BaseModel.column(type='integer',
-                                                       foreign_key=Config.Database.DBNames.realm_db + '.player.id')
+    player_id               = BaseModel.column(type='integer',
+                                               foreign_key=Config.Database.DBNames.realm_db + '.player.id')
+
+    skill_template          = relationship('SkillTemplate')
+    player                  = relationship('Player', lazy='subquery')
 
     __table_args__ = {
         'schema': Config.Database.DBNames.realm_db
@@ -74,12 +78,11 @@ class PlayerSpell(BaseModel):
 
     __tablename__ = 'player_spell'
 
-    spell_template_id               = BaseModel.column(type='integer',
-                                                       foreign_key=
-                                                            Config.Database.DBNames.world_db + '.spell_template.id')
+    spell_template_id       = BaseModel.column(type='integer',
+                                               foreign_key=Config.Database.DBNames.world_db + '.spell_template.id')
 
-    player_id                       = BaseModel.column(type='integer',
-                                                       foreign_key=Config.Database.DBNames.realm_db + '.player.id')
+    player_id               = BaseModel.column(type='integer',
+                                               foreign_key=Config.Database.DBNames.realm_db + '.player.id')
 
     __table_args__ = {
         'schema': Config.Database.DBNames.realm_db

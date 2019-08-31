@@ -16,10 +16,10 @@ class ZoneUpdate(object):
             raise Exception('[Zone Update]: temp_ref does not exists')
 
     async def process(self):
-        region_id = unpack('<I', self.packet[-4:])[0]
+        identifier = unpack('<I', self.packet[-4:])[0]
 
-        if not self.temp_ref.player.region.region_id == region_id:
-            region = RegionManager().get_region(region_id=region_id)
+        if not self.temp_ref.player.region.identifier == identifier:
+            region = RegionManager().get_region(identifier=identifier)
             self.temp_ref.player.region = region
 
             with PlayerManager() as player_mgr:

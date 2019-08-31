@@ -171,8 +171,6 @@ class AuthManager(object):
             if not session_key:
                 raise Exception('[AuthMgr]: Session key does not exists')
 
-            del self.session_keys[key]
-
             self.session_key = b64decode(session_key)
 
     def _generate_server_hash(self):

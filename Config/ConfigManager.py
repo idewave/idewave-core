@@ -19,7 +19,7 @@ class ConfigManager(object):
             try:
                 data = yaml.load(stream, Loader=yaml.Loader)
                 self.config = json.loads(
-                    json.dumps(data), object_hook=lambda d: namedtuple('Config', d.keys())(*d.values())
+                    json.dumps(data), object_hook=lambda d: namedtuple('Configs', d.keys())(*d.values())
                 )
             except yaml.YAMLError as error:
                 Logger.error('[Config Manager]: {}'.format(error))

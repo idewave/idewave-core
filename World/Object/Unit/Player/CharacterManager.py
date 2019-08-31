@@ -32,7 +32,7 @@ class CharacterManager(object):
             player.hair_color,                          # hair color       5
             player.facial_hair,                         # facial hair      6
             player.level,                               # level            7
-            player.region.region_id,                    # zone id          8
+            player.region.identifier,                   # zone id          8
             player.map_id,                              # map id           9
             player.x,                                   # x                10
             player.y,                                   # y                11

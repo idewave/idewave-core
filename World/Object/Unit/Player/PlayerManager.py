@@ -3,15 +3,13 @@ from World.Object.Unit.Player.model import Player
 from World.Object.Constants.UpdateObjectFields import PlayerField
 from World.Character.Constants.CharacterRace import CharacterRace
 from World.Character.Constants.CharacterGender import CharacterGender
-from World.Object.Item.model import Item
 from World.Character.Constants.CharacterEquipSlot import CharacterEquipSlot
 from World.Object.Unit.Player.Inventory.Equipment.EquipmentManager import EquipmentManager
+from World.Object.Unit.Player.Skill.SkillManager import SkillManager
 from World.Object.Unit.Player.Inventory.Equipment.model import Equipment
 from World.Object.Unit.Builders.StatsBuilder import StatsBuilder
-from World.Object.Position import Position
 from World.Character.Constants.CharacterDisplayId import CHARACTER_DISPLAY_ID
-from World.Object.Unit.Player.Config.StartLocation import START_LOCATION
-from World.Region.model import Region
+from World.Region.model import DefaultLocation
 
 from Utils.Debug.Logger import Logger
 
@@ -29,6 +27,9 @@ class PlayerManager(UnitManager):
         self.world_object = Player()
         self.equipment = Equipment()
         self.temp_ref = kwargs.pop('temp_ref', None)
+
+        self.skills = []
+        self.spells = []
 
     @property
     def player(self):
@@ -111,8 +112,8 @@ class PlayerManager(UnitManager):
     #     spell = Spell(id=spell_id)
     #     self.player.spells.append(spell)
 
-    def equip_item(self, slot: CharacterEquipSlot, item: Item):
-        self.player.equipment.set_object_field(slot, item)
+    # def equip_item(self, slot: CharacterEquipSlot, item: Item):
+    #     self.player.equipment.set_object_field(slot, item)
 
     def set_default_equipment(self):
         self.session.expunge(self.player.region)
@@ -125,22 +126,23 @@ class PlayerManager(UnitManager):
             except Exception as e:
                 Logger.error('[PlayerMgr]: equipment error = {}'.format(e))
 
-    def _set_start_location(self):
-        race = CharacterRace(self.player.race)
-        coords = START_LOCATION[race]
+            return self
 
-        self.player.x = coords['x']
-        self.player.y = coords['y']
-        self.player.z = coords['z']
+    def set_default_skills(self):
+        with SkillManager() as skill_mgr:
+            Logger.test('start create skills')
+            skill_mgr.set_default_skills(player=self.player)
+
+    def _set_start_location(self):
+        location: DefaultLocation = self.session.query(DefaultLocation).filter_by(race=self.player.race).first()
+
+        self.player.x = location.x
+        self.player.y = location.y
+        self.player.z = location.z
         self.player.orientation = float(0)
 
-        region = self.session.query(Region).filter_by(region_id=coords['region_id']).first()
-
-        self.player.region = region
-        self.player.map_id = coords['map_id']
-
-        # initialize movement data for building update packets
-        # self.movement.position = position
+        self.player.region = location.region
+        self.player.map_id = location.map_id
 
     def _set_faction_template_id(self):
         race = CharacterRace(self.player.race)
@@ -179,6 +181,8 @@ class PlayerManager(UnitManager):
 
         self.stats_builder = StatsBuilder(self.player)
 
+        self.set_stats()
+
         return self
 
     def prepare(self):
@@ -189,5 +193,8 @@ class PlayerManager(UnitManager):
             self.add_player_fields()
             return self
 
-    def __del__(self):
-        self.session.close()
+    def save(self):
+        super().save()
+        self.set_default_equipment()
+        self.set_default_skills()
+        return self

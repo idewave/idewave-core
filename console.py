@@ -143,9 +143,29 @@ def process():
 
 
     # skills
+    # skill_parser = commands.add_parser('skill')
+    # skill_parser.add_argument('-e', '--entry')
+    # skill_parser.add_argument('-n', '--name')
+    #
+    # args = skill_parser.parse_known_args()
+    # parser_name = args[1][0]
+    # subcommand = args[1].pop()
+    #
+    # if parser_name == 'skill':
+    #     if subcommand == 'create':
+    #         SkillManager().create(
+    #             entry=args[0].entry,
+    #             name=args[0].name
+    #         ).save()
+    #
+    #         Logger.test('Skill "{}" ({}) created successfully!'.format(args[0].name, args[0].entry))
+
+    # skills
     skill_parser = commands.add_parser('skill')
     skill_parser.add_argument('-e', '--entry')
     skill_parser.add_argument('-n', '--name')
+    skill_parser.add_argument('--min')
+    skill_parser.add_argument('--max')
 
     args = skill_parser.parse_known_args()
     parser_name = args[1][0]
@@ -155,22 +175,56 @@ def process():
         if subcommand == 'create':
             SkillManager().create(
                 entry=args[0].entry,
-                name=args[0].name
+                name=args[0].name,
+                min=args[0].min,
+                max=args[0].max
             ).save()
 
-            Logger.test('Skill "{}" ({}) created successfully!'.format(args[0].name, args[0].entry))
+            Logger.success('Skill "{}" ({}) created successfully!'.format(args[0].name, args[0].entry))
+
+    # default skills
+    default_skill_parser = commands.add_parser('default_skill')
+    default_skill_parser.add_argument('-e', '--entry')
+    default_skill_parser.add_argument('-r', '--race')
+    default_skill_parser.add_argument('-c', '--char_class')
+
+    args = default_skill_parser.parse_known_args()
+    parser_name = args[1][0]
+    subcommand = args[1].pop()
+
+    if parser_name == 'default_skill':
+        if subcommand == 'create':
+            SkillManager().create_default_skill(
+                entry=args[0].entry,
+                race=args[0].race,
+                char_class=args[0].char_class
+            ).save()
+
+            Logger.success(
+                'Default skill "{}" ({}:{}) created successfully!'.format(
+                    args[0].entry,
+                    args[0].race,
+                    args[0].char_class
+                )
+            )
 
     # regions
     region_parser = commands.add_parser('region')
-    region_parser.add_argument('-r', '--region_id')
+    region_parser.add_argument('-i', '--identifier')
     region_parser.add_argument('--y1')
     region_parser.add_argument('--y2')
     region_parser.add_argument('--x1')
     region_parser.add_argument('--x2')
     region_parser.add_argument('-c', '--continent_id')
 
+    # # arguments for default region
+    region_parser.add_argument('-r', '--race')
+    region_parser.add_argument('-m', '--map_id')
+
     # # arguments for region unit # #
     region_parser.add_argument('-u', '--unit_entry')
+
+    # # arguments for both default region and region unit
     region_parser.add_argument('-x')
     region_parser.add_argument('-y')
     region_parser.add_argument('-z')
@@ -183,7 +237,7 @@ def process():
         if subcommand == 'create':
             with RegionManager() as region_mgr:
                 region_mgr.create(
-                    region_id=args[0].region_id,
+                    identifier=args[0].identifier,
                     y1=args[0].y1,
                     y2=args[0].y2,
                     x1=args[0].x1,
@@ -191,17 +245,32 @@ def process():
                     continent_id=args[0].continent_id,
                 ).save()
 
-                Logger.notify('Region "{}" created successfully!'.format(args[0].region_id))
+                Logger.notify('Region "{}" created successfully!'.format(args[0].identifier))
+
+        elif subcommand == 'add_default_location':
+            with RegionManager() as region_mgr:
+                region_mgr.create_default_location(
+                    identifier=args[0].identifier,
+                    x=args[0].x,
+                    y=args[0].y,
+                    z=args[0].z,
+                    race=args[0].race,
+                    map_id=args[0].map_id
+                )
+
+                Logger.success('Default location ({}) for race "{}" successfully added'.format(
+                    args[0].identifier, args[0].race
+                ))
 
         elif subcommand == 'add_unit':
             with UnitManager() as unit_mgr:
-                unit = unit_mgr.new(
+                unit_mgr.new(
                     entry=args[0].unit_entry,
-                    region_id=args[0].region_id,
+                    identifier=args[0].identifier,
                     x=args[0].x,
                     y=args[0].y,
                     z=args[0].z
-                ).set_stats().save().unit
+                ).set_stats().save()
 
                 Logger.notify(
                     'Unit "{}" IN ({} - {} - {}) created successfully!'.format(

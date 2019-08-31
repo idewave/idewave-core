@@ -10,7 +10,7 @@ class SpellTemplate(BaseModel):
     __tablename__ = 'spell_template'
 
     id                      = BaseModel.column(type='integer', primary_key=True)
-    entry                   = BaseModel.column(type='integer')
+    entry                   = BaseModel.column(type='integer', unique=True)
     name                    = BaseModel.column(type='string')
     cost                    = BaseModel.column(type='integer')
     school                  = BaseModel.column(type='integer')

@@ -2,7 +2,7 @@ import asyncio
 from sqlalchemy.orm.exc import DetachedInstanceError
 from typing import List
 
-from World.Region.model import Region
+from World.Region.model import Region, DefaultLocation
 from World.Object.Unit.model import Unit
 from World.Object.model import Object
 
@@ -136,16 +136,16 @@ class RegionManager(object):
 
     def get_region(self, **kwargs):
         # TODO: fix args receiving
-        region_id = kwargs.pop('region_id', None)
+        identifier = kwargs.pop('identifier', None)
         try:
-            region = self.session.query(Region).filter_by(region_id=region_id).first()
+            region = self.session.query(Region).filter_by(identifier=identifier).first()
         except Exception as e:
             raise Exception('[Region Manager]: get_region exception "{}"'.format(e))
         else:
             return region
 
     def create(self, **kwargs):
-        region_id = kwargs.pop('region_id', None)
+        identifier = kwargs.pop('identifier', None)
         y1 = kwargs.pop('y1', None)
         y2 = kwargs.pop('y2', None)
         x1 = kwargs.pop('x1', None)
@@ -153,7 +153,7 @@ class RegionManager(object):
         continent_id = kwargs.pop('continent_id', None)
 
         self.region = Region()
-        self.region.region_id = region_id
+        self.region.identifier = identifier
         self.region.y1 = y1
         self.region.y2 = y2
         self.region.x1 = x1
@@ -161,6 +161,27 @@ class RegionManager(object):
         self.region.continent_id = continent_id
 
         return self
+
+    def create_default_location(self, **kwargs):
+        identifier = kwargs.pop('identifier', None)
+        x = kwargs.pop('x', None)
+        y = kwargs.pop('y', None)
+        z = kwargs.pop('z', None)
+        map_id = kwargs.pop('map_id', None)
+        race = kwargs.pop('race', None)
+
+        region = self.session.query(Region).filter_by(identifier=identifier).first()
+
+        default_location = DefaultLocation()
+        default_location.region = region
+        default_location.x = x
+        default_location.y = y
+        default_location.z = z
+        default_location.map_id = map_id
+        default_location.race = race
+
+        self.session.add(default_location)
+        self.session.commit()
 
     def load_all(self):
         return self.session.query(Region).all()
@@ -173,7 +194,7 @@ class RegionManager(object):
     def add_player(self, player: Player):
         current_region = None
         for region in self.regions:
-            if region.region_id == player.region.region_id:
+            if region.identifier == player.region.identifier:
                 region.update_player(player)
                 current_region = region
                 break
@@ -193,7 +214,7 @@ class RegionManager(object):
     def update_player_movement(self, player: Player, opcode: WorldOpCode, packet: bytes):
         current_region = None
         for region in self.regions:
-            if region.region_id == player.region.region_id:
+            if region.identifier == player.region.identifier:
                 region.update_player(player)
                 current_region = region
                 break
@@ -213,7 +234,7 @@ class RegionManager(object):
     def remove_player(self, player: Player):
         current_region = None
         for region in self.regions:
-            if region.region_id == player.region.region_id:
+            if region.identifier == player.region.identifier:
                 region.remove_player(player)
                 current_region = region
                 break
@@ -248,9 +269,9 @@ class RegionManager(object):
 
         else:
             update_flags = (
-                    UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
-                    UpdateObjectFlags.UPDATEFLAG_LIVING.value |
-                    UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
+                UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
+                UpdateObjectFlags.UPDATEFLAG_LIVING.value |
+                UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
             )
 
             targets = targets.copy()
@@ -287,6 +308,7 @@ class RegionManager(object):
 
     @staticmethod
     def _init_update_packet_builder(mgr: ObjectManager, **kwargs):
+        # initialize update packet builder in the mgr.prepare()
         object_update_type = kwargs.pop('object_update_type')
         update_flags = kwargs.pop('update_flags')
         update_object = kwargs.pop('update_object')
@@ -309,7 +331,7 @@ class RegionManager(object):
     #                     UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
     #             )
     #
-    #             spawn_dist = Config.World.Gameplay.spawn_dist
+    #             spawn_dist = Configs.World.Gameplay.spawn_dist
     #
     #             online_players = region.get_online_players()
     #
@@ -346,3 +368,13 @@ class RegionManager(object):
         if update_dist > 0:
             return (unit.x - update_dist <= target.x <= unit.x + update_dist + 1) and \
                    (unit.y - update_dist <= target.y <= unit.y + update_dist + 1)
+
+    # enter/exit are safe, should be used instead of __del__
+    def __enter__(self):
+        connection = WorldConnection()
+        self.session = connection.session
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.session.close()
+        return True
