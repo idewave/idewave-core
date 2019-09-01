@@ -16,8 +16,10 @@ from World.Object.Unit.Movement.Handlers.MovementHandler import MovementHandler
 from World.Query.Handlers.Logout import Logout
 from World.Query.Handlers.Exit import Exit
 from World.Login.Handlers.MOTD import MOTD
+from World.Login.Handlers.InitialSpells import InitialSpells
 from World.Query.Handlers.ActiveMover import ActiveMover
 from World.Chat.TextEmote import TextEmote
+from World.Chat.Handlers.MessageHandler import MessageHandler
 from World.Object.Unit.Spell.Handlers.SpellResult import SpellResult
 from World.Object.Unit.Player.Handlers.PlayerTarget import PlayerTarget
 from World.Object.Item.Handlers.ItemInfo import ItemInfo
@@ -41,6 +43,7 @@ MAP_HANDLER_TO_OPCODE = {
         TutorialFlags,
         LoginVerifyWorld,
         AccountDataTimes,
+        InitialSpells,
         PlayerSpawn,
         GameSpeed,
         TimeSync,
@@ -80,6 +83,7 @@ MAP_HANDLER_TO_OPCODE = {
 
     # Chat
     WorldOpCode.CMSG_TEXT_EMOTE: [TextEmote],
+    WorldOpCode.CMSG_MESSAGECHAT: [MessageHandler],
 
     # TODO: return actual data in this handlers
     # Spell

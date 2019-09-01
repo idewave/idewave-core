@@ -7,8 +7,6 @@ from DB.Connection.RealmConnection import RealmConnection
 
 class ObjectManager(object):
 
-    MAX_UPDATE_PACKETS_INCLUDED = 15
-
     def __init__(self, **kwargs):
         self.update_packet_builder = None
         self.fields = {}
@@ -60,6 +58,10 @@ class ObjectManager(object):
     def add_batch(self, batch: bytes):
         # this method also can be used for adding batches from another managers
         self.update_packet_builder.add_batch(batch)
+        return self
+
+    def add_field(self, field, value, offset=0):
+        self.update_packet_builder.add_field(field, value, offset)
         return self
 
     def build_update_packet(self):

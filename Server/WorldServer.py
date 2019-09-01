@@ -18,8 +18,6 @@ from Config.Run.config import Config
 
 class WorldServer(BaseServer):
 
-    MAX_UPDATE_PACKETS_INCLUDED = 15
-
     def __init__(self, host, port):
         super().__init__(host, port)
         self.session_keys = {}
@@ -73,6 +71,16 @@ class WorldServer(BaseServer):
                     await asyncio.sleep(0.01)
 
         writer.close()
+
+    def _register_tasks(self):
+        asyncio.gather(
+            asyncio.ensure_future(self.add_connection()),
+            asyncio.ensure_future(self.remove_connection()),
+            asyncio.ensure_future(self.add_session_keys()),
+            asyncio.ensure_future(self.send_update_packet_to_player()),
+            asyncio.ensure_future(self.send_movement_packet_to_player()),
+            asyncio.ensure_future(self.send_text_message_packet_to_player()),
+        )
 
     async def add_connection(self):
         while True:
@@ -187,14 +195,41 @@ class WorldServer(BaseServer):
             finally:
                 await asyncio.sleep(0.01)
 
-    def _register_tasks(self):
-        asyncio.gather(
-            asyncio.ensure_future(self.add_connection()),
-            asyncio.ensure_future(self.remove_connection()),
-            asyncio.ensure_future(self.add_session_keys()),
-            asyncio.ensure_future(self.send_update_packet_to_player()),
-            asyncio.ensure_future(self.send_movement_packet_to_player()),
-        )
+    async def send_text_message_packet_to_player(self):
+        while True:
+            try:
+                player_name, text_message_packet = await asyncio.wait_for(
+                    QueuesRegistry.text_message_packets_queue.get(),
+                    timeout=0.01
+                )
+            # except asyncio.QueueEmpty:
+            #     pass
+            except TimeoutError:
+                pass
+            else:
+                try:
+                    writer = self.connections[player_name]['writer']
+                    header_crypt = self.connections[player_name]['header_crypt']
+                except KeyError:
+                    # on login step player object not registered in self.connections,
+                    # just ignore
+                    pass
+                else:
+                    try:
+                        response = WorldPacketManager.generate_packet(
+                            opcode=WorldOpCode.SMSG_MESSAGECHAT,
+                            data=text_message_packet,
+                            header_crypt=header_crypt
+                        )
+                        writer.write(response)
+                        await writer.drain()
+                    except BrokenPipeError:
+                        del self.connections[player_name]
+
+                    except ConnectionResetError:
+                        del self.connections[player_name]
+            finally:
+                await asyncio.sleep(0.01)
 
     @staticmethod
     def create():

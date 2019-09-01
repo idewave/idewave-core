@@ -2,6 +2,7 @@ from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Constants.UpdateObjectFields import ObjectField, ItemField, UnitField, PlayerField
 from World.Character.Constants.CharacterClass import CharacterClass
 from World.Object.Unit.Player.PlayerManager import PlayerManager
+from World.Object.Unit.Player.model import PlayerSkill
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 
@@ -127,22 +128,23 @@ class PlayerSpawn(object):
         self._set_player_power()
 
     async def process(self):
-        # for skill_index in range(len(self.player.skills)):
-        #     offset = skill_index * 3
-        #     skill = self.player.skills[skill_index]
-        #     spawned_player.add_field(PlayerField.SKILL_INFO_1_ID, skill.id, offset=offset)
-        #     spawned_player.add_field(PlayerField.SKILL_INFO_1_LEVEL, skill.min, offset=offset + 1)
-        #     spawned_player.add_field(PlayerField.SKILL_INFO_1_STAT_LEVEL, skill.max, offset=offset + 2)
-
         with PlayerManager() as player_mgr:
             player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT2)
             # be careful, set_update_flags should be called after prepare(), because of update_packet_builder init
             player_mgr.set(self.player).prepare().set_update_flags(self.update_flags)
 
+            # add fields with offset before create update packet
+            skills_count = len(self.player.skills)
+            for skill_index in range(skills_count):
+                offset = skill_index * 3
+                skill: PlayerSkill = self.player.skills[skill_index]
+
+                player_mgr.add_field(PlayerField.SKILL_INFO_1_ID, skill.skill_template.entry, offset=offset)
+                player_mgr.add_field(PlayerField.SKILL_INFO_1_LEVEL, skill.skill_template.min, offset=offset + 1)
+                player_mgr.add_field(PlayerField.SKILL_INFO_1_STAT_LEVEL, skill.skill_template.max, offset=offset + 2)
+
             batch = player_mgr.create_batch(PlayerSpawn.SPAWN_FIELDS)
             response = player_mgr.add_batch(batch).build_update_packet().get_update_packets()
-
-            Logger.error('skills = {}'.format(player_mgr.player.player_skill))
 
             return WorldOpCode.SMSG_UPDATE_OBJECT, response
 

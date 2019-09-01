@@ -20,6 +20,14 @@ class WorldManager(object):
 
             await asyncio.sleep(self.heartbeat)
 
+    def _register_tasks(self):
+        asyncio.gather(
+            asyncio.ensure_future(self.process_player_enter_world()),
+            asyncio.ensure_future(self.process_player_movement()),
+            asyncio.ensure_future(self.process_player_exit_world()),
+            asyncio.ensure_future(self.process_chat_message())
+        )
+
     async def process_player_enter_world(self):
         try:
             player = QueuesRegistry.players_queue.get_nowait()
@@ -50,9 +58,12 @@ class WorldManager(object):
         finally:
             await asyncio.sleep(0.01)
 
-    def _register_tasks(self):
-        asyncio.gather(
-            asyncio.ensure_future(self.process_player_enter_world()),
-            asyncio.ensure_future(self.process_player_movement()),
-            asyncio.ensure_future(self.process_player_exit_world()),
-        )
+    async def process_chat_message(self):
+        try:
+            sender, text_message_packet = QueuesRegistry.text_message_queue.get_nowait()
+        except asyncio.QueueEmpty:
+            return
+        else:
+            self.region_mgr.send_chat_message(sender, text_message_packet)
+        finally:
+            await asyncio.sleep(0.01)

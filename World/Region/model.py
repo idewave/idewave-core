@@ -46,7 +46,8 @@ class Region(BaseModel):
 
     @hybrid_method
     def remove_player(self, player: Player):
-        del self.online_players[player.name]
+        if player.name in self.online_players:
+            del self.online_players[player.name]
 
 
 class DefaultLocation(BaseModel):

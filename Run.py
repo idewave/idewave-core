@@ -25,14 +25,20 @@ if __name__ == '__main__':
     world_manager = WorldManager()
 
     # QueuesRegistry.web_data_queue = MultiProcessQueue.get_instance()
+
     QueuesRegistry.session_keys_queue = asyncio.Queue()
     QueuesRegistry.players_queue = asyncio.Queue()
     QueuesRegistry.remove_player_queue = asyncio.Queue()
-    QueuesRegistry.movement_queue = asyncio.Queue()
     QueuesRegistry.connections_queue = asyncio.Queue()
     QueuesRegistry.disconnect_queue = asyncio.Queue()
+
     QueuesRegistry.update_packets_queue = asyncio.Queue()
+
+    QueuesRegistry.movement_queue = asyncio.Queue()
     QueuesRegistry.movement_packets_queue = asyncio.Queue()
+
+    QueuesRegistry.text_message_queue = asyncio.Queue()
+    QueuesRegistry.text_message_packets_queue = asyncio.Queue()
 
     try:
         loop.run_until_complete(

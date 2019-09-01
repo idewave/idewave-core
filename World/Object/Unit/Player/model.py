@@ -36,7 +36,8 @@ class Player(Unit):
 
     unit                    = relationship('Unit', lazy='subquery')
     equipment               = relationship('Equipment', lazy='subquery')
-    player_skill            = relationship('PlayerSkill', lazy='subquery')
+    skills                  = relationship('PlayerSkill', lazy='subquery')
+    spells                  = relationship('PlayerSpell', lazy='subquery')
     account                 = relationship('Account', lazy='subquery')
 
     __table_args__ = {
@@ -66,7 +67,7 @@ class PlayerSkill(BaseModel):
     player_id               = BaseModel.column(type='integer',
                                                foreign_key=Config.Database.DBNames.realm_db + '.player.id')
 
-    skill_template          = relationship('SkillTemplate')
+    skill_template          = relationship('SkillTemplate', lazy='subquery')
     player                  = relationship('Player', lazy='subquery')
 
     __table_args__ = {
@@ -83,6 +84,9 @@ class PlayerSpell(BaseModel):
 
     player_id               = BaseModel.column(type='integer',
                                                foreign_key=Config.Database.DBNames.realm_db + '.player.id')
+
+    spell_template          = relationship('SpellTemplate', lazy='subquery')
+    player                  = relationship('Player', lazy='subquery')
 
     __table_args__ = {
         'schema': Config.Database.DBNames.realm_db

@@ -6,6 +6,7 @@ from World.Character.Constants.CharacterGender import CharacterGender
 from World.Character.Constants.CharacterEquipSlot import CharacterEquipSlot
 from World.Object.Unit.Player.Inventory.Equipment.EquipmentManager import EquipmentManager
 from World.Object.Unit.Player.Skill.SkillManager import SkillManager
+from World.Object.Unit.Spell.SpellManager import SpellManager
 from World.Object.Unit.Player.Inventory.Equipment.model import Equipment
 from World.Object.Unit.Builders.StatsBuilder import StatsBuilder
 from World.Character.Constants.CharacterDisplayId import CHARACTER_DISPLAY_ID
@@ -130,8 +131,11 @@ class PlayerManager(UnitManager):
 
     def set_default_skills(self):
         with SkillManager() as skill_mgr:
-            Logger.test('start create skills')
             skill_mgr.set_default_skills(player=self.player)
+
+    def set_default_spells(self):
+        with SpellManager() as spell_mgr:
+            spell_mgr.set_default_spells(player=self.player)
 
     def _set_start_location(self):
         location: DefaultLocation = self.session.query(DefaultLocation).filter_by(race=self.player.race).first()
@@ -197,4 +201,5 @@ class PlayerManager(UnitManager):
         super().save()
         self.set_default_equipment()
         self.set_default_skills()
+        self.set_default_spells()
         return self

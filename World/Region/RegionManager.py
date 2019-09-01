@@ -192,15 +192,8 @@ class RegionManager(object):
         return self
 
     def add_player(self, player: Player):
-        current_region = None
-        for region in self.regions:
-            if region.identifier == player.region.identifier:
-                region.update_player(player)
-                current_region = region
-                break
-
-        if current_region is None:
-            raise Exception('[RegionMgr]: player has unknown region id')
+        current_region = self._get_current_region(player)
+        current_region.update_player(player)
 
         nearest_players = RegionManager._get_nearest_players(current_region, player)
 
@@ -212,15 +205,8 @@ class RegionManager(object):
             RegionManager._notify_nearest_players(target, [player])
 
     def update_player_movement(self, player: Player, opcode: WorldOpCode, packet: bytes):
-        current_region = None
-        for region in self.regions:
-            if region.identifier == player.region.identifier:
-                region.update_player(player)
-                current_region = region
-                break
-
-        if current_region is None:
-            raise Exception('[RegionMgr]: player has unknown region id')
+        current_region = self._get_current_region(player)
+        current_region.update_player(player)
 
         nearest_players = RegionManager._get_nearest_players(current_region, player)
 
@@ -232,18 +218,37 @@ class RegionManager(object):
             )
 
     def remove_player(self, player: Player):
+        current_region = self._get_current_region(player)
+        current_region.remove_player(player)
+
+        # notify nearest players that current player was disconnected
+        nearest_players = RegionManager._get_nearest_players(current_region, player)
+
+    def send_chat_message(self, sender: Unit, text_message_packet: bytes):
+        current_region = self._get_current_region(sender)
+
+        # TODO: in future we can also notify nearest units about messages
+        nearest_players = RegionManager._get_nearest_players(current_region, sender)
+
+        for target in nearest_players:
+            RegionManager._notify_nearest_players(
+                target,
+                [sender],
+                text_message_packet=text_message_packet,
+            )
+
+    def _get_current_region(self, target: Unit):
         current_region = None
+
         for region in self.regions:
-            if region.identifier == player.region.identifier:
-                region.remove_player(player)
+            if region.identifier == target.region.identifier:
                 current_region = region
                 break
 
         if current_region is None:
-            raise Exception('[RegionMgr]: player has unknown region id')
+            raise Exception('[RegionMgr]: target has unknown region id')
 
-        # notify nearest players that current player was disconnected
-        nearest_players = RegionManager._get_nearest_players(current_region, player)
+        return current_region
 
     @staticmethod
     def _get_nearest_players(current_region: Region, player: Player):
@@ -261,10 +266,17 @@ class RegionManager(object):
 
         opcode, packet = kwargs.pop('movement_packet', (None, None))
 
+        text_message_packet = kwargs.pop('text_message_packet', None)
+
         if opcode and packet:
             packet = targets.pop(0).packed_guid + packet
             asyncio.ensure_future(
                 QueuesRegistry.movement_packets_queue.put((player.name, packet, opcode))
+            )
+
+        elif text_message_packet:
+            asyncio.ensure_future(
+                QueuesRegistry.text_message_packets_queue.put((player.name, text_message_packet))
             )
 
         else:

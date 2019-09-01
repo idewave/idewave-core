@@ -11,8 +11,6 @@ from Utils.Debug.Logger import Logger
 class SkillManager(object):
 
     def __init__(self, **kwargs):
-        connection = WorldConnection()
-        self.session = connection.session
         self.world_object = None
         self.temp_ref = kwargs.pop('temp_ref', None)
 
