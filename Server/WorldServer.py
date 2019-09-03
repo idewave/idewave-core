@@ -80,6 +80,7 @@ class WorldServer(BaseServer):
             asyncio.ensure_future(self.send_update_packet_to_player()),
             asyncio.ensure_future(self.send_movement_packet_to_player()),
             asyncio.ensure_future(self.send_text_message_packet_to_player()),
+            asyncio.ensure_future(self.send_name_query_packet_to_player()),
         )
 
     async def add_connection(self):
@@ -219,6 +220,42 @@ class WorldServer(BaseServer):
                         response = WorldPacketManager.generate_packet(
                             opcode=WorldOpCode.SMSG_MESSAGECHAT,
                             data=text_message_packet,
+                            header_crypt=header_crypt
+                        )
+                        writer.write(response)
+                        await writer.drain()
+                    except BrokenPipeError:
+                        del self.connections[player_name]
+
+                    except ConnectionResetError:
+                        del self.connections[player_name]
+            finally:
+                await asyncio.sleep(0.01)
+
+    async def send_name_query_packet_to_player(self):
+        while True:
+            try:
+                player_name, name_query_packet = await asyncio.wait_for(
+                    QueuesRegistry.name_query_packets_queue.get(),
+                    timeout=0.01
+                )
+            # except asyncio.QueueEmpty:
+            #     pass
+            except TimeoutError:
+                pass
+            else:
+                try:
+                    writer = self.connections[player_name]['writer']
+                    header_crypt = self.connections[player_name]['header_crypt']
+                except KeyError:
+                    # on login step player object not registered in self.connections,
+                    # just ignore
+                    pass
+                else:
+                    try:
+                        response = WorldPacketManager.generate_packet(
+                            opcode=WorldOpCode.SMSG_NAME_QUERY_RESPONSE,
+                            data=name_query_packet,
                             header_crypt=header_crypt
                         )
                         writer.write(response)

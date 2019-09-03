@@ -1,20 +1,21 @@
 import asyncio
-from sqlalchemy.orm.exc import DetachedInstanceError
+
+from struct import pack
 from typing import List
 
 from World.Region.model import Region, DefaultLocation
 from World.Object.Unit.model import Unit
-from World.Object.model import Object
+from World.Object.Unit.Player.model import Player
 
 from World.Object.ObjectManager import ObjectManager
-from World.Object.Unit.UnitManager import UnitManager
-from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Player.PlayerManager import PlayerManager
-from DB.Connection.WorldConnection import WorldConnection
+
 from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField, PlayerField
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
-from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
+
+from DB.Connection.WorldConnection import WorldConnection
+from Server.Registry.QueuesRegistry import QueuesRegistry
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 
@@ -192,7 +193,7 @@ class RegionManager(object):
         return self
 
     def add_player(self, player: Player):
-        current_region = self._get_current_region(player)
+        current_region: Region = self._get_current_region(player)
         current_region.update_player(player)
 
         nearest_players = RegionManager._get_nearest_players(current_region, player)
@@ -205,7 +206,7 @@ class RegionManager(object):
             RegionManager._notify_nearest_players(target, [player])
 
     def update_player_movement(self, player: Player, opcode: WorldOpCode, packet: bytes):
-        current_region = self._get_current_region(player)
+        current_region: Region = self._get_current_region(player)
         current_region.update_player(player)
 
         nearest_players = RegionManager._get_nearest_players(current_region, player)
@@ -218,14 +219,14 @@ class RegionManager(object):
             )
 
     def remove_player(self, player: Player):
-        current_region = self._get_current_region(player)
+        current_region: Region = self._get_current_region(player)
         current_region.remove_player(player)
 
         # notify nearest players that current player was disconnected
         nearest_players = RegionManager._get_nearest_players(current_region, player)
 
     def send_chat_message(self, sender: Unit, text_message_packet: bytes):
-        current_region = self._get_current_region(sender)
+        current_region: Region = self._get_current_region(sender)
 
         # TODO: in future we can also notify nearest units about messages
         nearest_players = RegionManager._get_nearest_players(current_region, sender)
@@ -233,8 +234,30 @@ class RegionManager(object):
         for target in nearest_players:
             RegionManager._notify_nearest_players(
                 target,
-                [sender],
+                None,
                 text_message_packet=text_message_packet,
+            )
+
+    def send_name_query(self, requester: Player, target_guid: int):
+        current_region: Region = self._get_current_region(requester)
+
+        target = current_region.get_online_player_by_guid(target_guid)
+
+        if target:
+            name_bytes = target.name.encode('utf-8') + b'\x00'
+            name_query_packet = pack(
+                '<Q{name_len}sB3IB'.format(name_len=len(name_bytes)),
+                target.guid,
+                name_bytes,
+                0,
+                target.race,
+                target.gender,
+                target.char_class,
+                0
+            )
+
+            asyncio.ensure_future(
+                QueuesRegistry.name_query_packets_queue.put((requester.name, name_query_packet))
             )
 
     def _get_current_region(self, target: Unit):
@@ -251,18 +274,18 @@ class RegionManager(object):
         return current_region
 
     @staticmethod
-    def _get_nearest_players(current_region: Region, player: Player):
+    def _get_nearest_players(current_region: Region, unit: Unit):
         online_players = current_region.get_online_players()
         nearest_players = [
             online_players[name]
             for name in online_players
-            if not name == player.name and RegionManager._is_target_visible(player, online_players[name])
+            if not name == unit.name and RegionManager._is_target_visible(unit, online_players[name])
         ]
 
         return nearest_players
 
     @staticmethod
-    def _notify_nearest_players(player: Player, targets: List[Player], **kwargs):
+    def _notify_nearest_players(player: Player, targets: List[Player] = None, **kwargs):
 
         opcode, packet = kwargs.pop('movement_packet', (None, None))
 

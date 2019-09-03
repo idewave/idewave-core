@@ -49,6 +49,12 @@ class Region(BaseModel):
         if player.name in self.online_players:
             del self.online_players[player.name]
 
+    @hybrid_method
+    def get_online_player_by_guid(self, guid: int):
+        for name in self.online_players:
+            if self.online_players[name].guid == guid:
+                return self.online_players[name]
+
 
 class DefaultLocation(BaseModel):
 

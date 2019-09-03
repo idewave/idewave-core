@@ -25,7 +25,8 @@ class WorldManager(object):
             asyncio.ensure_future(self.process_player_enter_world()),
             asyncio.ensure_future(self.process_player_movement()),
             asyncio.ensure_future(self.process_player_exit_world()),
-            asyncio.ensure_future(self.process_chat_message())
+            asyncio.ensure_future(self.process_chat_message()),
+            asyncio.ensure_future(self.process_name_query()),
         )
 
     async def process_player_enter_world(self):
@@ -65,5 +66,15 @@ class WorldManager(object):
             return
         else:
             self.region_mgr.send_chat_message(sender, text_message_packet)
+        finally:
+            await asyncio.sleep(0.01)
+
+    async def process_name_query(self):
+        try:
+            requester, target_guid = QueuesRegistry.name_query_queue.get_nowait()
+        except asyncio.QueueEmpty:
+            return
+        else:
+            self.region_mgr.send_name_query(requester, target_guid)
         finally:
             await asyncio.sleep(0.01)

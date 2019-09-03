@@ -1,6 +1,9 @@
-from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from struct import pack
+
+from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
+
 from Utils.Timer import Timer
+from Server.Registry.QueuesRegistry import QueuesRegistry
 
 
 class QueryHandler(object):
@@ -16,8 +19,12 @@ class QueryHandler(object):
         self.player = self.temp_ref.player
 
     async def process(self):
-
         if self.opcode == WorldOpCode.CMSG_NAME_QUERY:
+            # we send this to show player info for another players; to allow chat
+            guid = int.from_bytes(self.packet[6:14], 'little')
+
+            await QueuesRegistry.name_query_queue.put((self.player, guid))
+
             name_bytes = self.player.name.encode('utf-8') + b'\x00'
             response = pack(
                 '<Q{name_len}sB3IB'.format(name_len=len(name_bytes)),

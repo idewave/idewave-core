@@ -40,6 +40,9 @@ if __name__ == '__main__':
     QueuesRegistry.text_message_queue = asyncio.Queue()
     QueuesRegistry.text_message_packets_queue = asyncio.Queue()
 
+    QueuesRegistry.name_query_queue = asyncio.Queue()
+    QueuesRegistry.name_query_packets_queue = asyncio.Queue()
+
     try:
         loop.run_until_complete(
             asyncio.gather(

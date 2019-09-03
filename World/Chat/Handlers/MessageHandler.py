@@ -11,7 +11,7 @@ class MessageHandler(object):
         self.packet = packet
         self.temp_ref = kwargs.pop('temp_ref', None)
         if self.temp_ref is None:
-            raise Exception('[Initial Spells]: temp_ref does not exists')
+            raise Exception('[Message Handler]: temp_ref does not exists')
 
         self.player = self.temp_ref.player
 
