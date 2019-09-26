@@ -1,6 +1,6 @@
 class TempRef(object):
 
-    ''' Uses as temporary storage for passing some data by-reference '''
+    __slots__ = ('account', 'player')
 
     def __init__(self, **kwargs):
         self.account = kwargs.pop('account', None)

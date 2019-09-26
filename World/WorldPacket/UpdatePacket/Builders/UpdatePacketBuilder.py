@@ -174,7 +174,7 @@ class UpdatePacketBuilder(object):
 
     def build(self):
         # TODO: should be fixed according to transport existing
-        has_transport = int(False)
+        has_transport = 0
 
         while self.batches:
             head_update_packet = self.batches.pop(0)

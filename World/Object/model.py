@@ -1,4 +1,6 @@
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import orm
+from typing import List
 
 from DB.BaseModel import BaseModel
 from World.Object.Constants.TypeMask import TypeMask
@@ -16,6 +18,14 @@ class Object(BaseModel):
     __table_args__ = {
         'schema': Config.Database.DBNames.realm_db
     }
+
+    def __init__(self):
+        self._tracked_guids = set()
+
+    # this uses on session.query() etc
+    @orm.reconstructor
+    def init_on_load(self):
+        self._tracked_guids = set()
 
     @hybrid_property
     def object_type(self):
@@ -61,3 +71,12 @@ class Object(BaseModel):
             guid >>= 8
 
         return bytes(pack_guid[:size])
+
+    @hybrid_property
+    def tracked_guids(self):
+        # objects in 'update_dist' radius, see Config.yml
+        return self._tracked_guids
+
+    @tracked_guids.setter
+    def tracked_guids(self, guids: List[int]):
+        self._tracked_guids = guids

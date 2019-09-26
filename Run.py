@@ -4,10 +4,11 @@ from colorama import init
 
 from Server.LoginServer import LoginServer
 from Server.WorldServer import WorldServer
-from Server.WebsocketServer.WebsocketServer import WebsocketServer
+# from Server.WebsocketServer.WebsocketServer import WebsocketServer
 
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldManager import WorldManager
+from World.Region.RegionManager import RegionManager
 
 from Utils.Debug.Logger import Logger
 
@@ -20,7 +21,13 @@ if __name__ == '__main__':
 
     login_server = LoginServer.create()
     world_server = WorldServer.create()
-    websocket_server = WebsocketServer.create()
+    # websocket_server = WebsocketServer.create()
+
+    # region_manager = RegionManager()
+    # region_tasks = [
+    #     asyncio.ensure_future(RegionManager.refresh_region(region))
+    #     for region in region_manager.regions
+    # ]
 
     world_manager = WorldManager()
 
@@ -32,6 +39,9 @@ if __name__ == '__main__':
     QueuesRegistry.connections_queue = asyncio.Queue()
     QueuesRegistry.disconnect_queue = asyncio.Queue()
 
+    QueuesRegistry.dynamic_packets_queue = asyncio.Queue()
+
+    # TODO: remove redundant queues
     QueuesRegistry.update_packets_queue = asyncio.Queue()
 
     QueuesRegistry.movement_queue = asyncio.Queue()
@@ -59,6 +69,7 @@ if __name__ == '__main__':
     try:
         loop.run_forever()
     except KeyboardInterrupt:
+        # TODO: add signal to stop all runned tasks
         pass
     except Exception as e:
         Logger.error('[Run]: (run forever) {}'.format(e))

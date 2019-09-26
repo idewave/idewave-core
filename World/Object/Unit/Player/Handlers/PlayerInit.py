@@ -8,8 +8,6 @@ from Utils.Debug.Logger import Logger
 
 class PlayerInit(object):
 
-    ''' Just creates Player for using in another handlers '''
-
     def __init__(self, packet: bytes, **kwargs):
         self.packet = packet
         self.temp_ref = kwargs.pop('temp_ref', None)
@@ -33,7 +31,7 @@ class PlayerInit(object):
 
         return None, None
 
-    def _load_player(self):
+    def _load_player(self) -> None:
         # size (first 2 bytes) - opcode (next 4 bytes) - guid (remaining bytes)
         guid = int.from_bytes(self.packet[6:], 'little')
         with PlayerManager() as player_mgr:

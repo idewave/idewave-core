@@ -130,7 +130,7 @@ class UnitManager(ObjectManager):
     # overridable
     def new(self, **kwargs):
         entry = kwargs.pop('entry', None)
-        region_id = kwargs.pop('region_id', None)
+        identifier = kwargs.pop('identifier', None)
         x = kwargs.pop('x', None)
         y = kwargs.pop('y', None)
         z = kwargs.pop('z', None)
@@ -140,7 +140,7 @@ class UnitManager(ObjectManager):
         unit_template = self.session.query(UnitTemplate).filter_by(entry=entry).first()
         self.world_object.unit_template = unit_template
 
-        region = self.session.query(Region).filter_by(region_id=region_id).first()
+        region = self.session.query(Region).filter_by(identifier=identifier).first()
         self.world_object.region = region
 
         self.world_object.x = x
@@ -148,6 +148,8 @@ class UnitManager(ObjectManager):
         self.world_object.z = z
 
         self.stats_builder = StatsBuilder(unit_template)
+        self.set_stats()
+
         self._set_display_id()
         self._set_faction_template()
 

@@ -11,10 +11,11 @@ class AccountManager(object):
     def create(self, **kwargs):
         name = kwargs.pop('name', '')
         password = kwargs.pop('password', '')
+
         self.account = Account(name=name, password=password)
         self.session.add(self.account)
         self.session.commit()
-        # self.session.close()
+
         return self
 
     # any field of account table can be used for search
@@ -23,7 +24,7 @@ class AccountManager(object):
             try:
                 self.account = self.session.query(Account).filter_by(**kwargs).first()
             except Exception as e:
-                Logger.error('[AccountManager]: Error has occured, account will be None, error: {}'.format(e))
+                Logger.error('[AccountManager]: Error has occurred, account will be None, error: {}'.format(e))
 
         return self
 

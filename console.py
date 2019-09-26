@@ -1,4 +1,5 @@
 import argparse
+import json
 
 from DB.CreateDB import create_db, create_tables
 from DB.DropDB import drop_db
@@ -229,6 +230,8 @@ def process():
     region_parser.add_argument('-y')
     region_parser.add_argument('-z')
 
+    region_parser.add_argument('--file')
+
     args = region_parser.parse_known_args()
     parser_name = args[1][0]
     subcommand = args[1].pop()
@@ -262,24 +265,22 @@ def process():
                     args[0].identifier, args[0].race
                 ))
 
-        elif subcommand == 'add_unit':
-            with UnitManager() as unit_mgr:
-                unit_mgr.new(
-                    entry=args[0].unit_entry,
-                    identifier=args[0].identifier,
-                    x=args[0].x,
-                    y=args[0].y,
-                    z=args[0].z
-                ).set_stats().save()
+        elif subcommand == 'add_units':
+            with open(args[0].file, 'r') as myfile:
+                data = myfile.read()
 
-                Logger.notify(
-                    'Unit "{}" IN ({} - {} - {}) created successfully!'.format(
-                        args[0].unit_entry,
-                        args[0].x,
-                        args[0].y,
-                        args[0].z
-                    )
-                )
+            json_data = json.loads(data)
 
+            for item in json_data:
+                with UnitManager() as unit_mgr:
+                    unit_mgr.new(
+                        entry=item['entry'],
+                        identifier=item['identifier'],
+                        x=item['position_x'],
+                        y=item['position_y'],
+                        z=item['position_z']
+                    ).save()
+
+            Logger.success('Units successfully added')
 
 process()

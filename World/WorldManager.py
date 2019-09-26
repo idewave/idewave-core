@@ -16,17 +16,18 @@ class WorldManager(object):
         while True:
             self.last_update = Timer.get_ms_time()
 
-            self._register_tasks()
+            # self._register_tasks()
 
             await asyncio.sleep(self.heartbeat)
 
     def _register_tasks(self):
+        # tasks = [asyncio.ensure_future(RegionManager.refresh_region(region)) for region in self.region_mgr.regions]
         asyncio.gather(
             asyncio.ensure_future(self.process_player_enter_world()),
-            asyncio.ensure_future(self.process_player_movement()),
-            asyncio.ensure_future(self.process_player_exit_world()),
-            asyncio.ensure_future(self.process_chat_message()),
-            asyncio.ensure_future(self.process_name_query()),
+            # asyncio.ensure_future(self.process_player_movement()),
+            # asyncio.ensure_future(self.process_player_exit_world()),
+            # asyncio.ensure_future(self.process_chat_message()),
+            # asyncio.ensure_future(self.process_name_query()),
         )
 
     async def process_player_enter_world(self):

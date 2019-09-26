@@ -55,17 +55,18 @@ class LoginProof(object):
             self.checksum = parsed_data[2]
             self.unk = parsed_data[3]
         except StructError as e:
-            Logger.error('[Login Proof]: on unpacking data(len={}), error={}'.format(len(self.packet), StructError))
+            Logger.error('[Login Proof]: on unpacking data(len={}), error={}'.format(len(self.packet), e))
 
     def _get_response(self):
         try:
-            response = pack('<2B20sQ2B',
-                            LoginOpCode.LOGIN_PROOF.value,
-                            LoginResult.SUCCESS.value,
-                            self.srp.server_proof,
-                            0x00800000,
-                            0x00,
-                            0x00
+            response = pack(
+                '<2B20sQ2B',
+                LoginOpCode.LOGIN_PROOF.value,
+                LoginResult.SUCCESS.value,
+                self.srp.server_proof,
+                0x00800000,
+                0x00,
+                0x00
             )
         except Exception as e:
             Logger.error('[Login Proof]: {}'.format(e))

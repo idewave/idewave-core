@@ -155,11 +155,13 @@ class Unit(Object):
     }
 
     def __init__(self):
+        super().__init__()
         self._target = None
 
     # this uses on session.query() etc
     @orm.reconstructor
     def init_on_load(self):
+        super().init_on_load()
         self._target = None
 
     @hybrid_property

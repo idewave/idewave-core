@@ -1,13 +1,18 @@
 import asyncio
+import time
+import sys
 
 from struct import pack
-from typing import List
+from typing import List, Union, Set, FrozenSet
 
 from World.Region.model import Region, DefaultLocation
+from World.Region.Octree.Builders.OctreeBuilder import OctreeBuilder
+from World.Region.Octree.OctreeNode import OctreeNode
 from World.Object.Unit.model import Unit
 from World.Object.Unit.Player.model import Player
 
 from World.Object.ObjectManager import ObjectManager
+from World.Object.Unit.UnitManager import UnitManager
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 
 from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField, PlayerField
@@ -132,10 +137,12 @@ class RegionManager(object):
         self.region = None
         self.regions = self.load_all()
 
+        # self.register_tasks()
+
     def get_regions_as_json(self):
         return [region.to_json() for region in self.regions];
 
-    def get_region(self, **kwargs):
+    def get_region(self, **kwargs) -> Region:
         # TODO: fix args receiving
         identifier = kwargs.pop('identifier', None)
         try:
@@ -184,8 +191,169 @@ class RegionManager(object):
         self.session.add(default_location)
         self.session.commit()
 
-    def load_all(self):
-        return self.session.query(Region).all()
+    def load_all(self) -> List[Region]:
+        Logger.debug('[RegionMgr]: Waiting for loading regions')
+        regions = self.session.query(Region).all()
+        t0 = time.time()
+        Logger.debug('[RegionMgr]: Loading objects in regions')
+        # [RegionManager.spawn_objects(region) for region in regions]
+        for region in regions:
+            tt0 = time.time()
+            objects = self._load_region_objects(region)
+            builder = OctreeBuilder(x0=region.x2, x1=region.x1, y0=region.y2, y1=region.y1, objects=objects)
+            octree = builder.build()
+            region.set_octree(octree)
+            Logger.notify(
+                '[RegionMgr]: Size of octree for {} is {} B'.format(
+                    region.identifier, sys.getsizeof(octree))
+            )
+            tt1 = time.time()
+            Logger.success('[Region Loading]: [region={}] {} s'.format(region.identifier, tt1 - tt0))
+
+        t1 = time.time()
+        Logger.debug('[RegionMgr]: all objects for regions loaded in {}'.format(t1 - t0))
+
+        return regions
+
+    def _load_region_objects(self, region: Region):
+        objects = {}
+        for unit in region.units:
+            objects[unit.guid] = unit
+
+        return objects
+
+    def register_tasks(self) -> None:
+        tasks = [asyncio.ensure_future(RegionManager.refresh_region(region)) for region in self.regions]
+        asyncio.gather(*tasks)
+
+    @staticmethod
+    async def refresh_region(region: Region) -> None:
+        while True:
+            t1 = time.time()
+            for guid, current_object in region.objects_registry.items():
+                guids_for_track: FrozenSet = RegionManager.get_guids_for_track(current_object, region.objects_registry)
+
+                if isinstance(current_object, Player):
+                    guids_for_despawn = current_object.tracked_guids - guids_for_track
+                    objects_for_spawn = [
+                        region.objects_registry[guid]
+                        for guid in guids_for_track
+                        if guid not in current_object.tracked_guids
+                    ]
+
+                    RegionManager.send_despawn_packets(current_object, guids_for_despawn)
+                    RegionManager.send_spawn_packets(current_object, objects_for_spawn)
+
+                current_object.tracked_guids = guids_for_track
+
+            t2 = time.time()
+            if region.identifier == 141:
+                Logger.success(t2 - t1)
+            await asyncio.sleep(0.01)
+
+    @staticmethod
+    def send_spawn_packets(player: Player, objects: List[Union[Unit, Player]]) -> None:
+        asyncio.ensure_future(
+            QueuesRegistry.dynamic_packets_queue.put((player.name, RegionManager.get_spawn_packets(objects)))
+        )
+
+    @staticmethod
+    def get_spawn_packets(objects: List[Union[Unit, Player]]):
+        update_flags = (
+            UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
+            UpdateObjectFlags.UPDATEFLAG_LIVING.value |
+            UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
+        )
+
+        head_mgr = None
+
+        while objects:
+            current = objects.pop()
+            manager = RegionManager.get_manager_by_object_type(current)
+
+            if manager is None:
+                Logger.warning('[RegionMgr]: it seems there are object with incorrect type')
+                continue
+
+            fields = RegionManager.get_update_fields_by_object_type(current)
+
+            with manager as mgr:
+                RegionManager._init_update_packet_builder(
+                    mgr,
+                    object_update_type=ObjectUpdateType.CREATE_OBJECT2,
+                    update_flags=update_flags,
+                    update_object=objects.pop()
+                )
+
+                if head_mgr is None:
+                    head_mgr = mgr
+
+                batch = mgr.create_batch(fields)
+                head_mgr.add_batch(batch)
+
+        if head_mgr is None:
+            return []
+
+        return head_mgr.build_update_packet().get_update_packets()
+
+    @staticmethod
+    def get_manager_by_object_type(obj: Union[Unit, Player]):
+        mgr = None
+
+        if isinstance(obj, Unit):
+            mgr = UnitManager()
+        elif isinstance(obj, Player):
+            mgr = PlayerManager()
+
+        return mgr
+
+    @staticmethod
+    def get_update_fields_by_object_type(obj: Union[Unit, Player]):
+        fields = None
+
+        if isinstance(obj, Unit):
+            fields = RegionManager.UNIT_SPAWN_FIELDS
+        elif isinstance(obj, Player):
+            fields = RegionManager.PLAYER_SPAWN_FIELDS
+
+        return fields
+
+    @staticmethod
+    def send_despawn_packets(current_object: Player, guids: List[int]) -> None:
+        asyncio.ensure_future(
+            QueuesRegistry.dynamic_packets_queue.put((
+                current_object.name,
+                [pack('<Q', guid) for guid in guids],
+                WorldOpCode.SMSG_DESTROY_OBJECT
+            ))
+        )
+
+    @staticmethod
+    def get_guids_for_track(current_object: Union[Unit, Player], objects_registry) -> FrozenSet[int]:
+        guids = {
+            guid
+            for guid, obj in objects_registry.items()
+            if RegionManager.is_target_within_range(current_object, obj) and not guid == current_object.guid
+        }
+
+        return frozenset(guids)
+
+    @staticmethod
+    def is_target_within_range(current_object: Union[Unit, Player], target: Union[Unit, Player]) -> bool:
+        update_dist = Config.World.Gameplay.update_dist
+
+        x0 = target.x - update_dist
+        x1 = target.x + update_dist + 1
+
+        y0 = target.y - update_dist
+        y1 = target.y + update_dist + 1
+
+        return update_dist > 0 and x0 <= current_object.x <= x1 and y0 <= current_object.y <= y1
+
+    # @staticmethod
+    # def spawn_objects(region: Region) -> None:
+    #     for unit in region.units:
+    #         region.set_object(unit.guid, unit)
 
     def save(self):
         self.session.add(self.region)
@@ -193,17 +361,21 @@ class RegionManager(object):
         return self
 
     def add_player(self, player: Player):
-        current_region: Region = self._get_current_region(player)
-        current_region.update_player(player)
+        current_region: Region = player.region
+        current_region.set_object(player.guid, player)
 
-        nearest_players = RegionManager._get_nearest_players(current_region, player)
-
-        # notify player about players in region
-        RegionManager._notify_nearest_players(player, nearest_players)
-
-        # notify each player about new player
-        for target in nearest_players:
-            RegionManager._notify_nearest_players(target, [player])
+    # def add_player(self, player: Player):
+    #     current_region: Region = self._get_current_region(player)
+    #     current_region.update_player(player)
+    #
+    #     nearest_players = RegionManager._get_nearest_players(current_region, player)
+    #
+    #     # notify player about players in region
+    #     RegionManager._notify_nearest_players(player, nearest_players)
+    #
+    #     # notify each player about new player
+    #     for target in nearest_players:
+    #         RegionManager._notify_nearest_players(target, [player])
 
     def update_player_movement(self, player: Player, opcode: WorldOpCode, packet: bytes):
         current_region: Region = self._get_current_region(player)

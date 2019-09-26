@@ -12,6 +12,8 @@ from Utils.Debug.Logger import Logger
 
 class WorldPacketManager(object):
 
+    __slots__ = ('header_crypt', 'temp_ref', 'reader', 'writer')
+
     def __init__(self, **kwargs):
         self.header_crypt = None
         self.temp_ref = kwargs.pop('temp_ref', None)

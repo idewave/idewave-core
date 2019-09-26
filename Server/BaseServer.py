@@ -4,6 +4,8 @@ from asyncio.streams import StreamReader, StreamWriter
 
 class BaseServer(object):
 
+    __slots__ = ('host', 'port', 'instance')
+
     def __init__(self, host, port):
         self.host = host
         self.port = port

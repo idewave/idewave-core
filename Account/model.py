@@ -1,6 +1,4 @@
-import json
 from os import urandom
-from base64 import b64encode
 
 from Auth.Crypto.SRP import SRP
 from DB.BaseModel import BaseModel

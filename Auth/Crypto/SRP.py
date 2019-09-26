@@ -72,7 +72,7 @@ class SRP(object):
 
     @staticmethod
     def generate_verifier(ident, password, salt):
-        login_data = ident + ':' + password
+        login_data = '{}:{}'.format(ident, password) # ident + ':' + password
         login_hash = sha1(login_data.encode('ascii')).digest()
         salted_hash = salt + login_hash
         salted_hash_bytes = sha1(salted_hash).digest()

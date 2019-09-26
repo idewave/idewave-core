@@ -1,9 +1,12 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.hybrid import hybrid_method
+from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy import orm
+from typing import Union
 
 from DB.BaseModel import BaseModel
+from World.Object.Unit.model import Unit
 from World.Object.Unit.Player.model import Player
+from World.Region.Octree.OctreeNode import OctreeNode
 
 from Config.Run.config import Config
 
@@ -11,7 +14,6 @@ from Config.Run.config import Config
 class Region(BaseModel):
 
     id                      = BaseModel.column(type='integer', primary_key=True)
-    # TODO: region_id should be renamed, too vague
     identifier              = BaseModel.column(type='integer', unique=True)
     y1                      = BaseModel.column(type='float')
     y2                      = BaseModel.column(type='float')
@@ -24,36 +26,65 @@ class Region(BaseModel):
     }
 
     def __init__(self):
-        self.online_players = {}
+        self.octree = None
 
     # this uses on session.query() etc
     @orm.reconstructor
     def init_on_load(self):
-        self.online_players = {}
+        self.octree = None
 
     # we can detect NPC by unit_template field which is NULL for players and NOT NULL for NPC
     units = relationship('Unit', primaryjoin="and_((Region.id == Unit.region_id), (Unit.unit_template_id))")
 
     players = relationship('Player', lazy='joined')
 
-    @hybrid_method
-    def get_online_players(self):
-        return self.online_players
+    def get_octree(self) -> OctreeNode:
+        return self.octree
 
-    @hybrid_method
-    def update_player(self, player: Player):
-        self.online_players[player.name] = player
+    def set_octree(self, node: OctreeNode) -> None:
+        self.octree = node
 
-    @hybrid_method
-    def remove_player(self, player: Player):
-        if player.name in self.online_players:
-            del self.online_players[player.name]
+    # @hybrid_property
+    # # objects with POSITION: containers; units; players etc
+    # def objects_registry(self):
+    #     return self._registry
+    #
+    # @hybrid_method
+    # def get_object(self, guid: int):
+    #     if self.is_object_exists(guid):
+    #         return self.objects_registry[guid]
+    #
+    # @hybrid_method
+    # def is_object_exists(self, guid: int):
+    #     return guid in self.objects_registry and self.objects_registry[guid] is not None
+    #
+    # @hybrid_method
+    # def set_object(self, guid: int, value: Union[Unit, Player]):
+    #     self.objects_registry[guid] = value
+    #
+    # @hybrid_method
+    # def remove_object(self, guid: int):
+    #     if self.is_object_exists(guid):
+    #         del self._registry[guid]
 
-    @hybrid_method
-    def get_online_player_by_guid(self, guid: int):
-        for name in self.online_players:
-            if self.online_players[name].guid == guid:
-                return self.online_players[name]
+    # @hybrid_method
+    # def get_online_players(self):
+    #     return self.online_players
+    #
+    # @hybrid_method
+    # def update_player(self, player: Player):
+    #     self.online_players[player.name] = player
+    #
+    # @hybrid_method
+    # def remove_player(self, player: Player):
+    #     if player.name in self.online_players:
+    #         del self.online_players[player.name]
+    #
+    # @hybrid_method
+    # def get_online_player_by_guid(self, guid: int):
+    #     for name in self.online_players:
+    #         if self.online_players[name].guid == guid:
+    #             return self.online_players[name]
 
 
 class DefaultLocation(BaseModel):

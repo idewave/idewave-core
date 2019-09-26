@@ -31,6 +31,25 @@ class AuthManager(object):
         LoginOpCode.REALMLIST: Realmlist
     }
 
+    __slots__ = (
+        'reader',
+        'writer',
+        'srp',
+        'world_packet_manager',
+        'session_keys',
+        'data',
+        'build',
+        'unk',
+        'account_name',
+        'client_seed',
+        'auth_seed',
+        'client_hash',
+        'session_key',
+        'server_hash',
+        'is_authenticated',
+        'temp_ref'
+    )
+
     def __init__(self, reader: StreamReader, writer: StreamWriter, **kwargs):
         self.reader = reader
         self.writer = writer
@@ -44,7 +63,7 @@ class AuthManager(object):
         self.build = 0
         self.unk = 0
         self.account_name = None
-        self.client_seed = 0
+        self.client_seed = bytes()
         self.auth_seed = bytes()
         self.client_hash = bytes()
         self.session_key = bytes()
@@ -100,7 +119,7 @@ class AuthManager(object):
                 self._send_addon_info()
                 self._send_auth_response()
 
-        except TimeoutError as e:
+        except TimeoutError:
             Logger.error('[Auth Manager]: Timeout on step2')
             self.is_authenticated = False
         else:
@@ -111,10 +130,12 @@ class AuthManager(object):
     def send_auth_challenge(self):
         # auth seed need to generate header_crypt
         Logger.info('[Auth Manager]: sending auth challenge')
-        self.auth_seed = int.from_bytes(urandom(4), 'little')
-        auth_seed_bytes = pack('<I', self.auth_seed)
+        # self.auth_seed = int.from_bytes(urandom(4), 'little')
+        self.auth_seed = urandom(4)
+        # auth_seed_bytes = pack('<I', self.auth_seed)
         # TODO: make it like standard request handler
-        response = WorldPacketManager.generate_packet(WorldOpCode.SMSG_AUTH_CHALLENGE, auth_seed_bytes)
+        # response = WorldPacketManager.generate_packet(WorldOpCode.SMSG_AUTH_CHALLENGE, auth_seed_bytes)
+        response = WorldPacketManager.generate_packet(WorldOpCode.SMSG_AUTH_CHALLENGE, self.auth_seed)
         self.writer.write(response)
 
     async def _parse_data(self):
@@ -180,7 +201,8 @@ class AuthManager(object):
             self.account_name.encode('ascii') +
             bytes(4) +
             self.client_seed +
-            int.to_bytes(self.auth_seed, 4, 'little') +
+            # int.to_bytes(self.auth_seed, 4, 'little') +
+            self.auth_seed +
             self.session_key
         )
 

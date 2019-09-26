@@ -103,18 +103,19 @@ class LoginChallenge(object):
         modulus = int.to_bytes(SRP.MODULUS, 32, 'little')
         server_eph = int.to_bytes(self.srp.serv_ephemeral, 32, 'little')
 
-        response = pack('<3B32sB1sB32s32s16sB',
-                        LoginOpCode.LOGIN_CHALL.value,
-                        0,
-                        LoginResult.SUCCESS.value,
-                        server_eph,
-                        len(generator),
-                        generator,
-                        len(modulus),
-                        modulus,
-                        self.account.salt,
-                        urandom(16),
-                        0  # ?
+        response = pack(
+            '<3B32sB1sB32s32s16sB',
+            LoginOpCode.LOGIN_CHALL.value,
+            0,
+            LoginResult.SUCCESS.value,
+            server_eph,
+            len(generator),
+            generator,
+            len(modulus),
+            modulus,
+            self.account.salt,
+            urandom(16),
+            0  # ?
         )
 
         return response
