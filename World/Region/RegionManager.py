@@ -3,7 +3,7 @@ import time
 import sys
 
 from struct import pack
-from typing import List, Union, Set, FrozenSet
+from typing import List, Union, FrozenSet
 
 from World.Region.model import Region, DefaultLocation
 from World.Region.Octree.Builders.OctreeBuilder import OctreeBuilder
@@ -198,15 +198,15 @@ class RegionManager(object):
         Logger.debug('[RegionMgr]: Loading objects in regions')
         # [RegionManager.spawn_objects(region) for region in regions]
         for region in regions:
+
+            # if not region.identifier == 141:
+            #     continue
+
             tt0 = time.time()
             objects = self._load_region_objects(region)
             builder = OctreeBuilder(x0=region.x2, x1=region.x1, y0=region.y2, y1=region.y1, objects=objects)
             octree = builder.build()
             region.set_octree(octree)
-            Logger.notify(
-                '[RegionMgr]: Size of octree for {} is {} B'.format(
-                    region.identifier, sys.getsizeof(octree))
-            )
             tt1 = time.time()
             Logger.success('[Region Loading]: [region={}] {} s'.format(region.identifier, tt1 - tt0))
 
