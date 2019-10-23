@@ -31,16 +31,16 @@ class ObjectManager(object):
         self.session.query(Object).filter_by(**kwargs).delete()
         return self
 
-    def get_object_field(self, field):
+    def get_object_field(self, field) -> int:
         if field in self.fields:
             return self.fields.get(field)
         else:
             return 0
 
-    def set_object_field(self, field, value):
+    def set_object_field(self, field, value) -> None:
         self.fields[field] = value
 
-    def add_object_fields(self):
+    def add_object_fields(self) -> None:
         self.set_object_field(ObjectField.GUID, self.world_object.guid)
         self.set_object_field(ObjectField.TYPE, self.world_object.type_mask)
         self.set_object_field(ObjectField.ENTRY, self.world_object.entry)
@@ -49,7 +49,7 @@ class ObjectManager(object):
     def set_object_update_type(self, object_update_type: ObjectUpdateType):
         self.object_update_type = object_update_type.value
 
-    def create_batch(self, fields: list):
+    def create_batch(self, fields: list) -> bytes:
         for field in fields:
             self.update_packet_builder.add_field(field, self.get_object_field(field))
 

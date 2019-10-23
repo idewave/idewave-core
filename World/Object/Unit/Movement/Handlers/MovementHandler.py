@@ -1,18 +1,20 @@
 import io
+
 from struct import unpack
 
 from World.Object.Unit.Movement.Constants.MovementFlags import MovementFlags
 from World.Object.Position import Position
 from Server.Registry.QueuesRegistry import QueuesRegistry
 
-from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
+from Server.Connection.Connection import Connection
 
 
 class MovementHandler(object):
 
-    def __init__(self, packet: bytes, **kwargs):
-        self.packet = packet
-        self.opcode = WorldOpCode(int.from_bytes(packet[2:6], 'little'))
+    def __init__(self, **kwargs):
+        self.opcode = kwargs.pop('opcode')
+        self.data = kwargs.pop('data', bytes())
+        self.connection: Connection = kwargs.pop('connection')
 
         self.movement_flags = MovementFlags.NONE.value
         self.movement_flags2 = 0
@@ -28,18 +30,14 @@ class MovementHandler(object):
         self.jump_cos_angle = float(0)
         self.jump_x_y_speed = float(0)
 
-        self.temp_ref = kwargs.pop('temp_ref', None)
-        if self.temp_ref is None:
-            raise Exception('[Movement Handler]: temp_ref does not exists')
-
     async def process(self):
         self._parse_packet()
 
         if self._is_movement_valid():
-            player = self.temp_ref.player
+            player = self.connection.player
             player.position = self.position
 
-            await QueuesRegistry.movement_queue.put((player, self.opcode, self.packet[6:]))
+            await QueuesRegistry.movement_queue.put((player, self.opcode, self.data))
 
         return None, None
 
@@ -47,7 +45,7 @@ class MovementHandler(object):
         return True
 
     def _parse_packet(self):
-        buf = io.BytesIO(self.packet[6:])
+        buf = io.BytesIO(self.data)
 
         self.movement_flags = MovementHandler._set_movement_flags(buf.read(4))
         self.movement_flags2 = int.from_bytes(buf.read(1), 'little')

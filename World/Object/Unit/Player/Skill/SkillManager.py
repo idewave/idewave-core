@@ -7,12 +7,14 @@ from World.Object.Unit.Player.model import Player, PlayerSkill
 
 from Utils.Debug.Logger import Logger
 
+from Server.Connection.Connection import Connection
+
 
 class SkillManager(object):
 
     def __init__(self, **kwargs):
         self.world_object = None
-        self.temp_ref = kwargs.pop('temp_ref', None)
+        self.connection: Connection = kwargs.pop('connection', None)
 
     def create(self, **kwargs):
         entry = kwargs.pop('entry', None)

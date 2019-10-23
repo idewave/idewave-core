@@ -1,107 +1,89 @@
-import traceback
-from struct import pack, unpack
+from struct import pack
+from typing import Union
 
-from Auth.Crypto.HeaderCrypt import HeaderCrypt
+from Server.Connection.Connection import Connection
 
-from Server.Exceptions.PlayerNotExists import PlayerNotExists
-
+from World.WorldPacket.Constants.LoginOpCode import LoginOpCode
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.WorldPacket.Constants.MapHandlerToOpcode import MAP_HANDLER_TO_OPCODE
 from Utils.Debug.Logger import Logger
 
+from Exceptions.Wrappers.ProcessException import ProcessException
+
 
 class WorldPacketManager(object):
 
-    __slots__ = ('header_crypt', 'temp_ref', 'reader', 'writer')
+    __slots__ = ('connection',)
 
     def __init__(self, **kwargs):
-        self.header_crypt = None
-        self.temp_ref = kwargs.pop('temp_ref', None)
+        self.connection: Connection = kwargs.pop('connection')
 
-        self.reader = kwargs.pop('reader', None)
-        self.writer = kwargs.pop('writer', None)
+    async def process(self, **kwargs):
+        size = kwargs.pop('size', None)
+        opcode = kwargs.pop('opcode')
+        data = kwargs.pop('data')
 
-    async def process(self, packet: bytes):
-        if not self.header_crypt:
-            raise Exception('Cannot decrypt packet')
+        if not bool(opcode) or not bool(data):
+            return None
 
-        # this is workaround cause one-time decryption do not works correctly for some opcodes
-        # so I need decrypt some packets for multiple times
-        def decrypt(packet: bytes):
-            result = packet
-            for index in range(20):
-                enc = self.header_crypt.decrypt(packet)
-                try:
-                    # TODO: add has_key for Enum
-                    WorldOpCode(int.from_bytes(enc[2:6], 'little')).value
-                except ValueError:
-                    continue
-                else:
-                    result = enc
-                    break
+        if self.connection.header_crypt:
+            packet = self._decrypt(size + opcode + data)
+            opcode = packet[2:6]
+            data = packet[6:]
 
-            return result
-
-        packet = decrypt(packet)
-
-        size = unpack('>H', packet[:2])[0]
-        opcode = WorldOpCode(unpack('<I', packet[2:6])[0])
+        opcode: Union[LoginOpCode, WorldOpCode, None] = WorldPacketManager._get_opcode_from_bytes(opcode)
+        if opcode is None:
+            return None
 
         if opcode in MAP_HANDLER_TO_OPCODE:
-            Logger.debug('[World Packet]: processing {} opcode ({} bytes)'.format(WorldOpCode(opcode).name, size))
+            Logger.debug('[World Packet]: processing {} opcode'.format(opcode.name))
             handlers = MAP_HANDLER_TO_OPCODE[opcode]
             packets = []
 
             for handler in handlers:
-                try:
-                    opcode, response = await handler(
-                        packet,
-                        temp_ref=self.temp_ref,
-                        reader=self.reader,
-                        writer=self.writer,
-                        header_crypt=self.header_crypt
-                    ).process()
-                except PlayerNotExists:
-                    self.writer.close()
-                    return None
-                except Exception as e:
-                    Logger.error('[WorldPacketMgr]: !{}! {}'.format(handler, e))
-                    traceback.print_exc()
-                else:
-                    if opcode and response:
-                        if isinstance(response, list):
-                            for packet in response:
-                                packets.append(WorldPacketManager.generate_packet(opcode, packet, self.header_crypt))
-
-                        else:
-                            packets.append(WorldPacketManager.generate_packet(opcode, response, self.header_crypt))
+                opcode, response = await self._process_handler(handler, opcode, data)
+                if opcode and response:
+                    for data in response:
+                        packets.append(self.generate_packet(opcode, data))
 
             return packets
         else:
-            try:
-                Logger.warning(
-                    '[World Packet]: no handler for opcode = {} ({} bytes)'.format(
-                        WorldOpCode(opcode).name, size
-                    ))
-            except ValueError:
-                Logger.error(
-                    '[World Packet]: no handler for unknown opcode = {} ({} bytes)'.format(
-                        opcode, size
-                    ))
-            finally:
-                return None
+            Logger.warning('[World Packet]: no handler for opcode = {}'.format(opcode.name))
 
-    def set_header_crypt(self, header_crypt: HeaderCrypt):
-        self.header_crypt = header_crypt
+    @ProcessException
+    async def _process_handler(self, handler, opcode: Union[LoginOpCode, WorldOpCode], data: bytes):
+        opcode, response = await handler(opcode=opcode, data=data, connection=self.connection).process()
+        return opcode, response
 
     @staticmethod
-    def generate_packet(opcode: WorldOpCode, data: bytes, header_crypt: HeaderCrypt = None):
+    def _get_opcode_from_bytes(opcode: bytes):
+        opcode = int.from_bytes(opcode, 'little')
+        return LoginOpCode.get_opcode(opcode) or WorldOpCode.get_opcode(opcode) or None
+
+    @ProcessException
+    def _decrypt(self, packet: bytes):
+        # this is workaround cause one-time decryption do not works correctly for some opcodes
+        # so I need decrypt some packets for multiple times
+        result = packet
+        for index in range(20):
+            enc = self.connection.header_crypt.decrypt(packet)
+            if WorldOpCode.get_opcode(int.from_bytes(enc[2:6], 'little')):
+                result = enc
+                break
+
+        return result
+
+    @ProcessException
+    def generate_packet(self, opcode: Union[LoginOpCode, WorldOpCode], data: bytes):
+        if isinstance(opcode, LoginOpCode):
+            return pack('<B', opcode.value) + data
+
         opcode_bytes = pack('<H', opcode.value)
         packet = opcode_bytes + data
         size_bytes = pack('>H', len(packet))
         packet = size_bytes + packet
 
-        if header_crypt is not None:
-            packet = header_crypt.encrypt(packet)
+        if self.connection.header_crypt is not None:
+            packet = self.connection.header_crypt.encrypt(packet)
 
         return packet

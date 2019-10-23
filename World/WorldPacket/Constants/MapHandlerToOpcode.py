@@ -1,31 +1,48 @@
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
+from World.WorldPacket.Constants.LoginOpCode import LoginOpCode
 
 from Server.Handlers.PingHandler import PingHandler
+
 from World.Object.Unit.Player.Handlers.CharacterEnum import CharacterEnum
 from World.Object.Unit.Player.Handlers.CharacterCreate import CharacterCreate
 from World.Object.Unit.Player.Handlers.CharacterDelete import CharacterDelete
-from World.Login.Handlers.LoginVerifyWorld import LoginVerifyWorld
-from World.Login.Handlers.TutorialFlags import TutorialFlags
-from World.Object.Unit.Player.Handlers.PlayerSpawn import PlayerSpawn
+
+from Server.Auth.Handlers.LoginChallenge import LoginChallenge
+from Server.Auth.Handlers.LoginProof import LoginProof
+from Server.Auth.Handlers.Realmlist import Realmlist
+from Server.Auth.Handlers.AuthSession import AuthSession
+
+from World.WorldEnter.Handlers.LoginVerifyWorld import LoginVerifyWorld
+from World.WorldEnter.Handlers.TutorialFlags import TutorialFlags
+from World.WorldEnter.Handlers.AccountDataTimes import AccountDataTimes
+from World.WorldEnter.Handlers.TimeSync import TimeSync
+from World.WorldEnter.Handlers.GameSpeed import GameSpeed
+from World.WorldEnter.Handlers.MOTD import MOTD
+from World.WorldEnter.Handlers.InitialSpells import InitialSpells
+
 from World.Object.Unit.Player.Handlers.PlayerInit import PlayerInit
-from World.Login.Handlers.AccountDataTimes import AccountDataTimes
-from World.Login.Handlers.TimeSync import TimeSync
-from World.Login.Handlers.GameSpeed import GameSpeed
+from World.Object.Unit.Player.Handlers.PlayerSpawn import PlayerSpawn
+from World.Object.Unit.Player.Handlers.PlayerTarget import PlayerTarget
+from World.Object.Unit.Player.Inventory.Equipment.Handlers.Sheathed import Sheathed
+
 from World.Query.Handlers.QueryHandler import QueryHandler
-from World.Object.Unit.Movement.Handlers.MovementHandler import MovementHandler
 from World.Query.Handlers.Logout import Logout
 from World.Query.Handlers.Exit import Exit
-from World.Login.Handlers.MOTD import MOTD
-from World.Login.Handlers.InitialSpells import InitialSpells
 from World.Query.Handlers.ActiveMover import ActiveMover
+
+from World.Object.Unit.Movement.Handlers.MovementHandler import MovementHandler
+
 from World.Chat.TextEmote import TextEmote
 from World.Chat.Handlers.MessageHandler import MessageHandler
+
 from World.Object.Unit.Spell.Handlers.SpellResult import SpellResult
-from World.Object.Unit.Player.Handlers.PlayerTarget import PlayerTarget
+
 from World.Object.Item.Handlers.ItemInfo import ItemInfo
-from World.Object.Unit.Player.Inventory.Equipment.Handlers.Sheathed import Sheathed
 from World.Object.Item.Handlers.SwapItem import SwapItem
+
 from World.Region.Handlers.ZoneUpdate import ZoneUpdate
+
+from Realm.Handlers.RealmSplit import RealmSplit
 
 
 MAP_HANDLER_TO_OPCODE = {
@@ -36,7 +53,11 @@ MAP_HANDLER_TO_OPCODE = {
     WorldOpCode.CMSG_CHAR_CREATE: [CharacterCreate],
     WorldOpCode.CMSG_CHAR_DELETE: [CharacterDelete],
 
-    # Login
+    # WorldEnter
+    LoginOpCode.LOGIN_CHALL: [LoginChallenge],
+    LoginOpCode.LOGIN_PROOF: [LoginProof],
+    LoginOpCode.REALMLIST: [Realmlist],
+    WorldOpCode.CMSG_AUTH_SESSION: [AuthSession],
     WorldOpCode.CMSG_PLAYER_LOGIN: [
         PlayerInit,
         MOTD,
@@ -50,7 +71,7 @@ MAP_HANDLER_TO_OPCODE = {
     ],
     WorldOpCode.CMSG_UPDATE_ACCOUNT_DATA: [],
     WorldOpCode.CMSG_REQUEST_ACCOUNT_DATA: [],
-    WorldOpCode.CMSG_REALM_SPLIT: [],
+    WorldOpCode.CMSG_REALM_SPLIT: [RealmSplit],
     WorldOpCode.CMSG_QUERY_TIME: [QueryHandler],
     WorldOpCode.CMSG_NAME_QUERY: [QueryHandler],
     WorldOpCode.CMSG_ZONEUPDATE: [ZoneUpdate],

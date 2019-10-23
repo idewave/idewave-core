@@ -12,6 +12,8 @@ from World.Object.Unit.Builders.StatsBuilder import StatsBuilder
 from World.Character.Constants.CharacterDisplayId import CHARACTER_DISPLAY_ID
 from World.Region.model import DefaultLocation
 
+from Server.Connection.Connection import Connection
+
 from Utils.Debug.Logger import Logger
 
 from Config.Run.config import Config
@@ -27,7 +29,7 @@ class PlayerManager(UnitManager):
         super(PlayerManager, self).__init__(**kwargs)
         self.world_object = Player()
         self.equipment = Equipment()
-        self.temp_ref = kwargs.pop('temp_ref', None)
+        self.connection: Connection = kwargs.pop('connection')
 
         self.skills = []
         self.spells = []
@@ -172,7 +174,7 @@ class PlayerManager(UnitManager):
 
         self.player.level = Config.World.Object.Unit.Player.Defaults.min_level
 
-        account = self.session.merge(self.temp_ref.account)
+        account = self.session.merge(self.connection.account)
         self.player.account = account
 
         self._set_start_location()

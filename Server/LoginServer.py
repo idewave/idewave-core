@@ -1,11 +1,14 @@
+import asyncio
+
 from asyncio.streams import StreamReader, StreamWriter
 
-from Utils.TempRef import TempRef
 from Server.BaseServer import BaseServer
-from Auth.AuthManager import AuthManager
-from Auth.Constants.AuthStep import AuthStep
+from Server.Connection.Connection import Connection
+from World.WorldPacket.WorldPacketManager import WorldPacketManager
 from Utils.Debug.Logger import Logger
 from Config.Run.config import Config
+
+from Exceptions.Wrappers.ProcessException import ProcessException
 
 
 class LoginServer(BaseServer):
@@ -17,11 +20,25 @@ class LoginServer(BaseServer):
         peername = writer.get_extra_info('peername')
         Logger.info('[Login Server]: Accepted connection from {}'.format(peername))
 
-        temp_ref = TempRef()
+        connection = Connection(reader=reader, writer=writer, peername=peername)
+        world_packet_mgr = WorldPacketManager(connection=connection)
 
-        auth = AuthManager(reader, writer, temp_ref=temp_ref)
-        await auth.process(step=AuthStep.FIRST)
-        writer.close()
+        while True:
+            await self._process_request(reader, writer, world_packet_mgr)
+
+    @ProcessException
+    async def _process_request(self, reader: StreamReader, writer: StreamWriter, world_packet_mgr: WorldPacketManager):
+        request = await asyncio.wait_for(reader.read(4096), timeout=0.01)
+        if request:
+            opcode, data = request[:1], request[1:]
+            response = await asyncio.wait_for(world_packet_mgr.process(opcode=opcode, data=data), timeout=0.01)
+
+            if response:
+                for packet in response:
+                    writer.write(packet)
+                    await writer.drain()
+
+        await asyncio.sleep(0.01)
 
     @staticmethod
     def create():

@@ -1,11 +1,12 @@
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
-from Utils.Debug.Logger import Logger
+from Server.Connection.Connection import Connection
 
 
 class ItemInfo(object):
 
-    def __init__(self, packet: bytes, **kwargs):
-        self.packet = packet
+    def __init__(self, **kwargs):
+        self.data = kwargs.pop('data', bytes())
+        self.connection: Connection = kwargs.pop('connection')
 
     async def process(self):
-        return WorldOpCode.SMSG_ITEM_QUERY_SINGLE_RESPONSE, None
+        return WorldOpCode.SMSG_ITEM_QUERY_SINGLE_RESPONSE, [None]

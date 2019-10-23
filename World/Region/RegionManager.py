@@ -6,8 +6,10 @@ from struct import pack
 from typing import List, Union, FrozenSet
 
 from World.Region.model import Region, DefaultLocation
-from World.Region.Octree.Builders.OctreeBuilder import OctreeBuilder
+from World.Region.Octree.OctreeManager import OctreeManager
+from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
 from World.Region.Octree.OctreeNode import OctreeNode
+
 from World.Object.Unit.model import Unit
 from World.Object.Unit.Player.model import Player
 
@@ -192,29 +194,27 @@ class RegionManager(object):
         self.session.commit()
 
     def load_all(self) -> List[Region]:
-        Logger.debug('[RegionMgr]: Waiting for loading regions')
+        Logger.debug('[RegionMgr]: Loading regions')
         regions = self.session.query(Region).all()
         t0 = time.time()
-        Logger.debug('[RegionMgr]: Loading objects in regions')
-        # [RegionManager.spawn_objects(region) for region in regions]
+
         for region in regions:
-
-            # if not region.identifier == 141:
-            #     continue
-
-            tt0 = time.time()
             objects = self._load_region_objects(region)
-            builder = OctreeBuilder(x0=region.x2, x1=region.x1, y0=region.y2, y1=region.y1, objects=objects)
-            octree = builder.build()
+            octree = OctreeManager.create_octree(
+                x0=region.x2,
+                x1=region.x1,
+                y0=region.y2,
+                y1=region.y1,
+                objects=objects
+            )
             region.set_octree(octree)
-            tt1 = time.time()
-            Logger.success('[Region Loading]: [region={}] {} s'.format(region.identifier, tt1 - tt0))
 
         t1 = time.time()
-        Logger.debug('[RegionMgr]: all objects for regions loaded in {}'.format(t1 - t0))
+        Logger.debug('[RegionMgr]: regions loaded in {}s'.format(t1 - t0))
 
         return regions
 
+    # TODO: store separately players, units and other objects
     def _load_region_objects(self, region: Region):
         objects = {}
         for unit in region.units:
@@ -222,34 +222,34 @@ class RegionManager(object):
 
         return objects
 
-    def register_tasks(self) -> None:
-        tasks = [asyncio.ensure_future(RegionManager.refresh_region(region)) for region in self.regions]
-        asyncio.gather(*tasks)
+    # def register_tasks(self) -> None:
+    #     tasks = [asyncio.ensure_future(RegionManager.refresh_region(region)) for region in self.regions]
+    #     asyncio.gather(*tasks)
 
-    @staticmethod
-    async def refresh_region(region: Region) -> None:
-        while True:
-            t1 = time.time()
-            for guid, current_object in region.objects_registry.items():
-                guids_for_track: FrozenSet = RegionManager.get_guids_for_track(current_object, region.objects_registry)
-
-                if isinstance(current_object, Player):
-                    guids_for_despawn = current_object.tracked_guids - guids_for_track
-                    objects_for_spawn = [
-                        region.objects_registry[guid]
-                        for guid in guids_for_track
-                        if guid not in current_object.tracked_guids
-                    ]
-
-                    RegionManager.send_despawn_packets(current_object, guids_for_despawn)
-                    RegionManager.send_spawn_packets(current_object, objects_for_spawn)
-
-                current_object.tracked_guids = guids_for_track
-
-            t2 = time.time()
-            if region.identifier == 141:
-                Logger.success(t2 - t1)
-            await asyncio.sleep(0.01)
+    # @staticmethod
+    # async def refresh_region(region: Region) -> None:
+    #     while True:
+    #         t1 = time.time()
+    #         for guid, current_object in region.objects_registry.items():
+    #             guids_for_track: FrozenSet = RegionManager.get_guids_for_track(current_object, region.objects_registry)
+    #
+    #             if isinstance(current_object, Player):
+    #                 guids_for_despawn = current_object.tracked_guids - guids_for_track
+    #                 objects_for_spawn = [
+    #                     region.objects_registry[guid]
+    #                     for guid in guids_for_track
+    #                     if guid not in current_object.tracked_guids
+    #                 ]
+    #
+    #                 RegionManager.send_despawn_packets(current_object, guids_for_despawn)
+    #                 RegionManager.send_spawn_packets(current_object, objects_for_spawn)
+    #
+    #             current_object.tracked_guids = guids_for_track
+    #
+    #         t2 = time.time()
+    #         if region.identifier == 141:
+    #             Logger.success(t2 - t1)
+    #         await asyncio.sleep(0.01)
 
     @staticmethod
     def send_spawn_packets(player: Player, objects: List[Union[Unit, Player]]) -> None:
@@ -328,41 +328,38 @@ class RegionManager(object):
             ))
         )
 
-    @staticmethod
-    def get_guids_for_track(current_object: Union[Unit, Player], objects_registry) -> FrozenSet[int]:
-        guids = {
-            guid
-            for guid, obj in objects_registry.items()
-            if RegionManager.is_target_within_range(current_object, obj) and not guid == current_object.guid
-        }
-
-        return frozenset(guids)
-
-    @staticmethod
-    def is_target_within_range(current_object: Union[Unit, Player], target: Union[Unit, Player]) -> bool:
-        update_dist = Config.World.Gameplay.update_dist
-
-        x0 = target.x - update_dist
-        x1 = target.x + update_dist + 1
-
-        y0 = target.y - update_dist
-        y1 = target.y + update_dist + 1
-
-        return update_dist > 0 and x0 <= current_object.x <= x1 and y0 <= current_object.y <= y1
+    # @staticmethod
+    # def get_guids_for_track(current_object: Union[Unit, Player], objects_registry) -> FrozenSet[int]:
+    #     guids = {
+    #         guid
+    #         for guid, obj in objects_registry.items()
+    #         if RegionManager.is_target_within_range(current_object, obj) and not guid == current_object.guid
+    #     }
+    #
+    #     return frozenset(guids)
 
     # @staticmethod
-    # def spawn_objects(region: Region) -> None:
-    #     for unit in region.units:
-    #         region.set_object(unit.guid, unit)
+    # def is_target_within_range(current_object: Union[Unit, Player], target: Union[Unit, Player]) -> bool:
+    #     update_dist = Config.World.Gameplay.update_dist
+    #
+    #     x0 = target.x - update_dist
+    #     x1 = target.x + update_dist + 1
+    #
+    #     y0 = target.y - update_dist
+    #     y1 = target.y + update_dist + 1
+    #
+    #     return update_dist > 0 and x0 <= current_object.x <= x1 and y0 <= current_object.y <= y1
 
     def save(self):
         self.session.add(self.region)
         self.session.commit()
         return self
 
-    def add_player(self, player: Player):
+    @staticmethod
+    def add_player(player: Player):
         current_region: Region = player.region
-        current_region.set_object(player.guid, player)
+        root_node: OctreeNode = current_region.get_octree()
+        OctreeNodeManager.set_object(root_node, player)
 
     # def add_player(self, player: Player):
     #     current_region: Region = self._get_current_region(player)
@@ -455,6 +452,18 @@ class RegionManager(object):
         ]
 
         return nearest_players
+
+    @staticmethod
+    def broadcast_to_octree_node():
+        pass
+
+    @staticmethod
+    def broadcast_to_region():
+        pass
+
+    @staticmethod
+    def broadcast_to_world():
+        pass
 
     @staticmethod
     def _notify_nearest_players(player: Player, targets: List[Player] = None, **kwargs):

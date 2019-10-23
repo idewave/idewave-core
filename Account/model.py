@@ -1,6 +1,6 @@
 from os import urandom
 
-from Auth.Crypto.SRP import SRP
+from Server.Auth.Crypto.SRP import SRP
 from DB.BaseModel import BaseModel
 
 from Config.Run.config import Config

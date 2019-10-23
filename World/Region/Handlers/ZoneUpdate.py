@@ -3,27 +3,29 @@ from struct import unpack
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Region.RegionManager import RegionManager
 
+from Server.Connection.Connection import Connection
+
 from Utils.Debug.Logger import Logger
 
 
 class ZoneUpdate(object):
 
-    def __init__(self, packet: bytes, **kwargs):
+    def __init__(self, **kwargs):
         # sometimes with packet some garbage receives, so need to cut the packet
-        self.packet = packet[:10]
-        self.temp_ref = kwargs.pop('temp_ref', None)
-        if self.temp_ref is None:
-            raise Exception('[Zone Update]: temp_ref does not exists')
+        # self.packet = packet[:10]
+        self.data = kwargs.pop('data', bytes())
+        self.connection: Connection = kwargs.pop('connection')
 
     async def process(self):
-        identifier = unpack('<I', self.packet[-4:])[0]
+        # identifier = unpack('<I', self.data[-4:])[0]
+        identifier = unpack('<I', self.data[:4])[0]
 
-        if not self.temp_ref.player.region.identifier == identifier:
+        if not self.connection.player.region.identifier == identifier:
             region = RegionManager().get_region(identifier=identifier)
-            self.temp_ref.player.region = region
+            self.connection.player.region = region
 
-            with PlayerManager() as player_mgr:
-                player_mgr.set(self.temp_ref.player).save()
+            with PlayerManager(connection=self.connection) as player_mgr:
+                player_mgr.set(self.connection.player).save()
                 Logger.notify('[Zone Update]: saving player')
 
         return None, None

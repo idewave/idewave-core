@@ -1,39 +1,28 @@
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from Server.Registry.QueuesRegistry import QueuesRegistry
+from Server.Connection.Connection import Connection
 
-from Server.Exceptions.PlayerNotExists import PlayerNotExists
-
-from Utils.Debug.Logger import Logger
+from Exceptions.Wrappers.ProcessException import ProcessException
 
 
 class PlayerInit(object):
 
-    def __init__(self, packet: bytes, **kwargs):
-        self.packet = packet
-        self.temp_ref = kwargs.pop('temp_ref', None)
-        self.reader = kwargs.pop('reader', None)
-        self.writer = kwargs.pop('writer', None)
-        self.header_crypt = kwargs.pop('header_crypt', None)
+    def __init__(self, **kwargs):
+        self.data = kwargs.pop('data', bytes())
+        self.connection: Connection = kwargs.pop('connection')
 
     async def process(self):
         self._load_player()
 
-        if not self.temp_ref.player:
-            Logger.error('[Player Init]: player not exists')
-            raise PlayerNotExists
-
-        await QueuesRegistry.connections_queue.put((
-            self.temp_ref.player.name,
-            self.reader, self.writer,
-            self.header_crypt
-        ))
-        await QueuesRegistry.players_queue.put(self.temp_ref.player)
+        await QueuesRegistry.connections_queue.put(self.connection)
+        await QueuesRegistry.players_queue.put(self.connection.player)
 
         return None, None
 
+    @ProcessException
     def _load_player(self) -> None:
         # size (first 2 bytes) - opcode (next 4 bytes) - guid (remaining bytes)
-        guid = int.from_bytes(self.packet[6:], 'little')
-        with PlayerManager() as player_mgr:
+        guid = int.from_bytes(self.data, 'little')
+        with PlayerManager(connection=self.connection) as player_mgr:
             player_mgr.load(id=guid)
-            self.temp_ref.player = player_mgr.player
+            self.connection.player = player_mgr.player

@@ -6,7 +6,6 @@ from World.Object.Unit.Movement.Constants.MovementFlags import MovementFlags
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from World.Object.Constants.ObjectType import ObjectType
 from Utils.Timer import Timer
-from Utils.Debug.Logger import Logger
 
 from Config.Run.config import Config
 
@@ -58,7 +57,7 @@ class UpdatePacketBuilder(object):
         self.batches = []
         self.packets = []
 
-    def _has_fields(self):
+    def _has_fields(self) -> bool:
         return self.update_type in self.TYPES_WITH_FIELDS
 
     def add_field(self, field, value, offset=0):
@@ -67,7 +66,7 @@ class UpdatePacketBuilder(object):
         if self._has_fields():
             self.update_blocks_builder.add(field, value, offset)
 
-    def create_batch(self, send_packed_guid=False):
+    def create_batch(self, send_packed_guid=False) -> bytes:
         guid = pack('<Q', self.update_object.guid)
         mask = bytes()
 
@@ -103,10 +102,10 @@ class UpdatePacketBuilder(object):
 
         return packet
 
-    def set_update_flags(self, update_flags: int):
+    def set_update_flags(self, update_flags: int) -> None:
         self.update_flags = update_flags
 
-    def _get_movement_info(self):
+    def _get_movement_info(self) -> bytes:
         data = bytes()
 
         data += pack('<B', self.update_flags)
@@ -172,7 +171,7 @@ class UpdatePacketBuilder(object):
     def add_batch(self, batch: bytes):
         self.batches.append(batch)
 
-    def build(self):
+    def build(self) -> None:
         # TODO: should be fixed according to transport existing
         has_transport = 0
 

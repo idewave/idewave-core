@@ -1,17 +1,17 @@
 import asyncio
-import traceback
 
 from asyncio.streams import StreamReader, StreamWriter
 from concurrent.futures import TimeoutError
+from os import urandom
 
-from Utils.TempRef import TempRef
 from Server.BaseServer import BaseServer
 from Utils.Debug.Logger import Logger
-from Auth.AuthManager import AuthManager
-from Auth.Constants.AuthStep import AuthStep
+from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldPacket.WorldPacketManager import WorldPacketManager
-from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
+from Server.Connection.Connection import Connection
+
+from Exceptions.Wrappers.ProcessException import ProcessException
 
 from Config.Run.config import Config
 
@@ -27,59 +27,42 @@ class WorldServer(BaseServer):
         self.connections = {}
 
     async def handle_connection(self, reader: StreamReader, writer: StreamWriter):
-        self._register_tasks()
+        asyncio.ensure_future(self.add_session_keys())
 
-        temp_ref = TempRef()
-        world_packet_manager = WorldPacketManager(temp_ref=temp_ref, reader=reader, writer=writer)
+        connection = Connection(reader=reader, writer=writer, session_keys=self.session_keys)
+        world_packet_mgr = WorldPacketManager(connection=connection)
 
-        Logger.info('[World Server]: trying to process auth session')
-        auth = AuthManager(
-            reader,
-            writer,
-            temp_ref=temp_ref,
-            world_packet_manager=world_packet_manager,
-            session_keys=self.session_keys
-        )
+        # send auth challenge
+        auth_seed = urandom(4)
+        writer.write(world_packet_mgr.generate_packet(WorldOpCode.SMSG_AUTH_CHALLENGE, auth_seed))
 
-        is_authenticated = await auth.process(step=AuthStep.SECOND)
+        connection.auth_seed = auth_seed
 
-        if is_authenticated:
+        while True:
+            await self._process_request(reader, writer, world_packet_mgr)
 
-            peer_name = writer.get_extra_info('peername')
-            Logger.success('[World Server]: Accept connection from {}'.format(peer_name))
+    @ProcessException
+    async def _process_request(self, reader: StreamReader, writer: StreamWriter, world_packet_mgr: WorldPacketManager):
+        request = await asyncio.wait_for(reader.read(4096), timeout=0.01)
+        if request:
+            size, opcode, data = request[:2], request[2:6], request[6:]
+            response = await asyncio.wait_for(
+                world_packet_mgr.process(size=size, opcode=opcode, data=data), timeout=0.01
+            )
 
-            while True:
-                try:
-                    request = await asyncio.wait_for(reader.read(4096), timeout=0.01)
-                    if request:
-                        response = await asyncio.wait_for(world_packet_manager.process(request), timeout=0.01)
+            if response:
+                for packet in response:
+                    writer.write(packet)
+                    await writer.drain()
 
-                        if response:
-                            for packet in response:
-                                writer.write(packet)
-                                await writer.drain()
-
-                except TimeoutError:
-                    pass
-
-                except BrokenPipeError:
-                    pass
-
-                except Exception as e:
-                    Logger.error('[World Server]: exception, {}'.format(e))
-                    traceback.print_exc()
-                    break
-                finally:
-                    await asyncio.sleep(0.01)
-
-        writer.close()
+        await asyncio.sleep(0.01)
 
     def _register_tasks(self):
         asyncio.gather(
             asyncio.ensure_future(self.add_connection()),
             asyncio.ensure_future(self.remove_connection()),
             asyncio.ensure_future(self.add_session_keys()),
-            asyncio.ensure_future(self.send_dynamic_packets()),
+            # asyncio.ensure_future(self.send_dynamic_packets()),
             #
             # asyncio.ensure_future(self.send_update_packet_to_player()),
             # asyncio.ensure_future(self.send_movement_packet_to_player()),
@@ -116,55 +99,51 @@ class WorldServer(BaseServer):
             finally:
                 await asyncio.sleep(0.01)
 
+    @ProcessException
     async def add_session_keys(self):
         while True:
-            try:
-                key, value = QueuesRegistry.session_keys_queue.get_nowait()
-            except asyncio.QueueEmpty:
-                pass
-            else:
-                self.session_keys[key] = value
-            finally:
-                await asyncio.sleep(0.01)
+            key, value = QueuesRegistry.session_keys_queue.get_nowait()
+            self.session_keys[key] = value
+            await asyncio.sleep(0.01)
 
-    async def send_dynamic_packets(self):
-        while True:
-            try:
-                player_name, packets, opcode = await asyncio.wait_for(
-                    QueuesRegistry.dynamic_packets_queue.get(),
-                    timeout=0.01
-                )
-            except TimeoutError:
-                pass
-            else:
-                try:
-                    connection = self.connections.get(player_name)
-                    writer, header_crypt = None, None
-
-                    if connection:
-                        writer = connection.get('writer')
-                        header_crypt = connection.get('header_crypt')
-                except KeyError:
-                    # on login step player object not registered in self.connections,
-                    # just ignore
-                    pass
-                else:
-                    try:
-                        for packet in packets:
-                            response = WorldPacketManager.generate_packet(
-                                opcode=opcode,
-                                data=packet,
-                                header_crypt=header_crypt
-                            )
-                            writer.write(response)
-                            await writer.drain()
-                    except BrokenPipeError:
-                        del self.connections[player_name]
-
-                    except ConnectionResetError:
-                        del self.connections[player_name]
-            finally:
-                await asyncio.sleep(0.01)
+    # async def send_dynamic_packets(self):
+    #     while True:
+    #         try:
+    #             player_name, packets, opcode = await asyncio.wait_for(
+    #                 QueuesRegistry.dynamic_packets_queue.get(),
+    #                 timeout=0.01
+    #             )
+    #         except TimeoutError:
+    #             pass
+    #         else:
+    #             try:
+    #                 connection = self.connections.get(player_name)
+    #                 writer, header_crypt = None, None
+    #
+    #                 if connection:
+    #                     writer = connection.get('writer')
+    #                     header_crypt = connection.get('header_crypt')
+    #             except KeyError:
+    #                 # on login step player object not registered in self.connections,
+    #                 # just ignore
+    #                 pass
+    #             else:
+    #                 try:
+    #                     for packet in packets:
+    #                         response = WorldPacketManager.generate_packet(
+    #                             opcode=opcode,
+    #                             data=packet,
+    #                             header_crypt=header_crypt
+    #                         )
+    #                         writer.write(response)
+    #                         await writer.drain()
+    #                 except BrokenPipeError:
+    #                     del self.connections[player_name]
+    #
+    #                 except ConnectionResetError:
+    #                     del self.connections[player_name]
+    #         finally:
+    #             await asyncio.sleep(0.01)
 
     # async def send_update_packet_to_player(self):
     #     while True:

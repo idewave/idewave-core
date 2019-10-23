@@ -23,20 +23,21 @@ class WorldManager(object):
     def _register_tasks(self):
         # tasks = [asyncio.ensure_future(RegionManager.refresh_region(region)) for region in self.region_mgr.regions]
         asyncio.gather(
-            asyncio.ensure_future(self.process_player_enter_world()),
+            asyncio.ensure_future(WorldManager.process_player_enter_world()),
             # asyncio.ensure_future(self.process_player_movement()),
             # asyncio.ensure_future(self.process_player_exit_world()),
             # asyncio.ensure_future(self.process_chat_message()),
             # asyncio.ensure_future(self.process_name_query()),
         )
 
-    async def process_player_enter_world(self):
+    @staticmethod
+    async def process_player_enter_world():
         try:
             player = QueuesRegistry.players_queue.get_nowait()
         except asyncio.QueueEmpty:
             return
         else:
-            self.region_mgr.add_player(player)
+            RegionManager.add_player(player)
         finally:
             await asyncio.sleep(0.01)
 

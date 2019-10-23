@@ -1,9 +1,7 @@
-from typing import Union, Dict, List
-
-from World.Object.Unit.model import Unit
-from World.Object.Unit.Player.model import Player
+from typing import Dict, List
 
 from World.Region.Octree.OctreeNode import OctreeNode
+from World.Region.Octree.Constants.OctreeConfig import MAX_CHILD_NODES
 
 from Config.Run.config import Config
 
@@ -31,8 +29,8 @@ class OctreeBuilder(object):
     def build(self) -> OctreeNode:
         self._build_child_nodes(self.root_node)
 
-        for obj in self.objects.values():
-            OctreeBuilder.set_object(self.root_node, obj)
+        # for obj in self.objects.values():
+        #     OctreeBuilder.set_object(self.root_node, obj)
 
         return self.root_node
 
@@ -47,7 +45,7 @@ class OctreeBuilder(object):
 
         child_nodes: List[OctreeNode] = []
 
-        for i in range(1, OctreeBuilder.MAX_CHILD_NODES + 1):
+        for i in range(1, MAX_CHILD_NODES + 1):
             x0, x1 = x[i % 2 == 0]
             y0, y1 = y[(i & 3) % 3 == 0]
             z0, z1 = z[i > 4]
@@ -65,27 +63,27 @@ class OctreeBuilder(object):
 
         node.child_nodes = child_nodes
 
-    @staticmethod
-    def set_object(node: OctreeNode, obj: Union[Unit, Player]) -> None:
-        if node.child_nodes:
-            child_node = OctreeBuilder._get_nearest_child_node(node, obj)
-            OctreeBuilder.set_object(child_node, obj)
-        else:
-            node.guids.append(obj.guid)
-
-    @staticmethod
-    def should_contain_object(node: OctreeNode, obj: Union[Unit, Player]) -> bool:
-        return (node.x0 <= obj.x <= node.x1 and
-                node.y0 <= obj.y <= node.y1 and
-                node.z0 <= obj.z <= node.z1)
-
-    @staticmethod
-    def _get_nearest_child_node(node: OctreeNode, obj: Union[Unit, Player]) -> Union[OctreeNode, None]:
-        for i in range(0, OctreeBuilder.MAX_CHILD_NODES):
-            if OctreeBuilder.should_contain_object(node.child_nodes[i], obj):
-                return node.child_nodes[i]
-
-        return None
+    # @staticmethod
+    # def set_object(node: OctreeNode, obj: Union[Unit, Player]) -> None:
+    #     if node.child_nodes:
+    #         child_node = OctreeBuilder._get_nearest_child_node(node, obj)
+    #         OctreeBuilder.set_object(child_node, obj)
+    #     else:
+    #         node.guids.append(obj.guid)
+    #
+    # @staticmethod
+    # def should_contain_object(node: OctreeNode, obj: Union[Unit, Player]) -> bool:
+    #     return (node.x0 <= obj.x <= node.x1 and
+    #             node.y0 <= obj.y <= node.y1 and
+    #             node.z0 <= obj.z <= node.z1)
+    #
+    # @staticmethod
+    # def _get_nearest_child_node(node: OctreeNode, obj: Union[Unit, Player]) -> Union[OctreeNode, None]:
+    #     for i in range(0, OctreeBuilder.MAX_CHILD_NODES):
+    #         if OctreeBuilder.should_contain_object(node.child_nodes[i], obj):
+    #             return node.child_nodes[i]
+    #
+    #     return None
 
     @staticmethod
     def can_contain_child_nodes(node: OctreeNode) -> bool:

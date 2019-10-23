@@ -1,7 +1,7 @@
-from enum import Enum
+from World.WorldPacket.Constants.BaseOpCode import BaseOpcode
 
 
-class WorldOpCode(Enum):
+class WorldOpCode(BaseOpcode):
 
     MSG_NULL_ACTION = 0x000
     CMSG_BOOTME = 0x001

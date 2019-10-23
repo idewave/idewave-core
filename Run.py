@@ -39,19 +39,19 @@ if __name__ == '__main__':
     QueuesRegistry.connections_queue = asyncio.Queue()
     QueuesRegistry.disconnect_queue = asyncio.Queue()
 
-    QueuesRegistry.dynamic_packets_queue = asyncio.Queue()
+    QueuesRegistry.packets_queue = asyncio.Queue()
 
     # TODO: remove redundant queues
-    QueuesRegistry.update_packets_queue = asyncio.Queue()
-
-    QueuesRegistry.movement_queue = asyncio.Queue()
-    QueuesRegistry.movement_packets_queue = asyncio.Queue()
-
-    QueuesRegistry.text_message_queue = asyncio.Queue()
-    QueuesRegistry.text_message_packets_queue = asyncio.Queue()
-
-    QueuesRegistry.name_query_queue = asyncio.Queue()
-    QueuesRegistry.name_query_packets_queue = asyncio.Queue()
+    # QueuesRegistry.update_packets_queue = asyncio.Queue()
+    #
+    # QueuesRegistry.movement_queue = asyncio.Queue()
+    # QueuesRegistry.movement_packets_queue = asyncio.Queue()
+    #
+    # QueuesRegistry.text_message_queue = asyncio.Queue()
+    # QueuesRegistry.text_message_packets_queue = asyncio.Queue()
+    #
+    # QueuesRegistry.name_query_queue = asyncio.Queue()
+    # QueuesRegistry.name_query_packets_queue = asyncio.Queue()
 
     try:
         loop.run_until_complete(

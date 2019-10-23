@@ -1,0 +1,1 @@
+MAX_CHILD_NODES = 8
