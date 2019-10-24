@@ -36,7 +36,7 @@ class WorldPacketManager(object):
             return None
 
         if opcode in MAP_HANDLER_TO_OPCODE:
-            Logger.debug('[World Packet]: processing {} opcode'.format(opcode.name))
+            Logger.notify('[World Packet]: processing {} opcode'.format(opcode.name))
             handlers = MAP_HANDLER_TO_OPCODE[opcode]
             packets = []
 
@@ -75,6 +75,8 @@ class WorldPacketManager(object):
 
     @ProcessException
     def generate_packet(self, opcode: Union[LoginOpCode, WorldOpCode], data: bytes):
+        Logger.success('[World Packet]: respond with {}'.format(opcode.name))
+
         if isinstance(opcode, LoginOpCode):
             return pack('<B', opcode.value) + data
 

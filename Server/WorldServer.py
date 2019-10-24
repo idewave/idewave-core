@@ -27,7 +27,7 @@ class WorldServer(BaseServer):
         self.connections = {}
 
     async def handle_connection(self, reader: StreamReader, writer: StreamWriter):
-        asyncio.ensure_future(self.add_session_keys())
+        self._register_tasks()
 
         connection = Connection(reader=reader, writer=writer, session_keys=self.session_keys)
         world_packet_mgr = WorldPacketManager(connection=connection)
@@ -70,39 +70,26 @@ class WorldServer(BaseServer):
             # asyncio.ensure_future(self.send_name_query_packet_to_player()),
         )
 
+    @ProcessException
     async def add_connection(self):
         while True:
-            try:
-                player_name, reader, writer, header_crypt = QueuesRegistry.connections_queue.get_nowait()
-            except asyncio.QueueEmpty:
-                pass
-            else:
-                self.connections[player_name] = {
-                    'reader': reader,
-                    'writer': writer,
-                    'header_crypt': header_crypt
-                }
-                Logger.info('[World Server]: added connection for player "{}"'.format(player_name))
-            finally:
-                await asyncio.sleep(0.01)
+            connection: Connection = await QueuesRegistry.connections_queue.get()
+            self.connections[connection.player.name] = connection
+            Logger.info('[World Server]: added connection for player "{}"'.format(connection.player.name))
+            await asyncio.sleep(0.01)
 
+    @ProcessException
     async def remove_connection(self):
         while True:
-            try:
-                player_name = QueuesRegistry.disconnect_queue.get_nowait()
-            except asyncio.QueueEmpty:
-                pass
-            else:
-                if self.connections.get(player_name):
-                    del self.connections[player_name]
-                    Logger.info('[World Server]: player "{}" disconnected'.format(player_name))
-            finally:
-                await asyncio.sleep(0.01)
+            player_name = await QueuesRegistry.disconnect_queue.get()
+            if self.connections.get(player_name):
+                del self.connections[player_name]
+                Logger.info('[World Server]: player "{}" disconnected'.format(player_name))
 
     @ProcessException
     async def add_session_keys(self):
         while True:
-            key, value = QueuesRegistry.session_keys_queue.get_nowait()
+            key, value = await QueuesRegistry.session_keys_queue.get()
             self.session_keys[key] = value
             await asyncio.sleep(0.01)
 

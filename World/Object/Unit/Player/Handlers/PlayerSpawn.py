@@ -1,3 +1,5 @@
+from typing import List
+
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 
 from World.Object.Constants.UpdateObjectFields import ObjectField, ItemField, UnitField, PlayerField
@@ -145,11 +147,11 @@ class PlayerSpawn(object):
                 player_mgr.add_field(PlayerField.SKILL_INFO_1_STAT_LEVEL, skill.skill_template.max, offset=offset + 2)
 
             batch = player_mgr.create_batch(PlayerSpawn.SPAWN_FIELDS)
-            response = player_mgr.add_batch(batch).build_update_packet().get_update_packets()
+            response: List = player_mgr.add_batch(batch).build_update_packet().get_update_packets()
 
-            return WorldOpCode.SMSG_UPDATE_OBJECT, [response]
+            return WorldOpCode.SMSG_UPDATE_OBJECT, response
 
-    def _set_player_power(self):
+    def _set_player_power(self) -> None:
         char_class = CharacterClass(self.connection.player.char_class)
 
         mana_classes = [

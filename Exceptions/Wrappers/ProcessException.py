@@ -37,8 +37,8 @@ class ProcessException(object):
     def _process_exc(self, *args, **kwargs):
         try:
             return self.func(*args, **kwargs)
-        # except KeyError:
-        #     pass
+        except KeyError:
+            pass
         except KeyboardInterrupt:
             pass
         except ValueError:

@@ -29,7 +29,7 @@ if __name__ == '__main__':
     #     for region in region_manager.regions
     # ]
 
-    world_manager = WorldManager()
+    # world_manager = WorldManager()
 
     # QueuesRegistry.web_data_queue = MultiProcessQueue.get_instance()
 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
                 login_server.get_instance(),
                 world_server.get_instance(),
                 # websocket_server.get_instance(),
-                asyncio.ensure_future(world_manager.run())
+                # asyncio.ensure_future(world_manager.run())
             )
         )
     except Exception as e:

@@ -10,7 +10,9 @@ from World.Object.Unit.Player.Handlers.CharacterDelete import CharacterDelete
 from Server.Auth.Handlers.LoginChallenge import LoginChallenge
 from Server.Auth.Handlers.LoginProof import LoginProof
 from Server.Auth.Handlers.Realmlist import Realmlist
+from Server.Auth.Handlers.SetupEncryption import SetupEncryption
 from Server.Auth.Handlers.AuthSession import AuthSession
+from Server.Auth.Handlers.AddonInfo import AddonInfo
 
 from World.WorldEnter.Handlers.LoginVerifyWorld import LoginVerifyWorld
 from World.WorldEnter.Handlers.TutorialFlags import TutorialFlags
@@ -57,7 +59,11 @@ MAP_HANDLER_TO_OPCODE = {
     LoginOpCode.LOGIN_CHALL: [LoginChallenge],
     LoginOpCode.LOGIN_PROOF: [LoginProof],
     LoginOpCode.REALMLIST: [Realmlist],
-    WorldOpCode.CMSG_AUTH_SESSION: [AuthSession],
+    WorldOpCode.CMSG_AUTH_SESSION: [
+        SetupEncryption,
+        AuthSession,
+        AddonInfo,
+    ],
     WorldOpCode.CMSG_PLAYER_LOGIN: [
         PlayerInit,
         MOTD,
@@ -71,7 +77,8 @@ MAP_HANDLER_TO_OPCODE = {
     ],
     WorldOpCode.CMSG_UPDATE_ACCOUNT_DATA: [],
     WorldOpCode.CMSG_REQUEST_ACCOUNT_DATA: [],
-    WorldOpCode.CMSG_REALM_SPLIT: [RealmSplit],
+    # WorldOpCode.CMSG_REALM_SPLIT: [RealmSplit],
+    WorldOpCode.CMSG_REALM_SPLIT: [CharacterEnum],
     WorldOpCode.CMSG_QUERY_TIME: [QueryHandler],
     WorldOpCode.CMSG_NAME_QUERY: [QueryHandler],
     WorldOpCode.CMSG_ZONEUPDATE: [ZoneUpdate],
