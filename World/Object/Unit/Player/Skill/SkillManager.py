@@ -7,26 +7,18 @@ from World.Object.Unit.Player.model import Player, PlayerSkill
 
 from Utils.Debug.Logger import Logger
 
-from Server.Connection.Connection import Connection
-
 
 class SkillManager(object):
 
     def __init__(self, **kwargs):
-        self.world_object = None
-        self.connection: Connection = kwargs.pop('connection', None)
+        self.skill_object = None
 
     def create(self, **kwargs):
-        entry = kwargs.pop('entry', None)
-        name = kwargs.pop('name', None)
-        min = kwargs.pop('min', None)
-        max = kwargs.pop('max', None)
-
-        self.world_object = SkillTemplate()
-        self.world_object.entry = entry
-        self.world_object.name = name
-        self.world_object.min = min
-        self.world_object.max = max
+        self.skill_object = SkillTemplate()
+        self.skill_object.entry = kwargs.pop('entry')
+        self.skill_object.name = kwargs.pop('name')
+        self.skill_object.min = kwargs.pop('min')
+        self.skill_object.max = kwargs.pop('max')
 
         return self
 
@@ -40,10 +32,10 @@ class SkillManager(object):
         if skill_template is None:
             raise Exception('Skill with entry {} not found'.format(entry))
 
-        self.world_object = DefaultSkill()
-        self.world_object.race = race
-        self.world_object.char_class = char_class
-        self.world_object.skill_template = skill_template
+        self.skill_object = DefaultSkill()
+        self.skill_object.race = race
+        self.skill_object.char_class = char_class
+        self.skill_object.skill_template = skill_template
 
         return self
 
@@ -71,7 +63,7 @@ class SkillManager(object):
             return self
 
     def save(self):
-        self.session.add(self.world_object)
+        self.session.add(self.skill_object)
         self.session.commit()
 
     # enter/exit are safe, should be used instead of __del__

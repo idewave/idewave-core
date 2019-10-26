@@ -21,7 +21,7 @@ class CharacterCreate(object):
     async def process(self):
         data = self._parse_packet()
 
-        with PlayerManager(connection=self.connection) as player_mgr:
+        with PlayerManager() as player_mgr:
             player_mgr.new(
                 name=data['name'],
                 race=data['race'],
@@ -32,7 +32,8 @@ class CharacterCreate(object):
                 hair_style=data['hair_style'],
                 hair_color=data['hair_color'],
                 facial_hair=data['facial_hair'],
-            ).save()
+                account=self.connection.account
+            )
 
             Logger.notify('Character "{}" created'.format(data['name']))
 

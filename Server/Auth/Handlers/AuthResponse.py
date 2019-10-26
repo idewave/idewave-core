@@ -5,7 +5,7 @@ from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Auth.Constants.ResponseCodes import ResponseCodes
 
 
-class AuthSession(object):
+class AuthResponse(object):
 
     def __init__(self, **kwargs):
         self.data: bytes = kwargs.pop('data')

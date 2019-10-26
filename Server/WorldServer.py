@@ -1,7 +1,7 @@
 import asyncio
+import time
 
 from asyncio.streams import StreamReader, StreamWriter
-from concurrent.futures import TimeoutError
 from os import urandom
 
 from Server.BaseServer import BaseServer
@@ -23,7 +23,6 @@ class WorldServer(BaseServer):
     def __init__(self, host, port):
         super().__init__(host, port)
         self.session_keys = {}
-        # key = player name, value = (reader, writer)
         self.connections = {}
 
     async def handle_connection(self, reader: StreamReader, writer: StreamWriter):
@@ -46,8 +45,10 @@ class WorldServer(BaseServer):
         request = await asyncio.wait_for(reader.read(4096), timeout=0.01)
         if request:
             size, opcode, data = request[:2], request[2:6], request[6:]
+
             response = await asyncio.wait_for(
-                world_packet_mgr.process(size=size, opcode=opcode, data=data), timeout=0.01
+                world_packet_mgr.process(size=size, opcode=opcode, data=data),
+                timeout=0.01
             )
 
             if response:

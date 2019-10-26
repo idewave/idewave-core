@@ -18,8 +18,12 @@ from Utils.Debug.Logger import Logger
 
 from Config.Run.config import Config
 
+from Exceptions.Wrappers.ProcessException import ProcessException
+
 
 class PlayerManager(UnitManager):
+
+    __slots__ = ('world_object', 'equipment', 'connection')
 
     MAX_INSPECTED_ENCHANTMENT_SLOT = 2
 
@@ -29,15 +33,9 @@ class PlayerManager(UnitManager):
         super(PlayerManager, self).__init__(**kwargs)
         self.world_object = Player()
         self.equipment = Equipment()
-        self.connection: Connection = kwargs.pop('connection')
-
-        self.skills = []
-        self.spells = []
 
     @property
     def player(self):
-        if self.world_object is None:
-            raise Exception('Player is None')
         return self.world_object
 
     def add_player_fields(self):
@@ -118,17 +116,14 @@ class PlayerManager(UnitManager):
     # def equip_item(self, slot: CharacterEquipSlot, item: Item):
     #     self.player.equipment.set_object_field(slot, item)
 
+    @ProcessException
     def set_default_equipment(self):
         self.session.expunge(self.player.region)
         self.session.expunge(self.player.account)
         self.session.expunge(self.player)
 
         with EquipmentManager() as equipment_mgr:
-            try:
-                self.equipment = equipment_mgr.set_default_equipment(player=self.player).get_items()
-            except Exception as e:
-                Logger.error('[PlayerMgr]: equipment error = {}'.format(e))
-
+            self.equipment = equipment_mgr.set_default_equipment(player=self.player).get_items()
             return self
 
     def set_default_skills(self):
@@ -156,26 +151,27 @@ class PlayerManager(UnitManager):
 
     # overridable
     def load(self, **kwargs):
-        id = kwargs.pop('id')
-        self.world_object = self.session.query(Player).filter_by(id=id).first()
+        # id = kwargs.pop('id')
+        # self.world_object = self.session.query(Player).filter_by(id=id).first()
+        self.world_object = self.session.query(Player).filter_by(**kwargs).first()
         return self
 
     # overridable
+    @ProcessException
     def new(self, **kwargs):
         self.player.race = kwargs.pop('race', None)
         self.player.char_class = kwargs.pop('char_class', None)
         self.player.gender = kwargs.pop('gender', None)
-        self.player.name = kwargs.pop('name', None)
-        self.player.skin = kwargs.pop('skin', None)
-        self.player.face = kwargs.pop('face', None)
-        self.player.hair_style = kwargs.pop('hair_style', None)
-        self.player.hair_color = kwargs.pop('hair_color', None)
-        self.player.facial_hair = kwargs.pop('facial_hair', None)
+        self.player.name = kwargs.pop('name')
+        self.player.skin = kwargs.pop('skin')
+        self.player.face = kwargs.pop('face')
+        self.player.hair_style = kwargs.pop('hair_style')
+        self.player.hair_color = kwargs.pop('hair_color')
+        self.player.facial_hair = kwargs.pop('facial_hair')
 
         self.player.level = Config.World.Object.Unit.Player.Defaults.min_level
 
-        account = self.session.merge(self.connection.account)
-        self.player.account = account
+        self.player.account = self.session.merge(kwargs.pop('account'))
 
         self._set_start_location()
         self._set_display_id()
@@ -189,6 +185,12 @@ class PlayerManager(UnitManager):
 
         self.set_stats()
 
+        self.save()
+
+        self.set_default_equipment()
+        self.set_default_skills()
+        self.set_default_spells()
+
         return self
 
     def prepare(self):
@@ -198,10 +200,3 @@ class PlayerManager(UnitManager):
             self.equipment = equipment_mgr.get_equipment(player=self.player).get_items()
             self.add_player_fields()
             return self
-
-    def save(self):
-        super().save()
-        self.set_default_equipment()
-        self.set_default_skills()
-        self.set_default_spells()
-        return self

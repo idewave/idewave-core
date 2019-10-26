@@ -136,13 +136,13 @@ class RegionManager(object):
             connection = WorldConnection()
             self.session = connection.session
 
-        self.region = None
-        self.regions = self.load_all()
+        self.region: Union[Region, None] = None
+        self.regions: List[Region] = self.load_all()
 
         # self.register_tasks()
 
     def get_regions_as_json(self):
-        return [region.to_json() for region in self.regions];
+        return [region.to_json() for region in self.regions]
 
     def get_region(self, **kwargs) -> Region:
         # TODO: fix args receiving
@@ -172,7 +172,7 @@ class RegionManager(object):
 
         return self
 
-    def create_default_location(self, **kwargs):
+    def create_default_location(self, **kwargs) -> None:
         identifier = kwargs.pop('identifier', None)
         x = kwargs.pop('x', None)
         y = kwargs.pop('y', None)
@@ -251,82 +251,82 @@ class RegionManager(object):
     #             Logger.success(t2 - t1)
     #         await asyncio.sleep(0.01)
 
-    @staticmethod
-    def send_spawn_packets(player: Player, objects: List[Union[Unit, Player]]) -> None:
-        asyncio.ensure_future(
-            QueuesRegistry.dynamic_packets_queue.put((player.name, RegionManager.get_spawn_packets(objects)))
-        )
+    # @staticmethod
+    # def send_spawn_packets(player: Player, objects: List[Union[Unit, Player]]) -> None:
+    #     asyncio.ensure_future(
+    #         QueuesRegistry.dynamic_packets_queue.put((player.name, RegionManager.get_spawn_packets(objects)))
+    #     )
+    #
+    # @staticmethod
+    # def get_spawn_packets(objects: List[Union[Unit, Player]]):
+    #     update_flags = (
+    #         UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
+    #         UpdateObjectFlags.UPDATEFLAG_LIVING.value |
+    #         UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
+    #     )
+    #
+    #     head_mgr = None
+    #
+    #     while objects:
+    #         current = objects.pop()
+    #         manager = RegionManager.get_manager_by_object_type(current)
+    #
+    #         if manager is None:
+    #             Logger.warning('[RegionMgr]: it seems there are object with incorrect type')
+    #             continue
+    #
+    #         fields = RegionManager.get_update_fields_by_object_type(current)
+    #
+    #         with manager as mgr:
+    #             RegionManager._init_update_packet_builder(
+    #                 mgr,
+    #                 object_update_type=ObjectUpdateType.CREATE_OBJECT2,
+    #                 update_flags=update_flags,
+    #                 update_object=objects.pop()
+    #             )
+    #
+    #             if head_mgr is None:
+    #                 head_mgr = mgr
+    #
+    #             batch = mgr.create_batch(fields)
+    #             head_mgr.add_batch(batch)
+    #
+    #     if head_mgr is None:
+    #         return []
+    #
+    #     return head_mgr.build_update_packet().get_update_packets()
 
-    @staticmethod
-    def get_spawn_packets(objects: List[Union[Unit, Player]]):
-        update_flags = (
-            UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
-            UpdateObjectFlags.UPDATEFLAG_LIVING.value |
-            UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
-        )
-
-        head_mgr = None
-
-        while objects:
-            current = objects.pop()
-            manager = RegionManager.get_manager_by_object_type(current)
-
-            if manager is None:
-                Logger.warning('[RegionMgr]: it seems there are object with incorrect type')
-                continue
-
-            fields = RegionManager.get_update_fields_by_object_type(current)
-
-            with manager as mgr:
-                RegionManager._init_update_packet_builder(
-                    mgr,
-                    object_update_type=ObjectUpdateType.CREATE_OBJECT2,
-                    update_flags=update_flags,
-                    update_object=objects.pop()
-                )
-
-                if head_mgr is None:
-                    head_mgr = mgr
-
-                batch = mgr.create_batch(fields)
-                head_mgr.add_batch(batch)
-
-        if head_mgr is None:
-            return []
-
-        return head_mgr.build_update_packet().get_update_packets()
-
-    @staticmethod
-    def get_manager_by_object_type(obj: Union[Unit, Player]):
-        mgr = None
-
-        if isinstance(obj, Unit):
-            mgr = UnitManager()
-        elif isinstance(obj, Player):
-            mgr = PlayerManager()
-
-        return mgr
-
-    @staticmethod
-    def get_update_fields_by_object_type(obj: Union[Unit, Player]):
-        fields = None
-
-        if isinstance(obj, Unit):
-            fields = RegionManager.UNIT_SPAWN_FIELDS
-        elif isinstance(obj, Player):
-            fields = RegionManager.PLAYER_SPAWN_FIELDS
-
-        return fields
-
-    @staticmethod
-    def send_despawn_packets(current_object: Player, guids: List[int]) -> None:
-        asyncio.ensure_future(
-            QueuesRegistry.dynamic_packets_queue.put((
-                current_object.name,
-                [pack('<Q', guid) for guid in guids],
-                WorldOpCode.SMSG_DESTROY_OBJECT
-            ))
-        )
+    # @staticmethod
+    # def get_manager_by_object_type(obj: Union[Unit, Player]):
+    #     mgr = None
+    #
+    #     if isinstance(obj, Unit):
+    #         mgr = UnitManager()
+    #     elif isinstance(obj, Player):
+    #         mgr = PlayerManager()
+    #
+    #     return mgr
+    #
+    # @staticmethod
+    # def get_update_fields_by_object_type(obj: Union[Unit, Player]):
+    #     fields = None
+    #
+    #     if isinstance(obj, Unit):
+    #         fields = RegionManager.UNIT_SPAWN_FIELDS
+    #     elif isinstance(obj, Player):
+    #         fields = RegionManager.PLAYER_SPAWN_FIELDS
+    #
+    #     return fields
+    #
+    # @staticmethod
+    # def send_despawn_packets(current_object: Player, guids: List[int]) -> None:
+    #     asyncio.ensure_future(
+    #         QueuesRegistry.dynamic_packets_queue.put((
+    #             current_object.name,
+    #             [pack('<Q', guid) for guid in guids],
+    #             WorldOpCode.SMSG_DESTROY_OBJECT
+    #         ))
+    #     )
 
     # @staticmethod
     # def get_guids_for_track(current_object: Union[Unit, Player], objects_registry) -> FrozenSet[int]:

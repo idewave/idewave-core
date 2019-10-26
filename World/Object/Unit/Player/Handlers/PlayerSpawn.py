@@ -131,7 +131,7 @@ class PlayerSpawn(object):
 
     @ProcessException
     async def process(self):
-        with PlayerManager(connection=self.connection) as player_mgr:
+        with PlayerManager() as player_mgr:
             player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT2)
             # be careful, set_update_flags should be called after prepare(), because of update_packet_builder init
             player_mgr.set(self.connection.player).prepare().set_update_flags(self.update_flags)

@@ -17,8 +17,6 @@ class UnitManager(ObjectManager):
 
     @property
     def unit(self):
-        if self.world_object is None:
-            raise Exception('Unit is None')
         return self.world_object
 
     def add_unit_fields(self):

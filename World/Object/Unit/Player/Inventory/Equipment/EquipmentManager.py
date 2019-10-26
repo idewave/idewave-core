@@ -1,4 +1,5 @@
 from struct import pack
+
 from World.Character.Constants.CharacterEquipSlot import CharacterEquipSlot
 from World.Object.ObjectManager import ObjectManager
 from World.Object.Unit.Player.Inventory.Equipment.model import Equipment, DefaultEquipment
@@ -7,7 +8,6 @@ from World.Object.Unit.Player.Inventory.Equipment.Constants.InventoryTypeItemSlo
 from World.Object.Unit.Player.Inventory.Equipment.Constants.InventoryType import InventoryType
 from World.Object.Item.model import Item
 from World.Object.Unit.Player.model import Player
-from Utils.Debug.Logger import Logger
 
 
 class EquipmentManager(ObjectManager):
@@ -19,7 +19,7 @@ class EquipmentManager(ObjectManager):
         self.world_object = Equipment()
 
     def get_equipment(self, player: Player):
-        equipment = self.session.query(Equipment).filter_by(player_id=player.id).all()
+        equipment = player.equipment
         items = [e.item for e in equipment]
 
         for item in items:
@@ -42,7 +42,7 @@ class EquipmentManager(ObjectManager):
     def get_item(self, slot: CharacterEquipSlot):
         return self.slots[slot]
 
-    # this method uses for Characters screen
+    # this method using for Characters screen
     def to_bytes(self):
         result = bytes()
 
@@ -56,7 +56,7 @@ class EquipmentManager(ObjectManager):
                     '<IBI',
                     slot.item.item_template.display_id,
                     slot.item.item_template.item_type,
-                    0,  # item.enchant_id
+                    0,                                      # item.enchant_id
                 )
 
             result += item_bytes

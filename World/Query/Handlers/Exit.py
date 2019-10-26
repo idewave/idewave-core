@@ -12,7 +12,7 @@ class Exit(object):
 
     async def process(self):
         # TODO: correctly process disconnect
-        with PlayerManager(connection=self.connection) as player_mgr:
+        with PlayerManager() as player_mgr:
             player_mgr.set(self.connection.player).save()
 
         await QueuesRegistry.disconnect_queue.put(self.connection.player.name)

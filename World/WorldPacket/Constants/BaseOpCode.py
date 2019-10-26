@@ -1,11 +1,15 @@
 from enum import Enum
 
-from Exceptions.Wrappers.ProcessException import ProcessException
-
 
 class BaseOpcode(Enum):
 
     @classmethod
-    @ProcessException
+    def has_value(cls, value: int) -> bool:
+        return value in tuple(item.value for item in cls)
+
+    @classmethod
     def get_opcode(cls, value: int):
-        return cls(value)
+        if cls.has_value(value):
+            return cls(value)
+
+        return None

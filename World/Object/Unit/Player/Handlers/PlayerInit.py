@@ -23,6 +23,6 @@ class PlayerInit(object):
     def _load_player(self) -> None:
         # size (first 2 bytes) - opcode (next 4 bytes) - guid (remaining bytes)
         guid = int.from_bytes(self.data, 'little')
-        with PlayerManager(connection=self.connection) as player_mgr:
+        with PlayerManager() as player_mgr:
             player_mgr.load(id=guid)
             self.connection.player = player_mgr.player

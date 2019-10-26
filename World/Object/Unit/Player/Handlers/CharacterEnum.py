@@ -1,11 +1,11 @@
+import time
+
 from struct import pack
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
 from Server.CustomExceptions.CharactersLimitError import CharactersLimitError
 from World.Object.Unit.Player.CharacterManager import CharacterManager
-
-from Exceptions.Wrappers.ProcessException import ProcessException
 
 
 class CharacterEnum(object):
@@ -20,7 +20,6 @@ class CharacterEnum(object):
         response = pack('<B', self.num_chars) + characters
         return WorldOpCode.SMSG_CHAR_ENUM, [response]
 
-    @ProcessException
     def _get_characters(self):
         characters = CharacterManager().get_characters(account=self.connection.account)
         self.num_chars = len(characters)

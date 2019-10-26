@@ -31,12 +31,14 @@ class LoginServer(BaseServer):
         request = await asyncio.wait_for(reader.read(4096), timeout=0.01)
         if request:
             opcode, data = request[:1], request[1:]
-            response = await asyncio.wait_for(world_packet_mgr.process(opcode=opcode, data=data), timeout=0.01)
 
-            if response:
-                for packet in response:
-                    writer.write(packet)
-                    await writer.drain()
+            if data:
+                response = await asyncio.wait_for(world_packet_mgr.process(opcode=opcode, data=data), timeout=0.01)
+
+                if response:
+                    for packet in response:
+                        writer.write(packet)
+                        await writer.drain()
 
         await asyncio.sleep(0.01)
 

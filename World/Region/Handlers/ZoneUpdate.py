@@ -24,7 +24,7 @@ class ZoneUpdate(object):
             region = RegionManager().get_region(identifier=identifier)
             self.connection.player.region = region
 
-            with PlayerManager(connection=self.connection) as player_mgr:
+            with PlayerManager() as player_mgr:
                 player_mgr.set(self.connection.player).save()
                 Logger.notify('[Zone Update]: saving player')
 

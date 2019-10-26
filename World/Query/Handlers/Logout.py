@@ -14,7 +14,7 @@ class Logout(object):
 
     async def process(self):
 
-        with PlayerManager(connection=self.connection) as player_mgr:
+        with PlayerManager() as player_mgr:
             player_mgr.set(self.connection.player).save()
 
         response = pack(

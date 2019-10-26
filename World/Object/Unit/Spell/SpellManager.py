@@ -5,14 +5,11 @@ from DB.Connection.WorldConnection import WorldConnection
 from World.Object.Unit.Spell.model import SpellTemplate, DefaultSpell
 from World.Object.Unit.Player.model import Player, PlayerSpell
 
-from Server.Connection.Connection import Connection
-
 
 class SpellManager(object):
 
     def __init__(self, **kwargs):
-        self.world_object = None
-        self.connection: Connection = kwargs.pop('connection')
+        self.spell_object = None
 
     def create(self, **kwargs):
         entry = kwargs.pop('entry', None)
@@ -21,12 +18,12 @@ class SpellManager(object):
         school = kwargs.pop('school', None)
         spell_range = kwargs.pop('range', None)
 
-        self.world_object = SpellTemplate()
-        self.world_object.entry = entry
-        self.world_object.name = name
-        self.world_object.cost = cost
-        self.world_object.school = school
-        self.world_object.range = spell_range
+        self.spell_object = SpellTemplate()
+        self.spell_object.entry = entry
+        self.spell_object.name = name
+        self.spell_object.cost = cost
+        self.spell_object.school = school
+        self.spell_object.range = spell_range
 
         return self
 
@@ -40,10 +37,10 @@ class SpellManager(object):
         if spell_template is None:
             raise Exception('Spell with entry {} not found'.format(entry))
 
-        self.world_object = DefaultSpell()
-        self.world_object.race = race
-        self.world_object.char_class = char_class
-        self.world_object.spell_template = spell_template
+        self.spell_object = DefaultSpell()
+        self.spell_object.race = race
+        self.spell_object.char_class = char_class
+        self.spell_object.spell_template = spell_template
 
         return self
 
@@ -67,7 +64,7 @@ class SpellManager(object):
         return self
 
     def save(self):
-        self.session.add(self.world_object)
+        self.session.add(self.spell_object)
         self.session.commit()
 
     # enter/exit are safe, should be used instead of __del__

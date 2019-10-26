@@ -11,7 +11,7 @@ from Server.Auth.Handlers.LoginChallenge import LoginChallenge
 from Server.Auth.Handlers.LoginProof import LoginProof
 from Server.Auth.Handlers.Realmlist import Realmlist
 from Server.Auth.Handlers.SetupEncryption import SetupEncryption
-from Server.Auth.Handlers.AuthSession import AuthSession
+from Server.Auth.Handlers.AuthResponse import AuthResponse
 from Server.Auth.Handlers.AddonInfo import AddonInfo
 
 from World.WorldEnter.Handlers.LoginVerifyWorld import LoginVerifyWorld
@@ -61,7 +61,7 @@ MAP_HANDLER_TO_OPCODE = {
     LoginOpCode.REALMLIST: [Realmlist],
     WorldOpCode.CMSG_AUTH_SESSION: [
         SetupEncryption,
-        AuthSession,
+        AuthResponse,
         AddonInfo,
     ],
     WorldOpCode.CMSG_PLAYER_LOGIN: [
@@ -77,8 +77,7 @@ MAP_HANDLER_TO_OPCODE = {
     ],
     WorldOpCode.CMSG_UPDATE_ACCOUNT_DATA: [],
     WorldOpCode.CMSG_REQUEST_ACCOUNT_DATA: [],
-    # WorldOpCode.CMSG_REALM_SPLIT: [RealmSplit],
-    WorldOpCode.CMSG_REALM_SPLIT: [CharacterEnum],
+    WorldOpCode.CMSG_REALM_SPLIT: [RealmSplit],
     WorldOpCode.CMSG_QUERY_TIME: [QueryHandler],
     WorldOpCode.CMSG_NAME_QUERY: [QueryHandler],
     WorldOpCode.CMSG_ZONEUPDATE: [ZoneUpdate],
