@@ -3,7 +3,7 @@
 I'm very grateful to the Mangos community, in particular to Kyoril, for help and hints. 
 
 ## Before start
-This works on Python v3.5 - v3.7. Not tested another versions yet.
+This works on Python v3.x.
 
 ## Installation
 
