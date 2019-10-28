@@ -129,8 +129,8 @@ class PlayerSpawn(object):
 
         self._set_player_power()
 
-    @ProcessException
-    async def process(self):
+    @ProcessException()
+    async def process(self) -> tuple:
         with PlayerManager() as player_mgr:
             player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT2)
             # be careful, set_update_flags should be called after prepare(), because of update_packet_builder init

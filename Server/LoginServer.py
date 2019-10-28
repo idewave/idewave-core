@@ -26,7 +26,7 @@ class LoginServer(BaseServer):
         while True:
             await self._process_request(reader, writer, world_packet_mgr)
 
-    @ProcessException
+    @ProcessException()
     async def _process_request(self, reader: StreamReader, writer: StreamWriter, world_packet_mgr: WorldPacketManager):
         request = await asyncio.wait_for(reader.read(4096), timeout=0.01)
         if request:

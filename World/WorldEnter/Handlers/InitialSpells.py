@@ -10,7 +10,7 @@ class InitialSpells(object):
         self.data = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    async def process(self) -> tuple:
         response = self._get_response()
         return WorldOpCode.SMSG_INITIAL_SPELLS, [response]
 

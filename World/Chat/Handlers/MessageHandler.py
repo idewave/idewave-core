@@ -17,7 +17,7 @@ class MessageHandler(object):
 
         self.chat_packet_builder: Union[ChatPacketBuilder, None] = None
 
-    async def process(self):
+    async def process(self) -> tuple:
         self._init_chat_packet_builder()
         response = self.chat_packet_builder.build().get_response()
 

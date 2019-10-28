@@ -1,5 +1,6 @@
 from io import BytesIO
 from struct import pack, unpack
+from sqlalchemy.exc import IntegrityError
 
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Character.Constants.CharacterRace import CharacterRace
@@ -11,6 +12,8 @@ from Server.Connection.Connection import Connection
 from Utils.Debug.Logger import Logger
 from Utils.AccountNameParser import AccountNameParser
 
+from Exceptions.Wrappers.ProcessException import ProcessException
+
 
 class CharacterCreate(object):
 
@@ -18,7 +21,14 @@ class CharacterCreate(object):
         self.data = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    @property
+    def exception_handlers(self) -> dict:
+        return {
+            IntegrityError: CharacterCreate.get_response_name_in_use
+        }
+
+    @ProcessException(exception_handlers)
+    async def process(self) -> tuple:
         data = self._parse_packet()
 
         with PlayerManager() as player_mgr:
@@ -40,7 +50,12 @@ class CharacterCreate(object):
             response = pack('<B', CharCreateResponseCode.CHAR_CREATE_SUCCESS.value)
             return WorldOpCode.SMSG_CHAR_CREATE, [response]
 
-    def _parse_packet(self):
+    @staticmethod
+    def get_response_name_in_use():
+        response = pack('<B', CharCreateResponseCode.CHAR_CREATE_NAME_IN_USE.value)
+        return WorldOpCode.SMSG_CHAR_CREATE, [response]
+
+    def _parse_packet(self) -> dict:
         # omit first 6 bytes, cause 01-02 = packet size, 03-04 = opcode (0x1ED), 05-06 - unknown null-bytes
         tmp_buf = BytesIO(self.data)
 

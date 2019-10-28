@@ -4,8 +4,6 @@ from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
 from Exceptions.Wrappers.ProcessException import ProcessException
 
-from Utils.Debug.Logger import Logger
-
 
 class LoginVerifyWorld(object):
 
@@ -13,11 +11,11 @@ class LoginVerifyWorld(object):
         self.data = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    async def process(self) -> tuple:
         response = self._get_response()
         return WorldOpCode.SMSG_LOGIN_VERIFY_WORLD, [response]
 
-    @ProcessException
+    @ProcessException()
     def _get_response(self):
         player = self.connection.player
 

@@ -22,7 +22,7 @@ class SetupEncryption(object):
         self.connection: Connection = kwargs.pop('connection')
         self.session_key = None
 
-    async def process(self):
+    async def process(self) -> tuple:
         account_name, client_seed, client_hash = self._parse_data()
         while not self.session_key:
             self._set_session_key()
@@ -55,7 +55,7 @@ class SetupEncryption(object):
 
         return account_name, client_seed, client_hash
 
-    @ProcessException
+    @ProcessException()
     def _set_session_key(self):
         key = '#{}-session-key'.format(self.connection.account.name)
         session_key = self.connection.session_keys[key]

@@ -50,7 +50,7 @@ class WorldPacketManager(object):
             Logger.warning('[World Packet]: no handler for opcode = {}'.format(opcode.name))
             return None
 
-    @ProcessException
+    @ProcessException()
     async def _process_handler(self, handler, opcode: Union[LoginOpCode, WorldOpCode], data: bytes):
         opcode, response = await handler(opcode=opcode, data=data, connection=self.connection).process()
         return opcode, response
@@ -66,7 +66,6 @@ class WorldPacketManager(object):
         else:
             return None
 
-    # @ProcessException
     def _decrypt(self, packet: bytes):
         # this is workaround cause one-time decryption do not works correctly for some opcodes
         # so I need decrypt some packets for multiple times
@@ -79,7 +78,7 @@ class WorldPacketManager(object):
 
         return result
 
-    @ProcessException
+    @ProcessException()
     def generate_packet(self, opcode: Union[LoginOpCode, WorldOpCode], data: bytes):
         Logger.success('[World Packet]: respond with {}'.format(opcode.name))
 

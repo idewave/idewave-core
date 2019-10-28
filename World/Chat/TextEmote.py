@@ -7,7 +7,7 @@ class TextEmote(object):
         self.data = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    async def process(self) -> tuple:
 
         # response = pack(
         #     '<Q3IB',

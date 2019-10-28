@@ -30,7 +30,7 @@ class MovementHandler(object):
         self.jump_cos_angle = float(0)
         self.jump_x_y_speed = float(0)
 
-    async def process(self):
+    async def process(self) -> tuple:
         self._parse_packet()
 
         if self._is_movement_valid():

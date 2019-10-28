@@ -11,7 +11,7 @@ class AuthResponse(object):
         self.data: bytes = kwargs.pop('data')
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    async def process(self) -> tuple:
         response = pack(
             '<BIBIB',
             ResponseCodes.AUTH_OK.value,

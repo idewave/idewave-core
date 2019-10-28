@@ -109,4 +109,5 @@ class ObjectManager(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.session.close()
-        return True
+        # https://stackoverflow.com/a/58590249/5397119
+        return False

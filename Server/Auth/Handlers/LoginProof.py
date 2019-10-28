@@ -24,7 +24,7 @@ class LoginProof(object):
 
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    async def process(self) -> tuple:
         self._parse_data()
 
         self.connection.srp.generate_session_key(self.client_ephemeral, self.connection.account.verifier)
@@ -51,7 +51,7 @@ class LoginProof(object):
 
         return LoginOpCode.LOGIN_PROOF, [response]
 
-    @ProcessException
+    @ProcessException()
     def _parse_data(self):
         parsed_data = unpack(LoginProof.LOGIN_PROOF_FORMAT, self.data)
         self.client_ephemeral = int.from_bytes(parsed_data[0], 'little')

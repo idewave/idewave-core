@@ -10,7 +10,7 @@ class Exit(object):
         self.data = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    async def process(self) -> tuple:
         # TODO: correctly process disconnect
         with PlayerManager() as player_mgr:
             player_mgr.set(self.connection.player).save()

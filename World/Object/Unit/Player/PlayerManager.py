@@ -1,3 +1,5 @@
+import time
+
 from World.Object.Unit.UnitManager import UnitManager
 from World.Object.Unit.Player.model import Player
 from World.Object.Constants.UpdateObjectFields import PlayerField
@@ -11,8 +13,6 @@ from World.Object.Unit.Player.Inventory.Equipment.model import Equipment
 from World.Object.Unit.Builders.StatsBuilder import StatsBuilder
 from World.Character.Constants.CharacterDisplayId import CHARACTER_DISPLAY_ID
 from World.Region.model import DefaultLocation
-
-from Server.Connection.Connection import Connection
 
 from Utils.Debug.Logger import Logger
 
@@ -116,7 +116,7 @@ class PlayerManager(UnitManager):
     # def equip_item(self, slot: CharacterEquipSlot, item: Item):
     #     self.player.equipment.set_object_field(slot, item)
 
-    @ProcessException
+    @ProcessException()
     def set_default_equipment(self):
         self.session.expunge(self.player.region)
         self.session.expunge(self.player.account)
@@ -157,7 +157,7 @@ class PlayerManager(UnitManager):
         return self
 
     # overridable
-    @ProcessException
+    @ProcessException()
     def new(self, **kwargs):
         self.player.race = kwargs.pop('race', None)
         self.player.char_class = kwargs.pop('char_class', None)

@@ -14,7 +14,7 @@ class QueryHandler(object):
         self.data = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    async def process(self) -> tuple:
         if self.opcode == WorldOpCode.CMSG_NAME_QUERY:
             # we send this to show player info for another players; to allow chat
             guid = int.from_bytes(self.data[:8], 'little')

@@ -15,7 +15,7 @@ class CharacterEnum(object):
         self.connection: Connection = kwargs.pop('connection')
         self.num_chars = 0
 
-    async def process(self):
+    async def process(self) -> tuple:
         characters = self._get_characters()
         response = pack('<B', self.num_chars) + characters
         return WorldOpCode.SMSG_CHAR_ENUM, [response]

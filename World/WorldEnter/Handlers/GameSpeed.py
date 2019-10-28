@@ -14,7 +14,7 @@ class GameSpeed(object):
         self.data = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    async def process(self) -> tuple:
         response = pack(
             '<2f',
             GameSpeed._secs_to_time_bit_fields(),           # game time (secs) to bit

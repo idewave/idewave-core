@@ -16,7 +16,7 @@ class ZoneUpdate(object):
         self.data = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    async def process(self) -> tuple:
         # identifier = unpack('<I', self.data[-4:])[0]
         identifier = unpack('<I', self.data[:4])[0]
 

@@ -15,7 +15,7 @@ class Realmlist(object):
     def __init__(self, **kwargs):
         pass
 
-    async def process(self):
+    async def process(self) -> tuple:
         realm_packet = realm.get_state_packet(RealmFlags.NORMAL.value, RealmPopulation.LOW.value)
         realm_packet_as_bytes = b''.join([realm_packet])
 

@@ -40,7 +40,7 @@ class WorldServer(BaseServer):
         while True:
             await self._process_request(reader, writer, world_packet_mgr)
 
-    @ProcessException
+    @ProcessException()
     async def _process_request(self, reader: StreamReader, writer: StreamWriter, world_packet_mgr: WorldPacketManager):
         request = await asyncio.wait_for(reader.read(4096), timeout=0.01)
         if request:
@@ -71,7 +71,7 @@ class WorldServer(BaseServer):
             # asyncio.ensure_future(self.send_name_query_packet_to_player()),
         )
 
-    @ProcessException
+    @ProcessException()
     async def add_connection(self):
         while True:
             connection: Connection = await QueuesRegistry.connections_queue.get()
@@ -79,7 +79,7 @@ class WorldServer(BaseServer):
             Logger.info('[World Server]: added connection for player "{}"'.format(connection.player.name))
             await asyncio.sleep(0.01)
 
-    @ProcessException
+    @ProcessException()
     async def remove_connection(self):
         while True:
             player_name = await QueuesRegistry.disconnect_queue.get()
@@ -87,7 +87,7 @@ class WorldServer(BaseServer):
                 del self.connections[player_name]
                 Logger.info('[World Server]: player "{}" disconnected'.format(player_name))
 
-    @ProcessException
+    @ProcessException()
     async def add_session_keys(self):
         while True:
             key, value = await QueuesRegistry.session_keys_queue.get()

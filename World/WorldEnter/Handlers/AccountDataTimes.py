@@ -8,6 +8,6 @@ class AccountDataTimes(object):
         self.data = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    async def process(self) -> tuple:
         response = b'\x00' * 128
         return WorldOpCode.SMSG_ACCOUNT_DATA_TIMES, [response]

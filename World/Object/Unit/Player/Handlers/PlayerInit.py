@@ -11,7 +11,7 @@ class PlayerInit(object):
         self.data = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    async def process(self) -> tuple:
         self._load_player()
 
         await QueuesRegistry.connections_queue.put(self.connection)
@@ -19,7 +19,7 @@ class PlayerInit(object):
 
         return None, None
 
-    @ProcessException
+    @ProcessException()
     def _load_player(self) -> None:
         # size (first 2 bytes) - opcode (next 4 bytes) - guid (remaining bytes)
         guid = int.from_bytes(self.data, 'little')

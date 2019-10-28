@@ -6,7 +6,7 @@ from Exceptions.Wrappers.ProcessException import ProcessException
 class AccountNameParser(object):
 
     @staticmethod
-    @ProcessException
+    @ProcessException()
     def parse(buffer: BytesIO):
         result = bytes()
 

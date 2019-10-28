@@ -1,6 +1,4 @@
 import asyncio
-import traceback
-import functools
 
 from asyncio import QueueEmpty, QueueFull
 from concurrent.futures import TimeoutError
@@ -10,46 +8,49 @@ from Utils.Debug.Logger import Logger
 
 class ProcessException(object):
 
-    __slots__ = ('func',)
+    __slots__ = ('func', 'custom_handlers', 'exclude')
 
-    def __init__(self, func):
-        self.func = func
-
-    def __get__(self, instance, owner):
-        return functools.partial(self.__call__, instance)
+    def __init__(self, custom_handlers=None):
+        self.func = None
+        self.custom_handlers = custom_handlers
+        # TODO: this is temporary approach to avoid redundant output, should be removed
+        self.exclude = [QueueEmpty, QueueFull, TimeoutError]
 
     async def _process_coroutine_exc(self, *args, **kwargs):
         try:
             return await self.func(*args, **kwargs)
-        except TimeoutError:
-            pass
-        except BrokenPipeError:
-            pass
-        except QueueEmpty:
-            pass
-        except QueueFull:
-            pass
         except Exception as e:
-            Logger.error('[{}]: {}'.format([*args], e))
-            traceback.print_exc()
-            pass
+            if self.custom_handlers and e.__class__ in self.custom_handlers:
+                return self.custom_handlers[e.__class__]()
+
+            if e.__class__ not in self.exclude:
+                Logger.error(e.__class__)
+                # traceback.print_exc()
+                raise e
 
     def _process_exc(self, *args, **kwargs):
         try:
             return self.func(*args, **kwargs)
-        except KeyError:
-            pass
-        except KeyboardInterrupt:
-            pass
-        except ValueError:
-            pass
         except Exception as e:
-            Logger.error('[{}]: {}'.format(self.func, e))
-            traceback.print_exc()
-            pass
+            if self.custom_handlers and e.__class__ in self.custom_handlers:
+                return self.custom_handlers[e.__class__]()
 
-    def __call__(self, *args, **kwargs):
-        if asyncio.iscoroutinefunction(self.func):
-            return self._process_coroutine_exc(*args, **kwargs)
-        else:
-            return self._process_exc(*args, **kwargs)
+            if e.__class__ not in self.exclude:
+                Logger.critical(e.__class__)
+                # traceback.print_exc()
+                raise e
+
+    def __call__(self, func):
+        self.func = func
+
+        def wrapper(*args, **kwargs):
+            if self.custom_handlers:
+                if isinstance(self.custom_handlers, property):
+                    self.custom_handlers = self.custom_handlers.__get__(self, self.__class__)
+
+            if asyncio.iscoroutinefunction(self.func):
+                return self._process_coroutine_exc(*args, **kwargs)
+            else:
+                return self._process_exc(*args, **kwargs)
+
+        return wrapper

@@ -12,7 +12,7 @@ class MOTD(object):
         self.data = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    async def process(self) -> tuple:
         motd_msg = Config.Realm.General.motd
         motd_msg_bytes = motd_msg.encode('utf-8') + b'\x00'
 

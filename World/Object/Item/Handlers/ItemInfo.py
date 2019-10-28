@@ -8,5 +8,5 @@ class ItemInfo(object):
         self.data = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
-    async def process(self):
+    async def process(self) -> tuple:
         return WorldOpCode.SMSG_ITEM_QUERY_SINGLE_RESPONSE, [None]

@@ -34,8 +34,8 @@ class LoginChallenge(object):
 
         self.connection = kwargs.pop('connection')
 
-    @ProcessException
-    async def process(self):
+    @ProcessException()
+    async def process(self) -> tuple:
         self._parse_data()
 
         with AccountManager() as account_mgr:
@@ -56,7 +56,7 @@ class LoginChallenge(object):
 
             return self._get_response()
 
-    @ProcessException
+    @ProcessException()
     def _parse_data(self):
         def _decode_cstring(cstring, encoding='ascii'):
             if type(cstring) is bytes:
@@ -82,7 +82,7 @@ class LoginChallenge(object):
         self.account_name_size, account_name = parsed_data[19:]
         self.account_name = account_name.decode('ascii')
 
-    @ProcessException
+    @ProcessException()
     def _get_response(self):
         self.connection.srp.generate_server_ephemeral(self.connection.account.verifier)
 
