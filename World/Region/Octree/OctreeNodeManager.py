@@ -31,3 +31,7 @@ class OctreeNodeManager(object):
         return (node.x0 <= obj.x <= node.x1 and
                 node.y0 <= obj.y <= node.y1 and
                 node.z0 <= obj.z <= node.z1)
+
+    @staticmethod
+    def get_nodes_by_range(root_node: OctreeNode, center, radius):
+        pass

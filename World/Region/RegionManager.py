@@ -1,9 +1,8 @@
 import asyncio
 import time
-import sys
 
 from struct import pack
-from typing import List, Union, FrozenSet
+from typing import List, Union
 
 from World.Region.model import Region, DefaultLocation
 from World.Region.Octree.OctreeManager import OctreeManager
@@ -25,6 +24,7 @@ from DB.Connection.WorldConnection import WorldConnection
 from Server.Registry.QueuesRegistry import QueuesRegistry
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
+from World.WorldPacket.Constants.BroadcastType import BroadcastType
 
 from Utils.Debug.Logger import Logger
 
@@ -454,18 +454,6 @@ class RegionManager(object):
         return nearest_players
 
     @staticmethod
-    def broadcast_to_octree_node():
-        pass
-
-    @staticmethod
-    def broadcast_to_region():
-        pass
-
-    @staticmethod
-    def broadcast_to_world():
-        pass
-
-    @staticmethod
     def _notify_nearest_players(player: Player, targets: List[Player] = None, **kwargs):
 
         opcode, packet = kwargs.pop('movement_packet', (None, None))
@@ -577,6 +565,11 @@ class RegionManager(object):
     #
     #             del units
 
+    @staticmethod
+    def get_players_for_broadcast(player: Player, broadcast_type: BroadcastType):
+        if broadcast_type == BroadcastType.SAY_RANGE:
+            chat_range = Config.World.Chat.ChatRange
+            pass
 
     @staticmethod
     def _is_target_visible(unit: Unit, target: Unit):
@@ -593,4 +586,4 @@ class RegionManager(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.session.close()
-        return True
+        return False

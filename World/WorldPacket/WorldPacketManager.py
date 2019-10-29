@@ -1,5 +1,3 @@
-import time
-
 from struct import pack
 from typing import Union
 
@@ -26,9 +24,9 @@ class WorldPacketManager(object):
         data_bytes: bytes = kwargs.pop('data')
 
         if self.connection.header_crypt:
-            packet = self._decrypt(size_bytes + opcode_bytes + data_bytes)
-            opcode_bytes = packet[2:6]
-            data_bytes = packet[6:]
+            decrypted_packet = self._decrypt(size_bytes + opcode_bytes + data_bytes)
+            opcode_bytes = decrypted_packet[2:6]
+            data_bytes = decrypted_packet[6:]
 
         opcode = WorldPacketManager._get_opcode_from_bytes(opcode_bytes)
         if opcode is None:
@@ -40,10 +38,14 @@ class WorldPacketManager(object):
             packets = []
 
             for handler in handlers:
-                opcode, response = await self._process_handler(handler, opcode, data_bytes)
+                opcode, response, broadcast_type = await self._process_handler(handler, opcode, data_bytes)
                 if opcode and response:
                     for data in response:
-                        packets.append(self.generate_packet(opcode, data))
+                        packet = self.generate_packet(opcode, data)
+                        packets.append(packet)
+
+                        if bool(broadcast_type):
+                            pass
 
             return packets
         else:
@@ -52,8 +54,13 @@ class WorldPacketManager(object):
 
     @ProcessException()
     async def _process_handler(self, handler, opcode: Union[LoginOpCode, WorldOpCode], data: bytes):
-        opcode, response = await handler(opcode=opcode, data=data, connection=self.connection).process()
-        return opcode, response
+        opcode, response, *broadcast_type = await handler(
+            opcode=opcode,
+            data=data,
+            connection=self.connection
+        ).process()
+
+        return opcode, response, broadcast_type
 
     @staticmethod
     def _get_opcode_from_bytes(opcode_bytes: bytes) -> Union[LoginOpCode, WorldOpCode, None]:

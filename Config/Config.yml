@@ -12,7 +12,7 @@ Database:
 
 WebsocketServer:
   Connection:
-    # if located on vps or any another external server, you should set external ip of that server
+    # if located on vps or any another external server, you should set external ip instead of localhost
     host: 127.0.0.1
     port: 9001
 
@@ -28,7 +28,7 @@ Realm:
       port: 3724
 
     WorldServer:
-      # if located on vps or any another external server, you should set external ip of that server
+      # if located on vps or any another external server, you should set external ip instead of localhost
       host: 127.0.0.1
       port: 8085
       realm_name: Idewave-core
@@ -43,6 +43,11 @@ World:
     # -1 for infinite distance, 0 for disable spawn, more than 0 for any distance
     # be carefully when edit this option cause the smaller it is the more memory usage by octrees
     update_dist: 200
+
+  Chat:
+    ChatRange:
+      say_range: 25
+      yell_range: 300
 
   Object:
     Defaults:
