@@ -1,4 +1,4 @@
-import asyncio
+from inspect import iscoroutinefunction
 
 from asyncio import QueueEmpty, QueueFull
 from concurrent.futures import TimeoutError
@@ -6,24 +6,33 @@ from concurrent.futures import TimeoutError
 
 class ProcessException(object):
 
-    __slots__ = ('func', 'custom_handlers', 'exclude')
+    __slots__ = ('func', 'exclude', 'handlers')
 
     def __init__(self, custom_handlers=None):
         self.func = None
-        self.custom_handlers = custom_handlers
-        self.exclude = [QueueEmpty, QueueFull, TimeoutError]
 
-    def __call__(self, func, *a):
+        if isinstance(custom_handlers, property):
+            custom_handlers = custom_handlers.__get__(self, self.__class__)
+
+        exclude = {
+            QueueEmpty: lambda: None,
+            QueueFull: lambda: None,
+            TimeoutError: lambda: None
+        }
+
+        self.handlers = {
+            **exclude,
+            **(custom_handlers or {})
+        }
+
+    def __call__(self, func):
         self.func = func
 
-        def wrapper(*args, **kwargs):
-            if self.custom_handlers:
-                if isinstance(self.custom_handlers, property):
-                    self.custom_handlers = self.custom_handlers.__get__(self, self.__class__)
-
-            if asyncio.iscoroutinefunction(self.func):
+        if iscoroutinefunction(self.func):
+            def wrapper(*args, **kwargs):
                 return self._coroutine_exception_handler(*args, **kwargs)
-            else:
+        else:
+            def wrapper(*args, **kwargs):
                 return self._sync_exception_handler(*args, **kwargs)
 
         return wrapper
@@ -32,18 +41,16 @@ class ProcessException(object):
         try:
             return await self.func(*args, **kwargs)
         except Exception as e:
-            if self.custom_handlers and e.__class__ in self.custom_handlers:
-                return self.custom_handlers[e.__class__]()
+            if e.__class__ in self.handlers:
+                return self.handlers[e.__class__]()
 
-            if e.__class__ not in self.exclude:
-                raise e
+            raise e
 
     def _sync_exception_handler(self, *args, **kwargs):
         try:
             return self.func(*args, **kwargs)
         except Exception as e:
-            if self.custom_handlers and e.__class__ in self.custom_handlers:
-                return self.custom_handlers[e.__class__]()
+            if e.__class__ in self.handlers:
+                return self.handlers[e.__class__]()
 
-            if e.__class__ not in self.exclude:
-                raise e
+            raise e
