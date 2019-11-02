@@ -14,15 +14,19 @@ class ProcessException(object):
         if isinstance(custom_handlers, property):
             custom_handlers = custom_handlers.__get__(self, self.__class__)
 
+        def raise_exception(e: Exception):
+            raise e
+
         exclude = {
-            QueueEmpty: lambda: None,
-            QueueFull: lambda: None,
-            TimeoutError: lambda: None
+            QueueEmpty: lambda e: None,
+            QueueFull: lambda e: None,
+            TimeoutError: lambda e: None
         }
 
         self.handlers = {
             **exclude,
-            **(custom_handlers or {})
+            **(custom_handlers or {}),
+            Exception: raise_exception
         }
 
     def __call__(self, func):
@@ -41,16 +45,10 @@ class ProcessException(object):
         try:
             return await self.func(*args, **kwargs)
         except Exception as e:
-            if e.__class__ in self.handlers:
-                return self.handlers[e.__class__]()
-
-            raise e
+            return self.handlers.get(e.__class__, Exception)(e)
 
     def _sync_exception_handler(self, *args, **kwargs):
         try:
             return self.func(*args, **kwargs)
         except Exception as e:
-            if e.__class__ in self.handlers:
-                return self.handlers[e.__class__]()
-
-            raise e
+            return self.handlers.get(e.__class__, Exception)(e)
