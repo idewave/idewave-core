@@ -6,7 +6,7 @@ from concurrent.futures import TimeoutError
 
 class ProcessException(object):
 
-    __slots__ = ('func', 'exclude', 'handlers')
+    __slots__ = ('func', 'handlers')
 
     def __init__(self, custom_handlers=None):
         self.func = None
