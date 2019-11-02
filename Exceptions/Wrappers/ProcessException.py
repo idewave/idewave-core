@@ -33,22 +33,16 @@ class ProcessException(object):
         self.func = func
 
         if iscoroutinefunction(self.func):
-            def wrapper(*args, **kwargs):
-                return self._coroutine_exception_handler(*args, **kwargs)
+            async def wrapper(*args, **kwargs):
+                try:
+                    return await self.func(*args, **kwargs)
+                except Exception as e:
+                    return self.handlers.get(e.__class__, self.handlers[Exception])(e)
         else:
             def wrapper(*args, **kwargs):
-                return self._sync_exception_handler(*args, **kwargs)
+                try:
+                    return self.func(*args, **kwargs)
+                except Exception as e:
+                    return self.handlers.get(e.__class__, self.handlers[Exception])(e)
 
         return wrapper
-
-    async def _coroutine_exception_handler(self, *args, **kwargs):
-        try:
-            return await self.func(*args, **kwargs)
-        except Exception as e:
-            return self.handlers.get(e.__class__, Exception)(e)
-
-    def _sync_exception_handler(self, *args, **kwargs):
-        try:
-            return self.func(*args, **kwargs)
-        except Exception as e:
-            return self.handlers.get(e.__class__, Exception)(e)
