@@ -6,11 +6,9 @@ from concurrent.futures import TimeoutError
 
 class ProcessException(object):
 
-    __slots__ = ('func', 'handlers')
+    __slots__ = ('handlers',)
 
     def __init__(self, custom_handlers=None):
-        self.func = None
-
         if isinstance(custom_handlers, property):
             custom_handlers = custom_handlers.__get__(self, self.__class__)
 
@@ -30,18 +28,16 @@ class ProcessException(object):
         }
 
     def __call__(self, func):
-        self.func = func
-
-        if iscoroutinefunction(self.func):
+        if iscoroutinefunction(func):
             async def wrapper(*args, **kwargs):
                 try:
-                    return await self.func(*args, **kwargs)
+                    return await func(*args, **kwargs)
                 except Exception as e:
                     return self.handlers.get(e.__class__, self.handlers[Exception])(e)
         else:
             def wrapper(*args, **kwargs):
                 try:
-                    return self.func(*args, **kwargs)
+                    return func(*args, **kwargs)
                 except Exception as e:
                     return self.handlers.get(e.__class__, self.handlers[Exception])(e)
 
