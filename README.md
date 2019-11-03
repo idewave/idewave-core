@@ -39,19 +39,15 @@ Finally, you can run the server, just call from the root of project:
 
 **NOTICE: If you run the core on machine with different IP** be sure to replace '127.0.0.1' with destination IP for WorldServer in config !
 
-## How it works ?
-OK, I promise, I will add the detailed documentation in nearest future. But, in short:
-
-- Currently there are three servers: LoginServer, WorldServer and WebServer + WorldManager.
-- Each of them communicates with others by queues or redis.
-- There are exists three type of managers: EntityManager, StateManager, EventManager. In future I want to make this
-differentiation more strictly and clearly.
-- There are no global ObjectManager, on the contrary for each object exists separate manager. Thus, EntityManagers are:
-ObjectManager, UnitManager, PlayerManager, ItemManager, RegionManager etc
-- EventManager just gets request and returns response. The example of such manager: WorldPacketManager.
-- StateManager not works with specific object, it affects all objects. Such manager is WorldManager.
-- WebServer allows to get real-time data from server and pass it to any websocket client. This data can be: 
-players/units/objects positions (movement), statistics (for example, ore spawn) and so on.
+## Already implemented
+1. Login to the Server without extra checkings like incorrect password or account not exists and so on.
+2. Create/Delete character
+3. Enter the World
+4. Show default equipment
+5. Show another players
+6. Broadcast movement
+7. Broadcast chat (SAY and YELL)
+8. Show MOTD (Message of the day)
 
 
 ## Known issues
