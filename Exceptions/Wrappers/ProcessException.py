@@ -12,8 +12,7 @@ class ProcessException(object):
         if isinstance(custom_handlers, property):
             custom_handlers = custom_handlers.__get__(self, self.__class__)
 
-        def raise_exception(e: Exception):
-            raise e
+        raise_exception = ProcessException.raise_exception
 
         exclude = {
             QueueEmpty: lambda e: None,
@@ -44,3 +43,7 @@ class ProcessException(object):
                     return handlers.get(e.__class__, handlers[Exception])(e)
 
         return wrapper
+
+    @staticmethod
+    def raise_exception(e: Exception):
+        raise e
