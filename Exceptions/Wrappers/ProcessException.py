@@ -28,17 +28,19 @@ class ProcessException(object):
         }
 
     def __call__(self, func):
+        handlers = self.handlers
+
         if iscoroutinefunction(func):
             async def wrapper(*args, **kwargs):
                 try:
                     return await func(*args, **kwargs)
                 except Exception as e:
-                    return self.handlers.get(e.__class__, self.handlers[Exception])(e)
+                    return handlers.get(e.__class__, handlers[Exception])(e)
         else:
             def wrapper(*args, **kwargs):
                 try:
                     return func(*args, **kwargs)
                 except Exception as e:
-                    return self.handlers.get(e.__class__, self.handlers[Exception])(e)
+                    return handlers.get(e.__class__, handlers[Exception])(e)
 
         return wrapper
