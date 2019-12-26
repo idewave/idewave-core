@@ -21,13 +21,11 @@ class Object(BaseModel):
     }
 
     def __init__(self):
-        # self._tracked_guids = set()
         self._current_node: Union[OctreeNode, None] = None
 
     # this uses on session.query() etc
     @orm.reconstructor
     def init_on_load(self):
-        # self._tracked_guids = set()
         self._current_node: Union[OctreeNode, None] = None
 
     @hybrid_method
@@ -82,12 +80,3 @@ class Object(BaseModel):
             guid >>= 8
 
         return bytes(pack_guid[:size])
-
-    # @hybrid_property
-    # def tracked_guids(self):
-    #     # objects in 'update_dist' radius, see Config.yml
-    #     return self._tracked_guids
-    #
-    # @tracked_guids.setter
-    # def tracked_guids(self, guids: List[int]):
-    #     self._tracked_guids = guids

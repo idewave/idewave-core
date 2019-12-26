@@ -1,8 +1,7 @@
-import asyncio
-import time
-
-from asyncio.streams import StreamReader, StreamWriter
+from typing import List, AnyStr
 from os import urandom
+from asyncio.streams import StreamReader, StreamWriter
+from asyncio import TimeoutError, ensure_future, wait_for, sleep, gather
 
 from Server.BaseServer import BaseServer
 from Utils.Debug.Logger import Logger
@@ -11,9 +10,9 @@ from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldPacket.WorldPacketManager import WorldPacketManager
 from Server.Connection.Connection import Connection
 
-from Exceptions.Wrappers.ProcessException import ProcessException
-
 from Config.Run.config import Config
+
+from Server.Constants.ServerContants import MIN_TIMEOUT
 
 
 class WorldServer(BaseServer):
@@ -32,23 +31,37 @@ class WorldServer(BaseServer):
         world_packet_mgr = WorldPacketManager(connection=connection)
 
         # send auth challenge
-        auth_seed = urandom(4)
-        writer.write(world_packet_mgr.generate_packet(WorldOpCode.SMSG_AUTH_CHALLENGE, auth_seed))
+        auth_seed: bytes = urandom(4)
+        writer.write(
+            world_packet_mgr.generate_packet(
+                WorldOpCode.SMSG_AUTH_CHALLENGE,
+                auth_seed
+            )
+        )
 
         connection.auth_seed = auth_seed
 
         while True:
-            await self._process_request(reader, writer, world_packet_mgr)
+            try:
+                await WorldServer.process_request(reader, writer, world_packet_mgr)
+            except TimeoutError:
+                continue
+            finally:
+                await sleep(MIN_TIMEOUT)
 
-    @ProcessException()
-    async def _process_request(self, reader: StreamReader, writer: StreamWriter, world_packet_mgr: WorldPacketManager):
-        request = await asyncio.wait_for(reader.read(4096), timeout=0.01)
+    @staticmethod
+    async def process_request(reader: StreamReader, writer: StreamWriter, world_packet_mgr: WorldPacketManager):
+        request: bytes = await wait_for(reader.read(4096), timeout=MIN_TIMEOUT)
         if request:
             size, opcode, data = request[:2], request[2:6], request[6:]
 
-            response = await asyncio.wait_for(
-                world_packet_mgr.process(size=size, opcode=opcode, data=data),
-                timeout=0.01
+            response: List[bytes] = await wait_for(
+                world_packet_mgr.process(
+                    size=size,
+                    opcode=opcode,
+                    data=data
+                ),
+                timeout=MIN_TIMEOUT
             )
 
             if response:
@@ -56,50 +69,67 @@ class WorldServer(BaseServer):
                     writer.write(packet)
                     await writer.drain()
 
-        await asyncio.sleep(0.01)
-
     def _register_tasks(self):
-        asyncio.gather(
-            asyncio.ensure_future(self.add_connection()),
-            asyncio.ensure_future(self.remove_connection()),
-            asyncio.ensure_future(self.add_session_keys()),
-            # asyncio.ensure_future(self.send_dynamic_packets()),
-            #
-            # asyncio.ensure_future(self.send_update_packet_to_player()),
-            # asyncio.ensure_future(self.send_movement_packet_to_player()),
-            # asyncio.ensure_future(self.send_text_message_packet_to_player()),
-            # asyncio.ensure_future(self.send_name_query_packet_to_player()),
+        gather(
+            ensure_future(self.add_connection()),
+            ensure_future(self.remove_connection()),
+            ensure_future(self.add_session_keys()),
+            ensure_future(self.broadcast_packets()),
         )
 
-    @ProcessException()
     async def add_connection(self):
         while True:
             connection: Connection = await QueuesRegistry.connections_queue.get()
             self.connections[connection.player.name] = connection
             Logger.info('[World Server]: added connection for player "{}"'.format(connection.player.name))
-            await asyncio.sleep(0.01)
+            await sleep(MIN_TIMEOUT)
 
-    @ProcessException()
     async def remove_connection(self):
         while True:
-            player_name = await QueuesRegistry.disconnect_queue.get()
+            player_name: AnyStr = await QueuesRegistry.disconnect_queue.get()
             if self.connections.get(player_name):
                 del self.connections[player_name]
                 Logger.info('[World Server]: player "{}" disconnected'.format(player_name))
 
-    @ProcessException()
     async def add_session_keys(self):
         while True:
             key, value = await QueuesRegistry.session_keys_queue.get()
             self.session_keys[key] = value
-            await asyncio.sleep(0.01)
+            await sleep(MIN_TIMEOUT)
+
+    async def broadcast_packets(self):
+        while True:
+            try:
+                player_name, opcode, data = await wait_for(
+                    QueuesRegistry.packets_queue.get(),
+                    timeout=MIN_TIMEOUT
+                )
+                Logger.notify(f"[WorldServer]: {player_name} -> {opcode}, {data}")
+            except TimeoutError:
+                pass
+            else:
+                connection: Connection = self.connections.get(player_name, None)
+                if connection:
+                    writer: StreamWriter = connection.writer
+
+                    response: bytes = WorldPacketManager(
+                        connection=connection
+                    ).generate_packet(
+                        opcode=opcode,
+                        data=data,
+                    )
+
+                    writer.write(response)
+                    await writer.drain()
+            finally:
+                await sleep(MIN_TIMEOUT)
 
     # async def send_dynamic_packets(self):
     #     while True:
     #         try:
     #             player_name, packets, opcode = await asyncio.wait_for(
     #                 QueuesRegistry.dynamic_packets_queue.get(),
-    #                 timeout=0.01
+    #                 timeout=MIN_DELAY
     #             )
     #         except TimeoutError:
     #             pass
@@ -131,14 +161,14 @@ class WorldServer(BaseServer):
     #                 except ConnectionResetError:
     #                     del self.connections[player_name]
     #         finally:
-    #             await asyncio.sleep(0.01)
+    #             await asyncio.sleep(MIN_DELAY)
 
     # async def send_update_packet_to_player(self):
     #     while True:
     #         try:
     #             player_name, update_packets = await asyncio.wait_for(
     #                 QueuesRegistry.update_packets_queue.get(),
-    #                 timeout=0.01
+    #                 timeout=MIN_DELAY
     #             )
     #         except TimeoutError:
     #             pass
@@ -167,14 +197,14 @@ class WorldServer(BaseServer):
     #                 except ConnectionResetError:
     #                     del self.connections[player_name]
     #         finally:
-    #             await asyncio.sleep(0.01)
+    #             await asyncio.sleep(MIN_DELAY)
     #
     # async def send_movement_packet_to_player(self):
     #     while True:
     #         try:
     #             player_name, movement_packet, opcode = await asyncio.wait_for(
     #                 QueuesRegistry.movement_packets_queue.get(),
-    #                 timeout=0.01
+    #                 timeout=MIN_DELAY
     #             )
     #             # player_name, movement_packet, opcode = QueuesRegistry.movement_packets_queue.get_nowait()
     #         # except asyncio.QueueEmpty:
@@ -204,14 +234,14 @@ class WorldServer(BaseServer):
     #                 except ConnectionResetError:
     #                     del self.connections[player_name]
     #         finally:
-    #             await asyncio.sleep(0.01)
+    #             await asyncio.sleep(MIN_DELAY)
     #
     # async def send_text_message_packet_to_player(self):
     #     while True:
     #         try:
     #             player_name, text_message_packet = await asyncio.wait_for(
     #                 QueuesRegistry.text_message_packets_queue.get(),
-    #                 timeout=0.01
+    #                 timeout=MIN_DELAY
     #             )
     #         # except asyncio.QueueEmpty:
     #         #     pass
@@ -240,14 +270,14 @@ class WorldServer(BaseServer):
     #                 except ConnectionResetError:
     #                     del self.connections[player_name]
     #         finally:
-    #             await asyncio.sleep(0.01)
+    #             await asyncio.sleep(MIN_DELAY)
     #
     # async def send_name_query_packet_to_player(self):
     #     while True:
     #         try:
     #             player_name, name_query_packet = await asyncio.wait_for(
     #                 QueuesRegistry.name_query_packets_queue.get(),
-    #                 timeout=0.01
+    #                 timeout=MIN_DELAY
     #             )
     #         # except asyncio.QueueEmpty:
     #         #     pass
@@ -276,7 +306,7 @@ class WorldServer(BaseServer):
     #                 except ConnectionResetError:
     #                     del self.connections[player_name]
     #         finally:
-    #             await asyncio.sleep(0.01)
+    #             await asyncio.sleep(MIN_DELAY)
 
     @staticmethod
     def create():

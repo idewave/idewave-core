@@ -1,9 +1,16 @@
-import io
-
+from io import BytesIO
+from asyncio import ensure_future
 from struct import unpack
+from typing import List, Dict
 
+from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Unit.Movement.Constants.MovementFlags import MovementFlags
 from World.Object.Position import Position
+from World.Object.Unit.Player.model import Player
+from World.Object.Unit.Player.PlayerManager import PlayerManager
+from World.Region.model import Region
+from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
+from World.Region.Octree.OctreeNode import OctreeNode
 from Server.Registry.QueuesRegistry import QueuesRegistry
 
 from Server.Connection.Connection import Connection
@@ -12,8 +19,8 @@ from Server.Connection.Connection import Connection
 class MovementHandler(object):
 
     def __init__(self, **kwargs):
-        self.opcode = kwargs.pop('opcode')
-        self.data = kwargs.pop('data', bytes())
+        self.opcode: WorldOpCode = kwargs.pop('opcode')
+        self.data: bytes = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
         self.movement_flags = MovementFlags.NONE.value
@@ -37,15 +44,56 @@ class MovementHandler(object):
             player = self.connection.player
             player.position = self.position
 
-            await QueuesRegistry.movement_queue.put((player, self.opcode, self.data))
+            # await QueuesRegistry.movement_queue.put((player, self.opcode, self.data))
+            # self._broadcast(self.opcode, self.data)
+            ensure_future(QueuesRegistry.broadcast_callback_queue.put((
+                self.opcode,
+                [self.data],
+                self._broadcast,
+            )))
 
         return None, None
+
+    def _broadcast(
+            self,
+            opcode: WorldOpCode,
+            packets: List[bytes],
+            regions: Dict[int, Region]
+    ):
+        player: Player = self.connection.player
+        current_region: Region = regions.get(player.region.id)
+        if current_region is None:
+            return None
+
+        root_node: OctreeNode = current_region.get_octree()
+        OctreeNodeManager.set_object(root_node, player)
+
+        current_node: OctreeNode = player.get_current_node()
+        # we get parent of parent because some of nearest nodes can lay in the another parent
+        node_to_notify: OctreeNode = current_node.parent_node.parent_node
+        guids = OctreeNodeManager.get_guids(node_to_notify)
+        guids = [guid for guid in guids if not guid == player.guid]
+
+        if not guids:
+            return None
+
+        targets_to_notify: List[Player] = [
+            player
+            for player in current_region.players
+            if player.guid in guids
+        ]
+
+        if not targets_to_notify:
+            return None
+
+        for packet in packets:
+            PlayerManager.broadcast(opcode, packet, targets_to_notify)
 
     def _is_movement_valid(self):
         return True
 
     def _parse_packet(self):
-        buf = io.BytesIO(self.data)
+        buf = BytesIO(self.data)
 
         self.movement_flags = MovementHandler._set_movement_flags(buf.read(4))
         self.movement_flags2 = int.from_bytes(buf.read(1), 'little')

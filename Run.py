@@ -29,7 +29,7 @@ if __name__ == '__main__':
     #     for region in region_manager.regions
     # ]
 
-    # world_manager = WorldManager()
+    world_manager = WorldManager()
 
     # QueuesRegistry.web_data_queue = MultiProcessQueue.get_instance()
 
@@ -40,18 +40,7 @@ if __name__ == '__main__':
     QueuesRegistry.disconnect_queue = asyncio.Queue()
 
     QueuesRegistry.packets_queue = asyncio.Queue()
-
-    # TODO: remove redundant queues
-    # QueuesRegistry.update_packets_queue = asyncio.Queue()
-    #
-    # QueuesRegistry.movement_queue = asyncio.Queue()
-    # QueuesRegistry.movement_packets_queue = asyncio.Queue()
-    #
-    # QueuesRegistry.text_message_queue = asyncio.Queue()
-    # QueuesRegistry.text_message_packets_queue = asyncio.Queue()
-    #
-    # QueuesRegistry.name_query_queue = asyncio.Queue()
-    # QueuesRegistry.name_query_packets_queue = asyncio.Queue()
+    QueuesRegistry.broadcast_callback_queue = asyncio.Queue()
 
     try:
         loop.run_until_complete(
@@ -59,7 +48,7 @@ if __name__ == '__main__':
                 login_server.get_instance(),
                 world_server.get_instance(),
                 # websocket_server.get_instance(),
-                # asyncio.ensure_future(world_manager.run())
+                asyncio.ensure_future(world_manager.run())
             )
         )
     except Exception as e:

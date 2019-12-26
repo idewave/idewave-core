@@ -1,24 +1,30 @@
-import time
+from asyncio import ensure_future
+from typing import List
 
+from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Unit.UnitManager import UnitManager
 from World.Object.Unit.Player.model import Player
 from World.Object.Constants.UpdateObjectFields import PlayerField
-from World.Character.Constants.CharacterRace import CharacterRace
-from World.Character.Constants.CharacterGender import CharacterGender
-from World.Character.Constants.CharacterEquipSlot import CharacterEquipSlot
 from World.Object.Unit.Player.Inventory.Equipment.EquipmentManager import EquipmentManager
 from World.Object.Unit.Player.Skill.SkillManager import SkillManager
 from World.Object.Unit.Spell.SpellManager import SpellManager
 from World.Object.Unit.Player.Inventory.Equipment.model import Equipment
 from World.Object.Unit.Builders.StatsBuilder import StatsBuilder
+from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
+from World.Object.Unit.Player.Constants.PlayerSpawnFields import PLAYER_SPAWN_FIELDS
+from World.Character.Constants.CharacterRace import CharacterRace
+from World.Character.Constants.CharacterGender import CharacterGender
+from World.Character.Constants.CharacterEquipSlot import CharacterEquipSlot
 from World.Character.Constants.CharacterDisplayId import CHARACTER_DISPLAY_ID
 from World.Region.model import DefaultLocation
 
+from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
+
 from Utils.Debug.Logger import Logger
 
-from Config.Run.config import Config
+from Server.Registry.QueuesRegistry import QueuesRegistry
 
-from Exceptions.Wrappers.ProcessException import ProcessException
+from Config.Run.config import Config
 
 
 class PlayerManager(UnitManager):
@@ -116,7 +122,6 @@ class PlayerManager(UnitManager):
     # def equip_item(self, slot: CharacterEquipSlot, item: Item):
     #     self.player.equipment.set_object_field(slot, item)
 
-    @ProcessException()
     def set_default_equipment(self):
         self.session.expunge(self.player.region)
         self.session.expunge(self.player.account)
@@ -157,7 +162,6 @@ class PlayerManager(UnitManager):
         return self
 
     # overridable
-    @ProcessException()
     def new(self, **kwargs):
         self.player.race = kwargs.pop('race', None)
         self.player.char_class = kwargs.pop('char_class', None)
@@ -200,3 +204,49 @@ class PlayerManager(UnitManager):
             self.equipment = equipment_mgr.get_equipment(player=self.player).get_items()
             self.add_player_fields()
             return self
+
+    @staticmethod
+    def send_packet_to_player(player: Player, opcode: WorldOpCode, data: bytes):
+        ensure_future(QueuesRegistry.packets_queue.put((player.name, opcode, data)))
+
+    @staticmethod
+    def broadcast(opcode: WorldOpCode, data: bytes, targets: List[Player]) -> None:
+        for player in targets:
+            Logger.warning(f"[PlayerMgr]: broadcast -> {player.guid}")
+            ensure_future(QueuesRegistry.packets_queue.put((player.name, opcode, data)))
+
+        # update_flags = (
+        #         UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
+        #         UpdateObjectFlags.UPDATEFLAG_LIVING.value |
+        #         UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
+        # )
+        #
+        # targets = targets.copy()
+        #
+        # object_update_type = kwargs.pop('object_update_type', ObjectUpdateType.CREATE_OBJECT2)
+        #
+        # with PlayerManager() as head_player_mgr:
+        #     head_player_mgr.init_update_packet_builder(
+        #         object_update_type=object_update_type,
+        #         update_flags=update_flags,
+        #         update_object=targets.pop(0)
+        #     )
+        #
+        #     batch = head_player_mgr.create_batch(PLAYER_SPAWN_FIELDS)
+        #     head_player_mgr.add_batch(batch)
+        #
+        #     if targets:
+        #         for target in targets:
+        #             with PlayerManager() as player_mgr:
+        #                 player_mgr.init_update_packet_builder(
+        #                     object_update_type=ObjectUpdateType.CREATE_OBJECT2,
+        #                     update_flags=update_flags,
+        #                     update_object=target
+        #                 )
+        #
+        #                 batch = player_mgr.create_batch(PLAYER_SPAWN_FIELDS)
+        #                 head_player_mgr.add_batch(batch)
+        #
+        #     update_packets = head_player_mgr.build_update_packet().get_update_packets()
+        #
+        #     ensure_future(QueuesRegistry.packets_queue.put((player.name, update_packets)))

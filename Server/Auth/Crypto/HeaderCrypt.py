@@ -2,8 +2,6 @@ import hmac
 
 from hashlib import sha1
 
-from Exceptions.Wrappers.ProcessException import ProcessException
-
 
 class HeaderCrypt(object):
 
@@ -19,7 +17,6 @@ class HeaderCrypt(object):
         self.recv_i = 0
         self.recv_j = 0
 
-    @ProcessException()
     def encrypt(self, data: bytes):
         assert len(data) >= self.ENCRYPT_HEADER_SIZE
         encrypted_header = [0] * self.ENCRYPT_HEADER_SIZE
@@ -33,7 +30,6 @@ class HeaderCrypt(object):
 
         return bytes(encrypted_header) + data[self.ENCRYPT_HEADER_SIZE:]
 
-    @ProcessException()
     def decrypt(self, data: bytes):
         assert len(data) >= self.DECRYPT_HEADER_SIZE
         decrypted_header = [0] * self.DECRYPT_HEADER_SIZE

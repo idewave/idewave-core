@@ -26,4 +26,4 @@ class OctreeNode(object):
         self.parent_node: Union[OctreeNode, None] = kwargs.pop('parent_node', None)
         self.child_nodes: Union[List, None] = None
 
-        self.guids: Union[List, None] = None
+        self.guids: Union[List[int], None] = None

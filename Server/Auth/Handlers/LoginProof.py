@@ -7,8 +7,6 @@ from Server.Registry.QueuesRegistry import QueuesRegistry
 
 from Server.Connection.Connection import Connection
 
-from Exceptions.Wrappers.ProcessException import ProcessException
-
 
 class LoginProof(object):
 
@@ -51,7 +49,6 @@ class LoginProof(object):
 
         return LoginOpCode.LOGIN_PROOF, [response]
 
-    @ProcessException()
     def _parse_data(self):
         parsed_data = unpack(LoginProof.LOGIN_PROOF_FORMAT, self.data)
         self.client_ephemeral = int.from_bytes(parsed_data[0], 'little')

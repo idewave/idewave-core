@@ -1,8 +1,8 @@
 import asyncio
-import time
 
+from time import time
 from struct import pack
-from typing import List, Union
+from typing import List, Union, Callable, Dict
 
 from World.Region.model import Region, DefaultLocation
 from World.Region.Octree.OctreeManager import OctreeManager
@@ -16,7 +16,6 @@ from World.Object.ObjectManager import ObjectManager
 from World.Object.Unit.UnitManager import UnitManager
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 
-from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField, PlayerField
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
 
@@ -24,7 +23,6 @@ from DB.Connection.WorldConnection import WorldConnection
 from Server.Registry.QueuesRegistry import QueuesRegistry
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
-from World.WorldPacket.Constants.BroadcastType import BroadcastType
 
 from Utils.Debug.Logger import Logger
 
@@ -32,100 +30,6 @@ from Config.Run.config import Config
 
 
 class RegionManager(object):
-
-    PLAYER_SPAWN_FIELDS = [
-        # Object fields
-        ObjectField.GUID,
-        ObjectField.TYPE,
-        ObjectField.SCALE_X,
-
-        # Unit fields
-        UnitField.HEALTH,
-        UnitField.MAXHEALTH,
-        UnitField.LEVEL,
-        UnitField.FACTIONTEMPLATE,
-        UnitField.BYTES_0,
-        UnitField.FLAGS,
-        UnitField.DISPLAYID,
-        UnitField.NATIVEDISPLAYID,
-        UnitField.BASE_HEALTH,
-
-        # Player fields
-        PlayerField.FLAGS,
-        PlayerField.BYTES_1,
-        PlayerField.BYTES_2,
-
-        PlayerField.VISIBLE_ITEM_1_0,
-        PlayerField.VISIBLE_ITEM_2_0,
-        PlayerField.VISIBLE_ITEM_3_0,
-        PlayerField.VISIBLE_ITEM_4_0,
-        PlayerField.VISIBLE_ITEM_5_0,
-        PlayerField.VISIBLE_ITEM_6_0,
-        PlayerField.VISIBLE_ITEM_7_0,
-        PlayerField.VISIBLE_ITEM_8_0,
-        PlayerField.VISIBLE_ITEM_9_0,
-        PlayerField.VISIBLE_ITEM_10_0,
-        PlayerField.VISIBLE_ITEM_11_0,
-        PlayerField.VISIBLE_ITEM_12_0,
-        PlayerField.VISIBLE_ITEM_13_0,
-        PlayerField.VISIBLE_ITEM_14_0,
-        PlayerField.VISIBLE_ITEM_15_0,
-        PlayerField.VISIBLE_ITEM_16_0,
-        PlayerField.VISIBLE_ITEM_17_0,
-
-        PlayerField.INV_SLOT_HEAD,
-        PlayerField.INV_SLOT_NECK,
-        PlayerField.INV_SLOT_SHOULDERS,
-        PlayerField.INV_SLOT_BODY,
-        PlayerField.INV_SLOT_CHEST,
-        PlayerField.INV_SLOT_WAIST,
-        PlayerField.INV_SLOT_LEGS,
-        PlayerField.INV_SLOT_FEET,
-        PlayerField.INV_SLOT_WRISTS,
-        PlayerField.INV_SLOT_HANDS,
-        PlayerField.INV_SLOT_FINGER1,
-        PlayerField.INV_SLOT_FINGER2,
-        PlayerField.INV_SLOT_TRINKET1,
-        PlayerField.INV_SLOT_TRINKET2,
-        PlayerField.INV_SLOT_BACK,
-        PlayerField.INV_SLOT_MAINHAND,
-        PlayerField.INV_SLOT_OFFHAND,
-        PlayerField.INV_SLOT_RANGED,
-        PlayerField.INV_SLOT_TABARD
-    ]
-
-    UNIT_SPAWN_FIELDS = [
-        # Object fields
-        ObjectField.GUID,
-        ObjectField.TYPE,
-        ObjectField.ENTRY,
-        ObjectField.SCALE_X,
-
-        # Unit fields
-        UnitField.HEALTH,
-        UnitField.MAXHEALTH,
-        UnitField.POWER1,
-        UnitField.POWER2,
-        UnitField.POWER3,
-        UnitField.POWER4,
-        UnitField.POWER5,
-        UnitField.MAXPOWER1,
-        UnitField.MAXPOWER2,
-        UnitField.MAXPOWER3,
-        UnitField.MAXPOWER4,
-        UnitField.MAXPOWER5,
-        UnitField.LEVEL,
-        UnitField.FACTIONTEMPLATE,
-        UnitField.DISPLAYID,
-        UnitField.NATIVEDISPLAYID,
-        UnitField.BASE_HEALTH,
-        # UnitField.BASE_MANA,
-        UnitField.BYTES_0,
-        UnitField.FLAGS,
-        UnitField.COMBATREACH,
-        UnitField.BOUNDINGRADIUS,
-        UnitField.NPC_FLAGS,
-    ]
 
     def __init__(self, **kwargs):
         external_session = kwargs.pop('session', None)
@@ -137,13 +41,14 @@ class RegionManager(object):
             self.session = connection.session
 
         self.region: Union[Region, None] = None
-        self.regions: List[Region] = self.load_all()
+        self.regions: Dict[int, Region] = self.load_all()
 
         # self.register_tasks()
 
-    def get_regions_as_json(self):
-        return [region.to_json() for region in self.regions]
+    # def get_regions_as_json(self):
+    #     return [region.to_json() for region in self.regions]
 
+    # FIXME: get region from ALREADY loaded regions list
     def get_region(self, **kwargs) -> Region:
         # TODO: fix args receiving
         identifier = kwargs.pop('identifier', None)
@@ -193,10 +98,12 @@ class RegionManager(object):
         self.session.add(default_location)
         self.session.commit()
 
-    def load_all(self) -> List[Region]:
+    def load_all(self) -> Dict[int, Region]:
         Logger.debug('[RegionMgr]: Loading regions')
         regions = self.session.query(Region).all()
-        t0 = time.time()
+        t0 = time()
+
+        result: Dict[int, Region] = {}
 
         for region in regions:
             objects = self._load_region_objects(region)
@@ -208,11 +115,12 @@ class RegionManager(object):
                 objects=objects
             )
             region.set_octree(octree)
+            result[region.id] = region
 
-        t1 = time.time()
+        t1 = time()
         Logger.debug('[RegionMgr]: regions loaded in {}s'.format(t1 - t0))
 
-        return regions
+        return result
 
     # TODO: store separately players, units and other objects
     def _load_region_objects(self, region: Region):
@@ -231,7 +139,10 @@ class RegionManager(object):
     #     while True:
     #         t1 = time.time()
     #         for guid, current_object in region.objects_registry.items():
-    #             guids_for_track: FrozenSet = RegionManager.get_guids_for_track(current_object, region.objects_registry)
+    #             guids_for_track: FrozenSet = RegionManager.get_guids_for_track(
+    #             current_object,
+    #             region.objects_registry
+    #             )
     #
     #             if isinstance(current_object, Player):
     #                 guids_for_despawn = current_object.tracked_guids - guids_for_track
@@ -355,11 +266,27 @@ class RegionManager(object):
         self.session.commit()
         return self
 
+    def broadcast(self, opcode: WorldOpCode, packets: List[bytes], callback: Callable):
+        callback(opcode, packets, self.regions)
+
     @staticmethod
     def add_player(player: Player):
         current_region: Region = player.region
         root_node: OctreeNode = current_region.get_octree()
         OctreeNodeManager.set_object(root_node, player)
+
+        current_node: OctreeNode = player.get_current_node()
+        # we get parent of parent because some of nearest nodes can lay in the another parent
+        node_to_notify: OctreeNode = current_node.parent_node.parent_node
+        guids = OctreeNodeManager.get_guids(node_to_notify)
+
+        targets_to_notify: List[Player] = [
+            player
+            for player in current_region.players
+            if player.guid in guids
+        ]
+
+        PlayerManager.broadcast(player, targets_to_notify)
 
     # def add_player(self, player: Player):
     #     current_region: Region = self._get_current_region(player)
@@ -374,73 +301,73 @@ class RegionManager(object):
     #     for target in nearest_players:
     #         RegionManager._notify_nearest_players(target, [player])
 
-    def update_player_movement(self, player: Player, opcode: WorldOpCode, packet: bytes):
-        current_region: Region = self._get_current_region(player)
-        current_region.update_player(player)
+    # def update_player_movement(self, player: Player, opcode: WorldOpCode, packet: bytes):
+    #     current_region: Region = self._get_current_region(player)
+    #     current_region.update_player(player)
+    #
+    #     nearest_players = RegionManager._get_nearest_players(current_region, player)
+    #
+    #     for target in nearest_players:
+    #         RegionManager._notify_nearest_players(
+    #             target,
+    #             [player],
+    #             movement_packet=(opcode, packet),
+    #         )
+    #
+    # def remove_player(self, player: Player):
+    #     current_region: Region = self._get_current_region(player)
+    #     current_region.remove_player(player)
+    #
+    #     # notify nearest players that current player was disconnected
+    #     nearest_players = RegionManager._get_nearest_players(current_region, player)
 
-        nearest_players = RegionManager._get_nearest_players(current_region, player)
+    # def send_chat_message(self, sender: Unit, text_message_packet: bytes):
+    #     current_region: Region = self._get_current_region(sender)
+    #
+    #     # TODO: in future we can also notify nearest units about messages
+    #     nearest_players = RegionManager._get_nearest_players(current_region, sender)
+    #
+    #     for target in nearest_players:
+    #         RegionManager._notify_nearest_players(
+    #             target,
+    #             None,
+    #             text_message_packet=text_message_packet,
+    #         )
 
-        for target in nearest_players:
-            RegionManager._notify_nearest_players(
-                target,
-                [player],
-                movement_packet=(opcode, packet),
-            )
+    # def send_name_query(self, requester: Player, target_guid: int):
+    #     current_region: Region = self._get_current_region(requester)
+    #
+    #     target = current_region.get_online_player_by_guid(target_guid)
+    #
+    #     if target:
+    #         name_bytes = target.name.encode('utf-8') + b'\x00'
+    #         name_query_packet = pack(
+    #             '<Q{name_len}sB3IB'.format(name_len=len(name_bytes)),
+    #             target.guid,
+    #             name_bytes,
+    #             0,
+    #             target.race,
+    #             target.gender,
+    #             target.char_class,
+    #             0
+    #         )
+    #
+    #         asyncio.ensure_future(
+    #             QueuesRegistry.name_query_packets_queue.put((requester.name, name_query_packet))
+    #         )
 
-    def remove_player(self, player: Player):
-        current_region: Region = self._get_current_region(player)
-        current_region.remove_player(player)
-
-        # notify nearest players that current player was disconnected
-        nearest_players = RegionManager._get_nearest_players(current_region, player)
-
-    def send_chat_message(self, sender: Unit, text_message_packet: bytes):
-        current_region: Region = self._get_current_region(sender)
-
-        # TODO: in future we can also notify nearest units about messages
-        nearest_players = RegionManager._get_nearest_players(current_region, sender)
-
-        for target in nearest_players:
-            RegionManager._notify_nearest_players(
-                target,
-                None,
-                text_message_packet=text_message_packet,
-            )
-
-    def send_name_query(self, requester: Player, target_guid: int):
-        current_region: Region = self._get_current_region(requester)
-
-        target = current_region.get_online_player_by_guid(target_guid)
-
-        if target:
-            name_bytes = target.name.encode('utf-8') + b'\x00'
-            name_query_packet = pack(
-                '<Q{name_len}sB3IB'.format(name_len=len(name_bytes)),
-                target.guid,
-                name_bytes,
-                0,
-                target.race,
-                target.gender,
-                target.char_class,
-                0
-            )
-
-            asyncio.ensure_future(
-                QueuesRegistry.name_query_packets_queue.put((requester.name, name_query_packet))
-            )
-
-    def _get_current_region(self, target: Unit):
-        current_region = None
-
-        for region in self.regions:
-            if region.identifier == target.region.identifier:
-                current_region = region
-                break
-
-        if current_region is None:
-            raise Exception('[RegionMgr]: target has unknown region id')
-
-        return current_region
+    # def _get_current_region(self, target: Unit):
+    #     current_region = None
+    #
+    #     for region in self.regions:
+    #         if region.identifier == target.region.identifier:
+    #             current_region = region
+    #             break
+    #
+    #     if current_region is None:
+    #         raise Exception('[RegionMgr]: target has unknown region id')
+    #
+    #     return current_region
 
     @staticmethod
     def _get_nearest_players(current_region: Region, unit: Unit):
@@ -510,16 +437,16 @@ class RegionManager(object):
 
                 asyncio.ensure_future(QueuesRegistry.update_packets_queue.put((player.name, update_packets)))
 
-    @staticmethod
-    def _init_update_packet_builder(mgr: ObjectManager, **kwargs):
-        # initialize update packet builder in the mgr.prepare()
-        object_update_type = kwargs.pop('object_update_type')
-        update_flags = kwargs.pop('update_flags')
-        update_object = kwargs.pop('update_object')
-
-        mgr.set_object_update_type(object_update_type=object_update_type)
-        mgr.set(update_object)
-        mgr.prepare().set_update_flags(update_flags)
+    # @staticmethod
+    # def _init_update_packet_builder(mgr: ObjectManager, **kwargs):
+    #     # initialize update packet builder in the mgr.prepare()
+    #     object_update_type = kwargs.pop('object_update_type')
+    #     update_flags = kwargs.pop('update_flags')
+    #     update_object = kwargs.pop('update_object')
+    #
+    #     mgr.set_object_update_type(object_update_type=object_update_type)
+    #     mgr.set(update_object)
+    #     mgr.prepare().set_update_flags(update_flags)
 
     # async def refresh_creatures(self):
     #     for region in self.regions:
@@ -564,12 +491,6 @@ class RegionManager(object):
     #                     )
     #
     #             del units
-
-    @staticmethod
-    def get_players_for_broadcast(player: Player, broadcast_type: BroadcastType):
-        if broadcast_type == BroadcastType.SAY_RANGE:
-            chat_range = Config.World.Chat.ChatRange
-            pass
 
     @staticmethod
     def _is_target_visible(unit: Unit, target: Unit):

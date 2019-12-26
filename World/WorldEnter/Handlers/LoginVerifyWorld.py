@@ -2,7 +2,6 @@ from struct import pack
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
-from Exceptions.Wrappers.ProcessException import ProcessException
 
 
 class LoginVerifyWorld(object):
@@ -15,7 +14,6 @@ class LoginVerifyWorld(object):
         response = self._get_response()
         return WorldOpCode.SMSG_LOGIN_VERIFY_WORLD, [response]
 
-    @ProcessException()
     def _get_response(self):
         player = self.connection.player
 

@@ -74,6 +74,15 @@ class ObjectManager(object):
     def get_update_packets(self):
         return self.update_packet_builder.get_packets()
 
+    def init_update_packet_builder(self, **kwargs):
+        object_update_type = kwargs.pop('object_update_type')
+        update_flags = kwargs.pop('update_flags')
+        update_object = kwargs.pop('update_object')
+
+        self.set_object_update_type(object_update_type=object_update_type)
+        self.set(update_object)
+        self.prepare().set_update_flags(update_flags)
+
     # overridable
     def load(self, **kwargs):
         id = kwargs.pop('id')

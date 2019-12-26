@@ -27,7 +27,8 @@ from World.Object.Unit.Player.Handlers.PlayerSpawn import PlayerSpawn
 from World.Object.Unit.Player.Handlers.PlayerTarget import PlayerTarget
 from World.Object.Unit.Player.Inventory.Equipment.Handlers.Sheathed import Sheathed
 
-from World.Query.Handlers.QueryHandler import QueryHandler
+from World.Query.Handlers.NameQuery import NameQuery
+from World.Query.Handlers.TimeQuery import TimeQuery
 from World.Query.Handlers.Logout import Logout
 from World.Query.Handlers.Exit import Exit
 from World.Query.Handlers.ActiveMover import ActiveMover
@@ -71,6 +72,7 @@ MAP_HANDLER_TO_OPCODE = {
         LoginVerifyWorld,
         AccountDataTimes,
         InitialSpells,
+        NameQuery,
         PlayerSpawn,
         GameSpeed,
         TimeSync,
@@ -78,8 +80,8 @@ MAP_HANDLER_TO_OPCODE = {
     WorldOpCode.CMSG_UPDATE_ACCOUNT_DATA: [],
     WorldOpCode.CMSG_REQUEST_ACCOUNT_DATA: [],
     WorldOpCode.CMSG_REALM_SPLIT: [RealmSplit],
-    WorldOpCode.CMSG_QUERY_TIME: [QueryHandler],
-    WorldOpCode.CMSG_NAME_QUERY: [QueryHandler],
+    WorldOpCode.CMSG_QUERY_TIME: [TimeQuery],
+    WorldOpCode.CMSG_NAME_QUERY: [NameQuery],
     WorldOpCode.CMSG_ZONEUPDATE: [ZoneUpdate],
 
     # Movement handling

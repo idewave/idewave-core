@@ -6,8 +6,6 @@ from Server.Auth.Constants.LoginResult import LoginResult
 from World.WorldPacket.Constants.LoginOpCode import LoginOpCode
 from Account.AccountManager import AccountManager
 
-from Exceptions.Wrappers.ProcessException import ProcessException
-
 
 class LoginChallenge(object):
 
@@ -34,7 +32,6 @@ class LoginChallenge(object):
 
         self.connection = kwargs.pop('connection')
 
-    @ProcessException()
     async def process(self) -> tuple:
         self._parse_data()
 
@@ -56,7 +53,6 @@ class LoginChallenge(object):
 
             return self._get_response()
 
-    @ProcessException()
     def _parse_data(self):
         def _decode_cstring(cstring, encoding='ascii'):
             if type(cstring) is bytes:
@@ -82,7 +78,6 @@ class LoginChallenge(object):
         self.account_name_size, account_name = parsed_data[19:]
         self.account_name = account_name.decode('ascii')
 
-    @ProcessException()
     def _get_response(self):
         self.connection.srp.generate_server_ephemeral(self.connection.account.verifier)
 

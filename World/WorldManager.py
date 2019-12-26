@@ -1,45 +1,57 @@
-import asyncio
+from asyncio import QueueEmpty, ensure_future, sleep, gather
 
 from Utils.Timer import Timer
 from World.Region.RegionManager import RegionManager
 from Server.Registry.QueuesRegistry import QueuesRegistry
+from Server.Constants.ServerContants import MIN_TIMEOUT
+
+from Utils.Debug.Logger import Logger
 
 
 class WorldManager(object):
 
+    __slots__ = ('last_update', 'region_mgr')
+
     def __init__(self):
-        self.heartbeat = 0.01
         self.last_update = None
         self.region_mgr = RegionManager()
 
     async def run(self):
         while True:
             self.last_update = Timer.get_ms_time()
+            self._register_tasks()
 
-            # self._register_tasks()
-
-            await asyncio.sleep(self.heartbeat)
+            await sleep(MIN_TIMEOUT)
 
     def _register_tasks(self):
-        # tasks = [asyncio.ensure_future(RegionManager.refresh_region(region)) for region in self.region_mgr.regions]
-        asyncio.gather(
-            asyncio.ensure_future(WorldManager.process_player_enter_world()),
-            # asyncio.ensure_future(self.process_player_movement()),
-            # asyncio.ensure_future(self.process_player_exit_world()),
-            # asyncio.ensure_future(self.process_chat_message()),
-            # asyncio.ensure_future(self.process_name_query()),
+        gather(
+            ensure_future(self.process_broadcast()),
         )
 
-    @staticmethod
-    async def process_player_enter_world():
+    async def process_broadcast(self):
         try:
-            player = QueuesRegistry.players_queue.get_nowait()
-        except asyncio.QueueEmpty:
+            opcode, packets, callback = QueuesRegistry.broadcast_callback_queue.get_nowait()
+        except QueueEmpty:
             return
         else:
-            RegionManager.add_player(player)
-        finally:
-            await asyncio.sleep(0.01)
+            self.region_mgr.broadcast(opcode, packets, callback)
+
+    # @staticmethod
+    # async def process_player_enter_world():
+    #     try:
+    #         player = QueuesRegistry.players_queue.get_nowait()
+    #     except QueueEmpty:
+    #         return
+    #     else:
+    #         RegionManager.add_player(player)
+    #
+    # async def process_player_exit_world(self):
+    #     try:
+    #         player = QueuesRegistry.remove_player_queue.get_nowait()
+    #     except QueueEmpty:
+    #         return
+        # else:
+        #     self.region_mgr.remove_player(player)
 
     # async def process_player_movement(self):
     #     try:
@@ -50,16 +62,6 @@ class WorldManager(object):
     #         self.region_mgr.update_player_movement(player, opcode, packet)
     #     finally:
     #         await asyncio.sleep(0.01)
-
-    async def process_player_exit_world(self):
-        try:
-            player = QueuesRegistry.remove_player_queue.get_nowait()
-        except asyncio.QueueEmpty:
-            return
-        else:
-            self.region_mgr.remove_player(player)
-        finally:
-            await asyncio.sleep(0.01)
 
     # async def process_chat_message(self):
     #     try:

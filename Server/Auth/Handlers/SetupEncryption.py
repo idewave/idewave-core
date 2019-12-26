@@ -9,7 +9,6 @@ from Server.Connection.Connection import Connection
 
 from Server.Auth.Crypto.HeaderCrypt import HeaderCrypt
 
-from Exceptions.Wrappers.ProcessException import ProcessException
 from Utils.AccountNameParser import AccountNameParser
 
 
@@ -55,7 +54,6 @@ class SetupEncryption(object):
 
         return account_name, client_seed, client_hash
 
-    @ProcessException()
     def _set_session_key(self):
         key = '#{}-session-key'.format(self.connection.account.name)
         session_key = self.connection.session_keys[key]

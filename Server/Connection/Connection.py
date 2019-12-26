@@ -1,4 +1,8 @@
+from asyncio import StreamReader, StreamWriter
+
 from Server.Auth.Crypto.SRP import SRP
+from Account.model import Account
+from World.Object.Unit.Player.model import Player
 
 
 class Connection(object):
@@ -16,10 +20,10 @@ class Connection(object):
     )
 
     def __init__(self, **kwargs):
-        self.account = kwargs.pop('account', None)
-        self.player = kwargs.pop('player', None)
-        self.reader = kwargs.pop('reader', None)
-        self.writer = kwargs.pop('writer', None)
+        self.account: Account = kwargs.pop('account', None)
+        self.player: Player = kwargs.pop('player', None)
+        self.reader: StreamReader = kwargs.pop('reader', None)
+        self.writer: StreamWriter = kwargs.pop('writer', None)
         self.peername = kwargs.pop('peername', None)
         self.header_crypt = kwargs.pop('header_crypt', None)
 

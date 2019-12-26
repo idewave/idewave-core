@@ -172,7 +172,7 @@ class UpdatePacketBuilder(object):
         self.batches.append(batch)
 
     def build(self) -> None:
-        # TODO: should be fixed according to transport existing
+        # TODO: should be fixed according to transport existence
         has_transport = 0
 
         while self.batches:

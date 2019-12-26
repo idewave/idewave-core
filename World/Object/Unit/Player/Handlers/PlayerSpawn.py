@@ -1,8 +1,13 @@
-from typing import List
+from asyncio import ensure_future
+from typing import List, Dict
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 
-from World.Object.Constants.UpdateObjectFields import ObjectField, ItemField, UnitField, PlayerField
+from World.Object.Constants.UpdateObjectFields import UnitField, PlayerField
+from World.Region.model import Region
+from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
+from World.Region.Octree.OctreeNode import OctreeNode
+from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Object.Unit.Player.model import PlayerSkill
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
@@ -12,113 +17,22 @@ from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpda
 from World.Character.Constants.CharacterClass import CharacterClass
 
 from Server.Connection.Connection import Connection
-from Exceptions.Wrappers.ProcessException import ProcessException
+from Server.Registry.QueuesRegistry import QueuesRegistry
+
+from Utils.Debug.Logger import Logger
+
+from World.Object.Unit.Player.Constants.PlayerSpawnFields import PLAYER_SPAWN_FIELDS
 
 
 class PlayerSpawn(object):
 
-    SPAWN_FIELDS = [
-        # Object fields
-        ObjectField.GUID,
-        ObjectField.TYPE,
-        ObjectField.SCALE_X,
-
-        # Unit fields
-        UnitField.HEALTH,
-        UnitField.MAXHEALTH,
-        UnitField.LEVEL,
-        UnitField.FACTIONTEMPLATE,
-        UnitField.BYTES_0,
-        UnitField.FLAGS,
-        UnitField.BOUNDINGRADIUS,
-        UnitField.COMBATREACH,
-        UnitField.DISPLAYID,
-        UnitField.NATIVEDISPLAYID,
-        UnitField.STAT0,
-        UnitField.STAT1,
-        UnitField.STAT2,
-        UnitField.STAT3,
-        UnitField.STAT4,
-        UnitField.RESISTANCE_NORMAL,
-        UnitField.BASE_HEALTH,
-
-        # Player fields
-        PlayerField.FLAGS,
-        PlayerField.BYTES_1,
-        PlayerField.BYTES_2,
-
-        PlayerField.VISIBLE_ITEM_1_0,
-        PlayerField.VISIBLE_ITEM_2_0,
-        PlayerField.VISIBLE_ITEM_3_0,
-        PlayerField.VISIBLE_ITEM_4_0,
-        PlayerField.VISIBLE_ITEM_5_0,
-        PlayerField.VISIBLE_ITEM_6_0,
-        PlayerField.VISIBLE_ITEM_7_0,
-        PlayerField.VISIBLE_ITEM_8_0,
-        PlayerField.VISIBLE_ITEM_9_0,
-        PlayerField.VISIBLE_ITEM_10_0,
-        PlayerField.VISIBLE_ITEM_11_0,
-        PlayerField.VISIBLE_ITEM_12_0,
-        PlayerField.VISIBLE_ITEM_13_0,
-        PlayerField.VISIBLE_ITEM_14_0,
-        PlayerField.VISIBLE_ITEM_15_0,
-        PlayerField.VISIBLE_ITEM_16_0,
-        PlayerField.VISIBLE_ITEM_17_0,
-
-        PlayerField.INV_SLOT_HEAD,
-        PlayerField.INV_SLOT_NECK,
-        PlayerField.INV_SLOT_SHOULDERS,
-        PlayerField.INV_SLOT_BODY,
-        PlayerField.INV_SLOT_CHEST,
-        PlayerField.INV_SLOT_WAIST,
-        PlayerField.INV_SLOT_LEGS,
-        PlayerField.INV_SLOT_FEET,
-        PlayerField.INV_SLOT_WRISTS,
-        PlayerField.INV_SLOT_HANDS,
-        PlayerField.INV_SLOT_FINGER1,
-        PlayerField.INV_SLOT_FINGER2,
-        PlayerField.INV_SLOT_TRINKET1,
-        PlayerField.INV_SLOT_TRINKET2,
-        PlayerField.INV_SLOT_BACK,
-        PlayerField.INV_SLOT_MAINHAND,
-        PlayerField.INV_SLOT_OFFHAND,
-        PlayerField.INV_SLOT_RANGED,
-        PlayerField.INV_SLOT_TABARD,
-
-        PlayerField.XP,
-        PlayerField.NEXT_LEVEL_XP,
-        PlayerField.CHARACTER_POINTS1,
-        PlayerField.CHARACTER_POINTS2,
-        PlayerField.SHIELD_BLOCK,
-        PlayerField.EXPLORED_ZONES_1,
-        PlayerField.MOD_DAMAGE_NORMAL_DONE_PCT,
-        PlayerField.BYTES,
-        PlayerField.WATCHED_FACTION_INDEX,
-        PlayerField.MAX_LEVEL,
-        PlayerField.COINAGE
-    ]
-
-    # TODO: also call the ItemManager to spawn items
-    ITEM_SPAWN_FIELDS = [
-        # Object fields
-        ObjectField.GUID,
-        ObjectField.TYPE,
-        ObjectField.ENTRY,
-        ObjectField.SCALE_X,
-
-        # Item fields
-        ItemField.OWNER,
-        ItemField.CONTAINED,
-        ItemField.STACK_COUNT,
-        ItemField.MAXDURABILITY,
-        ItemField.DURABILITY,
-        ItemField.DURATION,
-        ItemField.FLAGS,
-    ]
+    __slots__ = ('data', 'connection', 'spawn_fields', 'update_flags')
 
     def __init__(self, **kwargs):
-        self.data = kwargs.pop('data', bytes())
+        self.data: bytes = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
+
+        self.spawn_fields = PLAYER_SPAWN_FIELDS
 
         self.update_flags = (
             UpdateObjectFlags.UPDATEFLAG_LIVING.value |
@@ -129,12 +43,16 @@ class PlayerSpawn(object):
 
         self._set_player_power()
 
-    @ProcessException()
     async def process(self) -> tuple:
         with PlayerManager() as player_mgr:
-            player_mgr.set_object_update_type(object_update_type=ObjectUpdateType.CREATE_OBJECT2)
-            # be careful, set_update_flags should be called after prepare(), because of update_packet_builder init
-            player_mgr.set(self.connection.player).prepare().set_update_flags(self.update_flags)
+            player_mgr.set_object_update_type(
+                object_update_type=ObjectUpdateType.CREATE_OBJECT2
+            )
+            # be careful, set_update_flags should be called after prepare(),
+            # because of update_packet_builder init
+            player_mgr.set(
+                self.connection.player
+            ).prepare().set_update_flags(self.update_flags)
 
             # add fields with offset before create update packet
             skills_count = len(self.connection.player.skills)
@@ -142,17 +60,114 @@ class PlayerSpawn(object):
                 offset = skill_index * 3
                 skill: PlayerSkill = self.connection.player.skills[skill_index]
 
-                player_mgr.add_field(PlayerField.SKILL_INFO_1_ID, skill.skill_template.entry, offset=offset)
-                player_mgr.add_field(PlayerField.SKILL_INFO_1_LEVEL, skill.skill_template.min, offset=offset + 1)
-                player_mgr.add_field(PlayerField.SKILL_INFO_1_STAT_LEVEL, skill.skill_template.max, offset=offset + 2)
+                player_mgr.add_field(
+                    PlayerField.SKILL_INFO_1_ID,
+                    skill.skill_template.entry,
+                    offset=offset
+                )
+                player_mgr.add_field(
+                    PlayerField.SKILL_INFO_1_LEVEL,
+                    skill.skill_template.min,
+                    offset=offset + 1
+                )
+                player_mgr.add_field(
+                    PlayerField.SKILL_INFO_1_STAT_LEVEL,
+                    skill.skill_template.max,
+                    offset=offset + 2
+                )
 
-            batch = player_mgr.create_batch(PlayerSpawn.SPAWN_FIELDS)
-            response: List = player_mgr.add_batch(batch).build_update_packet().get_update_packets()
+            batch: bytes = player_mgr.create_batch(self.spawn_fields)
+            packets: List[bytes] = player_mgr\
+                .add_batch(batch)\
+                .build_update_packet()\
+                .get_update_packets()
 
-            return WorldOpCode.SMSG_UPDATE_OBJECT, response
+            ensure_future(QueuesRegistry.broadcast_callback_queue.put((
+                WorldOpCode.SMSG_UPDATE_OBJECT,
+                packets,
+                self._broadcast,
+            )))
+
+            return WorldOpCode.SMSG_UPDATE_OBJECT, packets
+
+    def _broadcast(
+            self,
+            opcode: WorldOpCode,
+            packets: List[bytes],
+            regions: Dict[int, Region]
+    ) -> None:
+        player: Player = self.connection.player
+        current_region: Region = regions.get(player.region.id)
+        if current_region is None:
+            return None
+
+        root_node: OctreeNode = current_region.get_octree()
+        OctreeNodeManager.set_object(root_node, player)
+
+        current_node: OctreeNode = player.get_current_node()
+        # we get parent of parent because some of nearest nodes can lay in the another parent
+        node_to_notify: OctreeNode = current_node.parent_node.parent_node
+        guids = OctreeNodeManager.get_guids(node_to_notify)
+        guids: List[int] = [guid for guid in guids if not guid == player.guid]
+
+        if not guids:
+            return None
+
+        targets_to_notify: List[Player] = [
+            player
+            for player in current_region.players
+            if player.guid in guids
+        ]
+
+        if not targets_to_notify:
+            return None
+
+        target_packets: List[bytes] = PlayerSpawn.create_target_packets(targets=targets_to_notify)
+        Logger.warning(f"[PlayerSpawn]: target packets {target_packets}")
+        for packet in target_packets:
+            PlayerManager.send_packet_to_player(player, opcode, packet)
+
+        for packet in packets:
+            PlayerManager.broadcast(opcode, packet, targets_to_notify)
+
+    @staticmethod
+    def create_target_packets(targets: List[Player]) -> List[bytes]:
+        update_flags = (
+            UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
+            UpdateObjectFlags.UPDATEFLAG_LIVING.value |
+            UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
+        )
+
+        targets = targets.copy()
+
+        with PlayerManager() as head_player_mgr:
+            head_player_mgr.init_update_packet_builder(
+                object_update_type=ObjectUpdateType.CREATE_OBJECT2,
+                update_flags=update_flags,
+                update_object=targets.pop(0)
+            )
+
+            batch = head_player_mgr.create_batch(PLAYER_SPAWN_FIELDS)
+            head_player_mgr.add_batch(batch)
+
+            if targets:
+                for target in targets:
+                    with PlayerManager() as player_mgr:
+                        player_mgr.init_update_packet_builder(
+                            object_update_type=ObjectUpdateType.CREATE_OBJECT2,
+                            update_flags=update_flags,
+                            update_object=target
+                        )
+
+                        batch = player_mgr.create_batch(PLAYER_SPAWN_FIELDS)
+                        head_player_mgr.add_batch(batch)
+
+            return head_player_mgr.build_update_packet().get_update_packets()
 
     def _set_player_power(self) -> None:
-        char_class = CharacterClass(self.connection.player.char_class)
+        char_class = CharacterClass(
+            self.connection.player.char_class
+        )
 
         mana_classes = [
             CharacterClass.HUNTER,
@@ -173,13 +188,13 @@ class PlayerSpawn(object):
         ]
 
         if char_class in mana_classes:
-            self.SPAWN_FIELDS.append(UnitField.POWER1)
-            self.SPAWN_FIELDS.append(UnitField.MAXPOWER1)
+            self.spawn_fields.append(UnitField.POWER1)
+            self.spawn_fields.append(UnitField.MAXPOWER1)
 
         elif char_class in rage_classes:
-            self.SPAWN_FIELDS.append(UnitField.POWER2)
-            self.SPAWN_FIELDS.append(UnitField.MAXPOWER2)
+            self.spawn_fields.append(UnitField.POWER2)
+            self.spawn_fields.append(UnitField.MAXPOWER2)
 
         elif char_class in energy_classes:
-            self.SPAWN_FIELDS.append(UnitField.POWER4)
-            self.SPAWN_FIELDS.append(UnitField.MAXPOWER4)
+            self.spawn_fields.append(UnitField.POWER4)
+            self.spawn_fields.append(UnitField.MAXPOWER4)

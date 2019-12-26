@@ -8,8 +8,6 @@ from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.WorldPacket.Constants.MapHandlerToOpcode import MAP_HANDLER_TO_OPCODE
 from Utils.Debug.Logger import Logger
 
-from Exceptions.Wrappers.ProcessException import ProcessException
-
 
 class WorldPacketManager(object):
 
@@ -38,29 +36,25 @@ class WorldPacketManager(object):
             packets = []
 
             for handler in handlers:
-                opcode, response, broadcast_type = await self._process_handler(handler, opcode, data_bytes)
+                opcode, response = await self._process_handler(handler, opcode, data_bytes)
                 if opcode and response:
                     for data in response:
                         packet = self.generate_packet(opcode, data)
                         packets.append(packet)
-
-                        if bool(broadcast_type):
-                            pass
 
             return packets
         else:
             Logger.warning('[World Packet]: no handler for opcode = {}'.format(opcode.name))
             return None
 
-    @ProcessException()
     async def _process_handler(self, handler, opcode: Union[LoginOpCode, WorldOpCode], data: bytes):
-        opcode, response, *broadcast_type = await handler(
+        opcode, response = await handler(
             opcode=opcode,
             data=data,
             connection=self.connection
         ).process()
 
-        return opcode, response, broadcast_type
+        return opcode, response
 
     @staticmethod
     def _get_opcode_from_bytes(opcode_bytes: bytes) -> Union[LoginOpCode, WorldOpCode, None]:
@@ -85,8 +79,7 @@ class WorldPacketManager(object):
 
         return result
 
-    @ProcessException()
-    def generate_packet(self, opcode: Union[LoginOpCode, WorldOpCode], data: bytes):
+    def generate_packet(self, opcode: Union[LoginOpCode, WorldOpCode], data: bytes) -> bytes:
         Logger.success('[World Packet]: respond with {}'.format(opcode.name))
 
         if isinstance(opcode, LoginOpCode):

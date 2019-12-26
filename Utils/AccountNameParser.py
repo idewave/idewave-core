@@ -1,12 +1,9 @@
 from io import BytesIO
 
-from Exceptions.Wrappers.ProcessException import ProcessException
-
 
 class AccountNameParser(object):
 
     @staticmethod
-    @ProcessException()
     def parse(buffer: BytesIO):
         result = bytes()
 

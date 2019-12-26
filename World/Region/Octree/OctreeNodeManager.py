@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List
 
 from World.Object.Unit.model import Unit
 from World.Object.Unit.Player.model import Player
@@ -6,8 +6,23 @@ from World.Object.Unit.Player.model import Player
 from World.Region.Octree.OctreeNode import OctreeNode
 from World.Region.Octree.Constants.OctreeConfig import MAX_CHILD_NODES
 
+from Utils.Debug.Logger import Logger
+
 
 class OctreeNodeManager(object):
+
+    @staticmethod
+    def get_guids(node: OctreeNode, result: List[int] = None) -> List[int]:
+        if result is None:
+            result = []
+
+        if node.child_nodes:
+            for child in node.child_nodes:
+                OctreeNodeManager.get_guids(child, result)
+        else:
+            result += node.guids
+
+        return result
 
     @staticmethod
     def set_object(node: OctreeNode, obj: Union[Unit, Player]) -> None:
@@ -16,6 +31,9 @@ class OctreeNodeManager(object):
             OctreeNodeManager.set_object(child_node, obj)
         else:
             node.guids.append(obj.guid)
+            current_node: OctreeNode = obj.get_current_node()
+            if current_node:
+                current_node.guids.remove(obj.guid)
             obj.set_current_node(node)
 
     @staticmethod
