@@ -2,8 +2,6 @@ from World.Object.Unit.Player.PlayerManager import PlayerManager
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from Server.Connection.Connection import Connection
 
-from Utils.Debug.Logger import Logger
-
 
 class PlayerInit(object):
 
@@ -17,9 +15,6 @@ class PlayerInit(object):
         self._load_player()
 
         await QueuesRegistry.connections_queue.put(self.connection)
-        # await QueuesRegistry.players_queue.put(self.connection.player)
-        # await QueuesRegistry.broadcast_callback_queue.put(self._broadcast)
-        Logger.notify(f"[Player Init]: {self.connection.player.guid}")
 
         return None, None
 

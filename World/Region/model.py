@@ -1,13 +1,8 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy import orm
-from typing import Union
 
 from DB.BaseModel import BaseModel
-from World.Object.Unit.model import Unit
-from World.Object.Unit.Player.model import Player
 from World.Region.Octree.OctreeNode import OctreeNode
-
 from Config.Run.config import Config
 
 
@@ -30,7 +25,7 @@ class Region(BaseModel):
 
     # this uses on session.query() etc
     @orm.reconstructor
-    def init_on_load(self):
+    def init_on_load(self) -> None:
         self.octree = None
 
     # we can detect NPC by unit_template field which is NULL for players and NOT NULL for NPC
@@ -43,48 +38,6 @@ class Region(BaseModel):
 
     def set_octree(self, node: OctreeNode) -> None:
         self.octree = node
-
-    # @hybrid_property
-    # # objects with POSITION: containers; units; players etc
-    # def objects_registry(self):
-    #     return self._registry
-    #
-    # @hybrid_method
-    # def get_object(self, guid: int):
-    #     if self.is_object_exists(guid):
-    #         return self.objects_registry[guid]
-    #
-    # @hybrid_method
-    # def is_object_exists(self, guid: int):
-    #     return guid in self.objects_registry and self.objects_registry[guid] is not None
-    #
-    # @hybrid_method
-    # def set_object(self, guid: int, value: Union[Unit, Player]):
-    #     self.objects_registry[guid] = value
-    #
-    # @hybrid_method
-    # def remove_object(self, guid: int):
-    #     if self.is_object_exists(guid):
-    #         del self._registry[guid]
-
-    # @hybrid_method
-    # def get_online_players(self):
-    #     return self.online_players
-    #
-    # @hybrid_method
-    # def update_player(self, player: Player):
-    #     self.online_players[player.name] = player
-    #
-    # @hybrid_method
-    # def remove_player(self, player: Player):
-    #     if player.name in self.online_players:
-    #         del self.online_players[player.name]
-    #
-    # @hybrid_method
-    # def get_online_player_by_guid(self, guid: int):
-    #     for name in self.online_players:
-    #         if self.online_players[name].guid == guid:
-    #             return self.online_players[name]
 
 
 class DefaultLocation(BaseModel):

@@ -80,8 +80,6 @@ MAP_HANDLER_TO_OPCODE = {
     WorldOpCode.CMSG_UPDATE_ACCOUNT_DATA: [],
     WorldOpCode.CMSG_REQUEST_ACCOUNT_DATA: [],
     WorldOpCode.CMSG_REALM_SPLIT: [RealmSplit],
-    WorldOpCode.CMSG_QUERY_TIME: [TimeQuery],
-    WorldOpCode.CMSG_NAME_QUERY: [NameQuery],
     WorldOpCode.CMSG_ZONEUPDATE: [ZoneUpdate],
 
     # Movement handling
@@ -109,6 +107,8 @@ MAP_HANDLER_TO_OPCODE = {
     WorldOpCode.CMSG_LOGOUT_CANCEL: [Exit],
     WorldOpCode.CMSG_CANCEL_TRADE: [Exit],
     WorldOpCode.CMSG_TIME_SYNC_RESP: [],
+    WorldOpCode.CMSG_QUERY_TIME: [TimeQuery],
+    WorldOpCode.CMSG_NAME_QUERY: [NameQuery],
 
     # Chat
     WorldOpCode.CMSG_TEXT_EMOTE: [TextEmote],

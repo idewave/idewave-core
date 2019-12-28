@@ -45,22 +45,24 @@ class NameQuery(object):
 
         return WorldOpCode.SMSG_NAME_QUERY_RESPONSE, [response]
 
-    def _broadcast(
-            self,
-            opcode: WorldOpCode,
-            packets: List[bytes],
-            regions: Dict[int, Region]
-    ) -> None:
+    def _broadcast(self, **kwargs) -> None:
+        opcode: WorldOpCode = kwargs.pop('opcode')
+        packets: List[bytes] = kwargs.pop('packets')
+        regions: Dict[int, Region] = kwargs.pop('regions')
+
         player: Player = self.connection.player
         current_region: Region = regions.get(player.region.id)
         if current_region is None:
             return None
 
         current_node: OctreeNode = player.get_current_node()
+        if not current_node:
+            return None
+
         # we get parent of parent because some of nearest nodes can lay in the another parent
         node_to_notify: OctreeNode = current_node.parent_node.parent_node
         guids = OctreeNodeManager.get_guids(node_to_notify)
-        guids = [guid for guid in guids if not guid == player.guid]
+        guids: List[int] = [guid for guid in guids if not guid == player.guid]
 
         if not guids:
             return None

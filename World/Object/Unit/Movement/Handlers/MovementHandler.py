@@ -23,10 +23,10 @@ class MovementHandler(object):
         self.data: bytes = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
-        self.movement_flags = MovementFlags.NONE.value
+        self.movement_flags: int = MovementFlags.NONE.value
         self.movement_flags2 = 0
         self.time = 0
-        self.position = Position()
+        self.position: Position = Position()
         self.transport_guid = 0
         self.transport_position = Position()
         self.transport_time = 0
@@ -41,11 +41,9 @@ class MovementHandler(object):
         self._parse_packet()
 
         if self._is_movement_valid():
-            player = self.connection.player
+            player: Player = self.connection.player
             player.position = self.position
 
-            # await QueuesRegistry.movement_queue.put((player, self.opcode, self.data))
-            # self._broadcast(self.opcode, self.data)
             ensure_future(QueuesRegistry.broadcast_callback_queue.put((
                 self.opcode,
                 [self.data],
@@ -54,12 +52,11 @@ class MovementHandler(object):
 
         return None, None
 
-    def _broadcast(
-            self,
-            opcode: WorldOpCode,
-            packets: List[bytes],
-            regions: Dict[int, Region]
-    ):
+    def _broadcast(self, **kwargs) -> None:
+        opcode: WorldOpCode = kwargs.pop('opcode')
+        packets: List[bytes] = kwargs.pop('packets')
+        regions: Dict[int, Region] = kwargs.pop('regions')
+
         player: Player = self.connection.player
         current_region: Region = regions.get(player.region.id)
         if current_region is None:
@@ -69,10 +66,13 @@ class MovementHandler(object):
         OctreeNodeManager.set_object(root_node, player)
 
         current_node: OctreeNode = player.get_current_node()
+        if not current_node:
+            return None
+
         # we get parent of parent because some of nearest nodes can lay in the another parent
         node_to_notify: OctreeNode = current_node.parent_node.parent_node
         guids = OctreeNodeManager.get_guids(node_to_notify)
-        guids = [guid for guid in guids if not guid == player.guid]
+        guids: List[int] = [guid for guid in guids if not guid == player.guid]
 
         if not guids:
             return None
@@ -87,7 +87,7 @@ class MovementHandler(object):
             return None
 
         for packet in packets:
-            PlayerManager.broadcast(opcode, packet, targets_to_notify)
+            PlayerManager.broadcast(opcode, player.packed_guid + packet, targets_to_notify)
 
     def _is_movement_valid(self):
         return True

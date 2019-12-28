@@ -71,12 +71,12 @@ PLAYER_SPAWN_FIELDS = [
 
     PlayerField.XP,
     PlayerField.NEXT_LEVEL_XP,
-    # PlayerField.CHARACTER_POINTS1,
-    # PlayerField.CHARACTER_POINTS2,
+    PlayerField.CHARACTER_POINTS1,
+    PlayerField.CHARACTER_POINTS2,
     PlayerField.SHIELD_BLOCK,
     PlayerField.EXPLORED_ZONES_1,
     PlayerField.MOD_DAMAGE_NORMAL_DONE_PCT,
-    # PlayerField.BYTES,
+    PlayerField.BYTES,
     PlayerField.WATCHED_FACTION_INDEX,
     PlayerField.MAX_LEVEL,
     PlayerField.COINAGE

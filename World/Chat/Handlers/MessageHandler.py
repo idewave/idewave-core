@@ -26,7 +26,6 @@ class MessageHandler(object):
         self._init_chat_packet_builder()
         response = self.chat_packet_builder.build().get_response()
 
-        # await QueuesRegistry.text_message_queue.put((self.connection.player, response))
         ensure_future(QueuesRegistry.broadcast_callback_queue.put((
             WorldOpCode.SMSG_MESSAGECHAT,
             [response],
@@ -35,13 +34,20 @@ class MessageHandler(object):
 
         return WorldOpCode.SMSG_MESSAGECHAT, [response]
 
-    def _broadcast(self, opcode: WorldOpCode, data: bytes, regions: Dict[int, Region]):
+    def _broadcast(self, **kwargs) -> None:
+        opcode: WorldOpCode = kwargs.pop('opcode')
+        packets: List[bytes] = kwargs.pop('packets')
+        regions: Dict[int, Region] = kwargs.pop('regions')
+
         player: Player = self.connection.player
         current_region: Region = regions.get(player.region.id)
         if current_region is None:
             return None
 
         current_node: OctreeNode = player.get_current_node()
+        if not current_node:
+            return None
+
         # we get parent of parent because some of nearest nodes can lay in the another parent
         node_to_notify: OctreeNode = current_node.parent_node.parent_node
         guids = OctreeNodeManager.get_guids(node_to_notify)
@@ -59,7 +65,8 @@ class MessageHandler(object):
         if not targets_to_notify:
             return None
 
-        PlayerManager.broadcast(opcode, data, targets_to_notify)
+        for packet in packets:
+            PlayerManager.broadcast(opcode, packet, targets_to_notify)
 
     def _init_chat_packet_builder(self):
         buf = BytesIO(self.data)

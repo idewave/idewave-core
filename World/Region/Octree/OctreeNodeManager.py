@@ -6,8 +6,6 @@ from World.Object.Unit.Player.model import Player
 from World.Region.Octree.OctreeNode import OctreeNode
 from World.Region.Octree.Constants.OctreeConfig import MAX_CHILD_NODES
 
-from Utils.Debug.Logger import Logger
-
 
 class OctreeNodeManager(object):
 

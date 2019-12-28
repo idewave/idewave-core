@@ -212,41 +212,4 @@ class PlayerManager(UnitManager):
     @staticmethod
     def broadcast(opcode: WorldOpCode, data: bytes, targets: List[Player]) -> None:
         for player in targets:
-            Logger.warning(f"[PlayerMgr]: broadcast -> {player.guid}")
             ensure_future(QueuesRegistry.packets_queue.put((player.name, opcode, data)))
-
-        # update_flags = (
-        #         UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
-        #         UpdateObjectFlags.UPDATEFLAG_LIVING.value |
-        #         UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
-        # )
-        #
-        # targets = targets.copy()
-        #
-        # object_update_type = kwargs.pop('object_update_type', ObjectUpdateType.CREATE_OBJECT2)
-        #
-        # with PlayerManager() as head_player_mgr:
-        #     head_player_mgr.init_update_packet_builder(
-        #         object_update_type=object_update_type,
-        #         update_flags=update_flags,
-        #         update_object=targets.pop(0)
-        #     )
-        #
-        #     batch = head_player_mgr.create_batch(PLAYER_SPAWN_FIELDS)
-        #     head_player_mgr.add_batch(batch)
-        #
-        #     if targets:
-        #         for target in targets:
-        #             with PlayerManager() as player_mgr:
-        #                 player_mgr.init_update_packet_builder(
-        #                     object_update_type=ObjectUpdateType.CREATE_OBJECT2,
-        #                     update_flags=update_flags,
-        #                     update_object=target
-        #                 )
-        #
-        #                 batch = player_mgr.create_batch(PLAYER_SPAWN_FIELDS)
-        #                 head_player_mgr.add_batch(batch)
-        #
-        #     update_packets = head_player_mgr.build_update_packet().get_update_packets()
-        #
-        #     ensure_future(QueuesRegistry.packets_queue.put((player.name, update_packets)))

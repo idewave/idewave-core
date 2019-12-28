@@ -2,7 +2,6 @@ from asyncio import ensure_future
 from typing import List, Dict
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
-
 from World.Object.Constants.UpdateObjectFields import UnitField, PlayerField
 from World.Region.model import Region
 from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
@@ -11,16 +10,10 @@ from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Object.Unit.Player.model import PlayerSkill
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
-
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
-
 from World.Character.Constants.CharacterClass import CharacterClass
-
 from Server.Connection.Connection import Connection
 from Server.Registry.QueuesRegistry import QueuesRegistry
-
-from Utils.Debug.Logger import Logger
-
 from World.Object.Unit.Player.Constants.PlayerSpawnFields import PLAYER_SPAWN_FIELDS
 
 
@@ -45,14 +38,11 @@ class PlayerSpawn(object):
 
     async def process(self) -> tuple:
         with PlayerManager() as player_mgr:
-            player_mgr.set_object_update_type(
-                object_update_type=ObjectUpdateType.CREATE_OBJECT2
+            player_mgr.init_update_packet_builder(
+                object_update_type=ObjectUpdateType.CREATE_OBJECT2,
+                update_flags=self.update_flags,
+                update_object=self.connection.player
             )
-            # be careful, set_update_flags should be called after prepare(),
-            # because of update_packet_builder init
-            player_mgr.set(
-                self.connection.player
-            ).prepare().set_update_flags(self.update_flags)
 
             # add fields with offset before create update packet
             skills_count = len(self.connection.player.skills)
@@ -90,12 +80,10 @@ class PlayerSpawn(object):
 
             return WorldOpCode.SMSG_UPDATE_OBJECT, packets
 
-    def _broadcast(
-            self,
-            opcode: WorldOpCode,
-            packets: List[bytes],
-            regions: Dict[int, Region]
-    ) -> None:
+    def _broadcast(self, **kwargs) -> None:
+        opcode: WorldOpCode = kwargs.pop('opcode')
+        regions: Dict[int, Region] = kwargs.pop('regions')
+
         player: Player = self.connection.player
         current_region: Region = regions.get(player.region.id)
         if current_region is None:
@@ -105,6 +93,9 @@ class PlayerSpawn(object):
         OctreeNodeManager.set_object(root_node, player)
 
         current_node: OctreeNode = player.get_current_node()
+        if not current_node:
+            return None
+
         # we get parent of parent because some of nearest nodes can lay in the another parent
         node_to_notify: OctreeNode = current_node.parent_node.parent_node
         guids = OctreeNodeManager.get_guids(node_to_notify)
@@ -123,11 +114,11 @@ class PlayerSpawn(object):
             return None
 
         target_packets: List[bytes] = PlayerSpawn.create_target_packets(targets=targets_to_notify)
-        Logger.warning(f"[PlayerSpawn]: target packets {target_packets}")
         for packet in target_packets:
             PlayerManager.send_packet_to_player(player, opcode, packet)
 
-        for packet in packets:
+        player_packets: List[bytes] = PlayerSpawn.create_target_packets(targets=[player])
+        for packet in player_packets:
             PlayerManager.broadcast(opcode, packet, targets_to_notify)
 
     @staticmethod
