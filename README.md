@@ -48,6 +48,7 @@ Finally, you can run the server, just call from the root of project:
 6. Broadcast movement
 7. Broadcast chat (SAY and YELL)
 8. Show MOTD (Message of the day)
+9. Added dynamic weather
 
 
 ## Known issues
