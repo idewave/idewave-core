@@ -1,1 +1,0 @@
-MIN_TIMEOUT = 0.01

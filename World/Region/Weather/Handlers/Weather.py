@@ -1,7 +1,7 @@
 from struct import pack
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
-from World.Region.Constants.WeatherType import WeatherType
+from World.Region.Weather.Constants.WeatherType import WeatherType
 
 from Server.Connection.Connection import Connection
 

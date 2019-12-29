@@ -9,8 +9,6 @@ from World.WorldPacket.WorldPacketManager import WorldPacketManager
 from Utils.Debug.Logger import Logger
 from Config.Run.config import Config
 
-from Server.Constants.ServerContants import MIN_TIMEOUT
-
 
 class LoginServer(BaseServer):
 
@@ -30,18 +28,18 @@ class LoginServer(BaseServer):
             except TimeoutError:
                 continue
             finally:
-                await asyncio.sleep(MIN_TIMEOUT)
+                await asyncio.sleep(Config.Realm.Settings.min_timeout)
 
     @staticmethod
     async def process_request(reader: StreamReader, writer: StreamWriter, world_packet_mgr: WorldPacketManager):
-        request = await asyncio.wait_for(reader.read(4096), timeout=MIN_TIMEOUT)
+        request = await asyncio.wait_for(reader.read(4096), timeout=Config.Realm.Settings.min_timeout)
         if request:
             opcode, data = request[:1], request[1:]
 
             if data:
                 response = await asyncio.wait_for(
                     world_packet_mgr.process(opcode=opcode, data=data),
-                    timeout=MIN_TIMEOUT
+                    timeout=Config.Realm.Settings.min_timeout
                 )
 
                 if response:

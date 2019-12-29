@@ -33,6 +33,9 @@ Realm:
       port: 8085
       realm_name: Idewave-core
 
+  Settings:
+    min_timeout: 0.01
+
   General:
     # Message of the day ('@' for the newline)
     motd: Welcome to the idewave-core server
@@ -43,6 +46,18 @@ World:
     # -1 for infinite distance, 0 for disable spawn, more than 0 for any distance
     # be carefully when edit this option cause the smaller it is the more memory usage by octrees
     update_dist: 200
+
+  Weather:
+    change_weather_timeout: 300
+    instant_change: False
+    # percentage
+    Chances:
+      fine: 100
+      rain: 50
+      snow: 50
+      storm: 10
+      thunders: 30
+      blackrain: 0
 
   Chat:
     ChatRange:
