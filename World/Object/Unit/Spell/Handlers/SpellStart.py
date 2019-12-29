@@ -1,31 +1,38 @@
-from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from struct import pack
-from Login.SessionStorage import session
 from io import BytesIO
+
+from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Unit.Spell.Constants.SpellCastFlags import SpellCastFlags
+from Server.Connection.Connection import Connection
+from Utils.Debug.Logger import Logger
 
 
 class SpellStart(object):
 
-    def __init__(self, packet: bytes):
-        self.packet = packet
+    __slots__ = ('data', 'connection')
+
+    def __init__(self, **kwargs):
+        self.data: bytes = kwargs.pop('data', bytes())
+        self.connection: Connection = kwargs.pop('connection')
 
     async def process(self):
-        buf = BytesIO(self.packet)
-
+        buf = BytesIO(self.data)
+        player = self.connection.player
         castFlags = SpellCastFlags.CAST_FLAG_UNKNOWN2.value
 
+        spell_id = int.from_bytes(buf.read(4), 'little')
+
         response = bytes()
-        response += session.player.packed_guid
-        response += session.player.packed_guid
+        response += player.packed_guid
+        response += player.packed_guid
         response += pack(
             '<IBHI',
-            int.from_bytes(buf.read(4), 'little'),          # spell id
-            1,                                              # cast count, currently 1 (for test)
+            spell_id,                               # spell id
+            1,                                      # cast count, currently 1 (for test)
             castFlags,
-            0,                                              # timer
+            0,                                      # timer
         )
 
-        response += session.player.packed_guid
+        response += player.packed_guid
 
-        return WorldOpCode.SMSG_SPELL_START.value, response #b'\x01\x01\x01\x01dP\x00\x00\x00\x02\x00\x00\x00\x00\x00\x02\x00\x00\x00\x01\x01'
+        return WorldOpCode.SMSG_SPELL_START, [response]

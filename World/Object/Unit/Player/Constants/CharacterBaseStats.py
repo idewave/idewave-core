@@ -1,5 +1,5 @@
-from World.Character.Constants.CharacterRace import CharacterRace
-from World.Character.Constants.CharacterClass import CharacterClass
+from World.Object.Unit.Player.Constants.CharacterRace import CharacterRace
+from World.Object.Unit.Player.Constants.CharacterClass import CharacterClass
 
 # list index equals to character level
 BASE_STATS = {

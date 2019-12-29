@@ -11,7 +11,7 @@ from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Object.Unit.Player.model import PlayerSkill
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
-from World.Character.Constants.CharacterClass import CharacterClass
+from World.Object.Unit.Player.Constants.CharacterClass import CharacterClass
 from Server.Connection.Connection import Connection
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.Object.Unit.Player.Constants.PlayerSpawnFields import PLAYER_SPAWN_FIELDS

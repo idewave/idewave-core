@@ -1,5 +1,5 @@
-from World.Character.Constants.CharacterRace import CharacterRace
-from World.Character.Constants.CharacterGender import CharacterGender
+from World.Object.Unit.Player.Constants.CharacterRace import CharacterRace
+from World.Object.Unit.Player.Constants.CharacterGender import CharacterGender
 
 CHARACTER_DISPLAY_ID = {
     CharacterRace.HUMAN: {

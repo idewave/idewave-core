@@ -2,7 +2,7 @@ from struct import pack
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Unit.Player.CharacterManager import CharacterManager
-from World.Character.Constants.CharDeleteResponseCode import CharDeleteResponseCode
+from World.Object.Unit.Player.Constants.CharDeleteResponseCode import CharDeleteResponseCode
 from Server.Connection.Connection import Connection
 
 

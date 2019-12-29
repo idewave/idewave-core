@@ -1,0 +1,1 @@
+MAX_AURAS = 56

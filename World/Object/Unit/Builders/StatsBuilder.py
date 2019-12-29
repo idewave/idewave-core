@@ -1,20 +1,19 @@
-import random
-import types
+from random import randrange
+from types import SimpleNamespace
 from typing import Union
 
-from World.Character.Constants.CharacterRace import CharacterRace
-from World.Character.Constants.CharacterClass import CharacterClass
-from World.Character.Constants.CharacterBaseStats import BASE_STATS, BASE_STATS_MOD
+from World.Object.Unit.Player.Constants.CharacterRace import CharacterRace
+from World.Object.Unit.Player.Constants.CharacterClass import CharacterClass
+from World.Object.Unit.Player.Constants.CharacterBaseStats import BASE_STATS, BASE_STATS_MOD
 from World.Object.Unit.Constants.UnitFlags import UnitFlags
 from World.Object.Unit.model import Unit, UnitTemplate
 from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Constants.UnitPower import UnitPower
-from Utils.Debug.Logger import Logger
 
 from Config.Run.config import Config
 
 
-class StatsStorage(types.SimpleNamespace):
+class StatsStorage(SimpleNamespace):
 
     def __getattr__(self, item):
         # if stat not exists return 0 by default
@@ -72,7 +71,7 @@ class StatsBuilder(object):
     def _build_stats_from_unit_template(self):
         unit_template = self.source
 
-        self.stats.level = random.randrange(unit_template.min_level, unit_template.max_level + 1)
+        self.stats.level = randrange(unit_template.min_level, unit_template.max_level + 1)
 
     def _build_stats_for_unit(self):
         unit = self.source
@@ -111,7 +110,7 @@ class StatsBuilder(object):
             more_stamina = current_stamina - base_stamina
             health += (base_stamina + (more_stamina * 10))
         elif isinstance(self.source, UnitTemplate):
-            health += random.randrange(self.source.min_health, self.source.min_health + 1)
+            health += randrange(self.source.min_health, self.source.min_health + 1)
         elif isinstance(self.source, Unit):
             health += self.source.health
 

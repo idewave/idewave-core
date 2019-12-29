@@ -106,15 +106,16 @@ def process():
 
     if parser_name == 'spell':
         if subcommand == 'create':
-            SpellManager().create(
-                entry=args[0].entry,
-                name=args[0].name,
-                cost=args[0].cost,
-                school=args[0].school,
-                range=args[0].range
-            ).save()
+            with SpellManager() as spell_mgr:
+                spell_mgr.create(
+                    entry=args[0].entry,
+                    name=args[0].name,
+                    cost=args[0].cost,
+                    school=args[0].school,
+                    range=args[0].range
+                ).save()
 
-            Logger.test('Spell "{}" ({}) created successfully!'.format(args[0].name, args[0].entry))
+                Logger.test('Spell "{}" ({}) created successfully!'.format(args[0].name, args[0].entry))
 
     # default spells
     default_spell_parser = commands.add_parser('default_spell')
@@ -128,19 +129,20 @@ def process():
 
     if parser_name == 'default_spell':
         if subcommand == 'create':
-            SpellManager().create_default_spell(
-                entry=args[0].entry,
-                race=args[0].race,
-                char_class=args[0].char_class
-            ).save()
+            with SpellManager() as spell_mgr:
+                spell_mgr.create_default_spell(
+                    entry=args[0].entry,
+                    race=args[0].race,
+                    char_class=args[0].char_class
+                ).save()
 
-            Logger.test(
-                'Default spell "{}" ({}:{}) created successfully!'.format(
-                    args[0].entry,
-                    args[0].race,
-                    args[0].char_class
+                Logger.test(
+                    'Default spell "{}" ({}:{}) created successfully!'.format(
+                        args[0].entry,
+                        args[0].race,
+                        args[0].char_class
+                    )
                 )
-            )
 
 
     # skills

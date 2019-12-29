@@ -1,6 +1,6 @@
 from struct import pack
 
-from World.Character.Constants.CharacterEquipSlot import CharacterEquipSlot
+from World.Object.Unit.Player.Constants.CharacterEquipSlot import CharacterEquipSlot
 from World.Object.ObjectManager import ObjectManager
 from World.Object.Unit.Player.Inventory.Equipment.model import Equipment, DefaultEquipment
 from World.Object.Unit.Player.Inventory.ItemSlot import ItemSlot

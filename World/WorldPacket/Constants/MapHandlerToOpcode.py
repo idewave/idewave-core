@@ -38,6 +38,9 @@ from World.Object.Unit.Movement.Handlers.MovementHandler import MovementHandler
 from World.Chat.TextEmote import TextEmote
 from World.Chat.Handlers.MessageHandler import MessageHandler
 
+from World.Object.Unit.Spell.Handlers.SpellStart import SpellStart
+from World.Object.Unit.Spell.Aura.Handlers.AuraDuration import AuraDuration
+from World.Object.Unit.Spell.Aura.Handlers.ExtraAuraInfo import ExtraAuraInfo
 from World.Object.Unit.Spell.Handlers.SpellResult import SpellResult
 
 from World.Object.Item.Handlers.ItemInfo import ItemInfo
@@ -117,10 +120,9 @@ MAP_HANDLER_TO_OPCODE = {
     # TODO: return actual data in this handlers
     # Spell
     WorldOpCode.CMSG_CAST_SPELL: [
-        #SpellStart,
-        #SpellGo,
-        #AuraDuration,
-        #ExtraAuraInfo,
+        SpellStart,
+        AuraDuration,
+        ExtraAuraInfo,
         SpellResult
     ],
     WorldOpCode.CMSG_CANCEL_CAST: [],

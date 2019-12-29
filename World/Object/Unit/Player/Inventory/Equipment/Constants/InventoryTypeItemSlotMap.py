@@ -1,4 +1,4 @@
-from World.Character.Constants.CharacterEquipSlot import CharacterEquipSlot
+from World.Object.Unit.Player.Constants.CharacterEquipSlot import CharacterEquipSlot
 from World.Object.Unit.Player.Inventory.Equipment.Constants.InventoryType import InventoryType
 
 

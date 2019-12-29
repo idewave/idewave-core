@@ -1,4 +1,4 @@
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from typing import List
 
 from DB.Connection.WorldConnection import WorldConnection
@@ -7,6 +7,8 @@ from World.Object.Unit.Player.model import Player, PlayerSpell
 
 
 class SpellManager(object):
+
+    __slots__ = ('session', 'spell_object')
 
     def __init__(self, **kwargs):
         self.spell_object = None
@@ -47,8 +49,19 @@ class SpellManager(object):
     def set_default_spells(self, player: Player):
         default_spells: List[DefaultSpell] = self.session \
             .query(DefaultSpell) \
-            .filter(or_(DefaultSpell.race == player.race, DefaultSpell.char_class == player.char_class)) \
+            .filter(or_(
+                or_(DefaultSpell.race == player.race, DefaultSpell.char_class == player.char_class),
+                and_(DefaultSpell.race.is_(None), DefaultSpell.char_class.is_(None))
+            )) \
             .all()
+
+        # default_spells: List[DefaultSpell] = self.session \
+        #     .query(DefaultSpell) \
+        #     .filter(
+        #     ((DefaultSpell.race == player.race) | (DefaultSpell.char_class == player.char_class)) |
+        #     ((DefaultSpell.race is None) & (DefaultSpell.char_class is None))
+        # ) \
+        #     .all()
 
         spells = []
 

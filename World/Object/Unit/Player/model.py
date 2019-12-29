@@ -3,6 +3,8 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from DB.BaseModel import BaseModel
 from World.Object.Unit.model import Unit
+# import below need for correct SQLAlchemy importing when use relationship
+from World.Object.Unit.Player.Inventory.Equipment.model import Equipment
 from World.Object.Constants.TypeMask import TypeMask
 from World.Object.Constants.ObjectType import ObjectType
 from World.Object.Constants.HighGuid import HighGuid

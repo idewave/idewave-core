@@ -3,10 +3,10 @@ from struct import pack, unpack
 from sqlalchemy.exc import IntegrityError
 
 from World.Object.Unit.Player.PlayerManager import PlayerManager
-from World.Character.Constants.CharacterRace import CharacterRace
-from World.Character.Constants.CharacterClass import CharacterClass
-from World.Character.Constants.CharacterGender import CharacterGender
-from World.Character.Constants.CharCreateResponseCode import CharCreateResponseCode
+from World.Object.Unit.Player.Constants.CharacterRace import CharacterRace
+from World.Object.Unit.Player.Constants.CharacterClass import CharacterClass
+from World.Object.Unit.Player.Constants.CharacterGender import CharacterGender
+from World.Object.Unit.Player.Constants.CharCreateResponseCode import CharCreateResponseCode
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
 from Utils.Debug.Logger import Logger

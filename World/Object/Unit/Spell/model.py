@@ -25,8 +25,8 @@ class DefaultSpell(BaseModel):
 
     __tablename__ = 'default_spell'
 
-    race = BaseModel.column(type='integer', nullable=True)
-    char_class = BaseModel.column(type='integer', nullable=True)
+    race                    = BaseModel.column(type='integer', nullable=True)
+    char_class              = BaseModel.column(type='integer', nullable=True)
 
     spell_template_id = BaseModel.column(type='integer',
                                          foreign_key=Config.Database.DBNames.world_db + '.spell_template.id')

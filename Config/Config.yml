@@ -43,12 +43,11 @@ Realm:
 World:
   Gameplay:
     game_speed: 0.01666667
-    # -1 for infinite distance, 0 for disable spawn, more than 0 for any distance
-    # be carefully when edit this option cause the smaller it is the more memory usage by octrees
+    # be careful when edit this option cause the smaller it is the more memory usage by octrees
     update_dist: 200
 
   Weather:
-    change_weather_timeout: 300
+    change_weather_timeout: 120
     instant_change: False
     # percentage
     Chances:
