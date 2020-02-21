@@ -47,7 +47,7 @@ World:
     update_dist: 200
 
   Weather:
-    change_weather_timeout: 120
+    change_weather_timeout: 300
     instant_change: False
     # percentage
     Chances:
@@ -81,6 +81,7 @@ World:
         Defaults:
           min_level: 1
           max_level: 70
+          # copper
           start_money: 10000
 
           Movement:

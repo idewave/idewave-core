@@ -161,7 +161,6 @@ class PlayerSpawn(object):
         )
 
         mana_classes = [
-            CharacterClass.HUNTER,
             CharacterClass.WARLOCK,
             CharacterClass.SHAMAN,
             CharacterClass.MAGE,
@@ -179,13 +178,19 @@ class PlayerSpawn(object):
         ]
 
         if char_class in mana_classes:
-            self.spawn_fields.append(UnitField.POWER1)
-            self.spawn_fields.append(UnitField.MAXPOWER1)
+            self.spawn_fields.append(UnitField.POWER_MANA)
+            self.spawn_fields.append(UnitField.MAXPOWER_MANA)
 
         elif char_class in rage_classes:
-            self.spawn_fields.append(UnitField.POWER2)
-            self.spawn_fields.append(UnitField.MAXPOWER2)
+            self.spawn_fields.append(UnitField.POWER_RAGE)
+            self.spawn_fields.append(UnitField.MAXPOWER_RAGE)
 
         elif char_class in energy_classes:
-            self.spawn_fields.append(UnitField.POWER4)
-            self.spawn_fields.append(UnitField.MAXPOWER4)
+            self.spawn_fields.append(UnitField.POWER_ENERGY)
+            self.spawn_fields.append(UnitField.MAXPOWER_ENERGY)
+
+        elif char_class == CharacterClass.HUNTER:
+            self.spawn_fields.append(UnitField.POWER_MANA)
+            self.spawn_fields.append(UnitField.MAXPOWER_MANA)
+            self.spawn_fields.append(UnitField.POWER_FOCUS)
+            self.spawn_fields.append(UnitField.MAXPOWER_FOCUS)

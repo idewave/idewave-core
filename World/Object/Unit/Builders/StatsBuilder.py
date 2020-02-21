@@ -5,6 +5,7 @@ from typing import Union
 from World.Object.Unit.Player.Constants.CharacterRace import CharacterRace
 from World.Object.Unit.Player.Constants.CharacterClass import CharacterClass
 from World.Object.Unit.Player.Constants.CharacterBaseStats import BASE_STATS, BASE_STATS_MOD
+from World.Object.Unit.Player.Constants.AttributesPerLevel import ATTRIBUTES_PER_LEVEL
 from World.Object.Unit.Constants.UnitFlags import UnitFlags
 from World.Object.Unit.model import Unit, UnitTemplate
 from World.Object.Unit.Player.model import Player
@@ -66,7 +67,8 @@ class StatsBuilder(object):
 
         self.stats.base_mana = StatsBuilder._get_base_mana(player)
         # TODO: should look into formula
-        self.stats.mana = self.stats.max_mana = self.stats.base_mana
+        mana = self.get_mana(player)
+        self.stats.mana = self.stats.max_mana = mana
 
     def _build_stats_from_unit_template(self):
         unit_template = self.source
@@ -91,7 +93,6 @@ class StatsBuilder(object):
         self.stats.armor = self._get_armor()
         # TODO: should look into formulas
         self.stats.health = self.stats.base_health = self.stats.max_health = self._get_health()
-        self.stats.mana = self.stats.base_mana = 0
 
     def _get_armor(self):
         armor = 0
@@ -168,6 +169,18 @@ class StatsBuilder(object):
             return base_stat[player.level]
         else:
             return 0
+
+    def get_mana(self, player: Player):
+        mana_total = self.stats.base_mana
+
+        char_class = CharacterClass(player.char_class)
+        modifiers = ATTRIBUTES_PER_LEVEL[char_class]
+        modifier_intellect = modifiers.get("intellect", None)
+        if modifier_intellect:
+            modifier_mana = modifier_intellect.get("mana", None)
+            mana_total += self.stats.intellect * modifier_mana
+
+        return mana_total
 
     @staticmethod
     def _set_power_type(player: Player):

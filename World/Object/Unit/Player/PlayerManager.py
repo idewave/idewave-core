@@ -3,17 +3,18 @@ from typing import List
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Unit.UnitManager import UnitManager
+from World.Object.Unit.Player.Stats.Builders.PlayerStatsBuilder import PlayerStatsBuilder
 from World.Object.Unit.Player.model import Player
-from World.Object.Constants.UpdateObjectFields import PlayerField
+from World.Object.Constants.UpdateObjectFields import UnitField, PlayerField
 from World.Object.Unit.Player.Inventory.Equipment.EquipmentManager import EquipmentManager
 from World.Object.Unit.Player.Skill.SkillManager import SkillManager
 from World.Object.Unit.Spell.SpellManager import SpellManager
 from World.Object.Unit.Player.Inventory.Equipment.model import Equipment
-from World.Object.Unit.Builders.StatsBuilder import StatsBuilder
 from World.Object.Unit.Player.Constants.CharacterRace import CharacterRace
 from World.Object.Unit.Player.Constants.CharacterGender import CharacterGender
 from World.Object.Unit.Player.Constants.CharacterEquipSlot import CharacterEquipSlot
 from World.Object.Unit.Player.Constants.CharacterDisplayId import CHARACTER_DISPLAY_ID
+from World.Object.Unit.Player.Constants.PowerTypeToCharClass import POWER_TYPE
 from World.Region.model import DefaultLocation
 
 from Server.Registry.QueuesRegistry import QueuesRegistry
@@ -39,27 +40,36 @@ class PlayerManager(UnitManager):
         return self.world_object
 
     def add_player_fields(self):
-        stats = StatsBuilder(self.player).build().get_stats()
+        player = self.player
+        stats = self.stats
 
-        self.set_object_field(PlayerField.FLAGS, stats.player_flags)
+        self.set_object_field(PlayerField.FLAGS, 0)
+
+        bytes0 = (
+            player.race                             |
+            player.char_class << 8                  |
+            player.gender << 16                     |
+            POWER_TYPE[player.char_class] << 24
+        )
 
         bytes_1 = (
-            self.player.skin                 |
-            self.player.face << 8            |
-            self.player.hair_style << 16     |
-            self.player.hair_color << 24
+            player.skin                             |
+            player.face << 8                        |
+            player.hair_style << 16                 |
+            player.hair_color << 24
         )
 
         bytes_2 = (
-            self.player.facial_hair          |
+            player.facial_hair                      |
             # TODO: debug values below
-            0x00 << 8                            |
-            0x00 << 16                           |
+            0x00 << 8                               |
+            0x00 << 16                              |
             0x02 << 24
         )
 
-        bytes_3 = self.player.gender
+        bytes_3 = player.gender
 
+        self.set_object_field(UnitField.BYTES_0, bytes0)
         self.set_object_field(PlayerField.BYTES_1, bytes_1)
         self.set_object_field(PlayerField.BYTES_2, bytes_2)
         self.set_object_field(PlayerField.BYTES_3, bytes_3)
@@ -67,21 +77,21 @@ class PlayerManager(UnitManager):
         self.set_object_field(PlayerField.XP, stats.xp)
         self.set_object_field(PlayerField.NEXT_LEVEL_XP, stats.next_level_xp)
 
-        self.set_object_field(PlayerField.CHARACTER_POINTS1, stats.character_points_1)
-        self.set_object_field(PlayerField.CHARACTER_POINTS2, stats.character_points_2)
+        self.set_object_field(PlayerField.CHARACTER_POINTS1, stats.free_talent_points)
+        self.set_object_field(PlayerField.CHARACTER_POINTS2, stats.free_primary_professions_points)
 
         self.set_object_field(PlayerField.BLOCK_PERCENTAGE, stats.block)
         self.set_object_field(PlayerField.DODGE_PERCENTAGE, stats.dodge)
         self.set_object_field(PlayerField.PARRY_PERCENTAGE, stats.parry)
-        self.set_object_field(PlayerField.CRIT_PERCENTAGE, stats.crit)
-        # TODO: set to own param
-        self.set_object_field(PlayerField.RANGED_CRIT_PERCENTAGE, stats.crit)
+        self.set_object_field(PlayerField.CRIT_PERCENTAGE, stats.melee_crit)
+        # TODO: calculate ranged crit
+        self.set_object_field(PlayerField.RANGED_CRIT_PERCENTAGE, stats.ranged_crit)
 
         self.set_object_field(PlayerField.REST_STATE_EXPERIENCE, stats.rest_state_exp)
-        self.set_object_field(PlayerField.COINAGE, stats.money)
+        self.set_object_field(PlayerField.COINAGE, Config.World.Object.Unit.Player.Defaults.start_money)
 
         # TODO: set to actual
-        self.set_object_field(PlayerField.WATCHED_FACTION_INDEX, -1) # -1 is default (according to Mangos)
+        self.set_object_field(PlayerField.WATCHED_FACTION_INDEX, -1)
         self.set_object_field(PlayerField.BYTES, 0)
         self.set_object_field(PlayerField.MAX_LEVEL, Config.World.Object.Unit.Player.Defaults.max_level)
 
@@ -90,6 +100,7 @@ class PlayerManager(UnitManager):
             item = self.equipment[CharacterEquipSlot(slot)].item
 
             if item is not None:
+                # TODO: fix magic numbers
                 # set VISIBLE_ITEM_1_0 + offset
                 visible_item_index = PlayerField.VISIBLE_ITEM_1_0.value + (slot * 16)
                 self.set_object_field(PlayerField(visible_item_index), item.item_template.entry)
@@ -100,10 +111,11 @@ class PlayerManager(UnitManager):
                 self.set_object_field(PlayerField.MOD_DAMAGE_NORMAL_DONE_PCT, 1)
 
     def _set_display_id(self):
-        race = CharacterRace(self.player.race)
-        gender = CharacterGender(self.player.gender)
+        player = self.player
+        race = CharacterRace(player.race)
+        gender = CharacterGender(player.gender)
         display_id = CHARACTER_DISPLAY_ID[race][gender]
-        self.player.display_id = self.player.native_display_id = display_id
+        player.display_id = player.native_display_id = display_id
 
     # def add_skill(self, skill_id: int, min: int, max: int):
     #     skill = Skill(id=skill_id, min=min, max=max)
@@ -134,19 +146,24 @@ class PlayerManager(UnitManager):
             spell_mgr.set_default_spells(player=self.player)
 
     def _set_start_location(self):
-        location: DefaultLocation = self.session.query(DefaultLocation).filter_by(race=self.player.race).first()
+        player = self.player
+        location: DefaultLocation = self.session.query(DefaultLocation).filter_by(race=player.race).first()
 
-        self.player.x = location.x
-        self.player.y = location.y
-        self.player.z = location.z
-        self.player.orientation = float(0)
+        player.x = location.x
+        player.y = location.y
+        player.z = location.z
+        player.orientation = float(0)
 
-        self.player.region = location.region
-        self.player.map_id = location.map_id
+        player.region = location.region
+        player.map_id = location.map_id
 
     def _set_faction_template_id(self):
-        race = CharacterRace(self.player.race)
-        self.player.faction_template = CHARACTER_DISPLAY_ID[race]['faction_template']
+        player = self.player
+        race = CharacterRace(player.race)
+        player.faction_template = CHARACTER_DISPLAY_ID[race]['faction_template']
+
+    def _init_stats(self) -> None:
+        self.stats = PlayerStatsBuilder(world_object=self.player).build().get_stats()
 
     # overridable
     def load(self, **kwargs):
@@ -179,9 +196,10 @@ class PlayerManager(UnitManager):
         self.session.add(self.player)
         self.session.flush()
 
-        self.stats_builder = StatsBuilder(self.player)
+        # self.stats_builder = StatsBuilder(self.player)
 
-        self.set_stats()
+        # self.set_stats()
+        self._set_stats()
 
         self.save()
 
@@ -193,9 +211,10 @@ class PlayerManager(UnitManager):
 
     def prepare(self):
         super(PlayerManager, self).prepare()
+        player = self.player
 
         with EquipmentManager() as equipment_mgr:
-            self.equipment = equipment_mgr.get_equipment(player=self.player).get_items()
+            self.equipment = equipment_mgr.get_equipment(player=player).get_items()
             self.add_player_fields()
             return self
 

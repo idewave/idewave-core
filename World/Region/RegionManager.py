@@ -108,45 +108,6 @@ class RegionManager(object):
         return {unit.guid: unit for unit in region.units}
 
     # @staticmethod
-    # def get_spawn_packets(objects: List[Union[Unit, Player]]):
-    #     update_flags = (
-    #         UpdateObjectFlags.UPDATEFLAG_HIGHGUID.value |
-    #         UpdateObjectFlags.UPDATEFLAG_LIVING.value |
-    #         UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value
-    #     )
-    #
-    #     head_mgr = None
-    #
-    #     while objects:
-    #         current = objects.pop()
-    #         manager = RegionManager.get_manager_by_object_type(current)
-    #
-    #         if manager is None:
-    #             Logger.warning('[RegionMgr]: it seems there are object with incorrect type')
-    #             continue
-    #
-    #         fields = RegionManager.get_update_fields_by_object_type(current)
-    #
-    #         with manager as mgr:
-    #             RegionManager._init_update_packet_builder(
-    #                 mgr,
-    #                 object_update_type=ObjectUpdateType.CREATE_OBJECT2,
-    #                 update_flags=update_flags,
-    #                 update_object=objects.pop()
-    #             )
-    #
-    #             if head_mgr is None:
-    #                 head_mgr = mgr
-    #
-    #             batch = mgr.create_batch(fields)
-    #             head_mgr.add_batch(batch)
-    #
-    #     if head_mgr is None:
-    #         return []
-    #
-    #     return head_mgr.build_update_packet().get_update_packets()
-
-    # @staticmethod
     # def send_despawn_packets(current_object: Player, guids: List[int]) -> None:
     #     asyncio.ensure_future(
     #         QueuesRegistry.dynamic_packets_queue.put((

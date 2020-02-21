@@ -3,7 +3,7 @@ from World.Object.Unit.Player.Constants.CharacterClass import CharacterClass
 
 # list index equals to character level
 BASE_STATS = {
-    CharacterClass.DRUID: {
+    CharacterClass.DRUID.value: {
         'agility': [
             15, 17, 18, 19, 19, 19, 20, 21, 23, 24, 26, 29, 31, 34, 36, 39, 41, 45, 47, 50, 52, 56, 58,
             62, 65, 67, 69, 73, 76, 78, 81, 83, 86, 90, 93, 95, 98, 100, 103, 106, 109, 111, 114, 116,
@@ -38,7 +38,7 @@ BASE_STATS = {
             1359, 1469, 1582, 1694, 1807, 1919, 2032, 2145, 2257, 2370
         ]
     },
-    CharacterClass.HUNTER: {
+    CharacterClass.HUNTER.value: {
         'agility': [
             15, 17, 18, 19, 19, 19, 20, 21, 23, 24, 26, 29, 31, 34, 36, 39, 41, 45, 47, 50, 52, 56, 58,
             62, 65, 67, 69, 73, 76, 78, 81, 83, 86, 90, 93, 95, 98, 100, 103, 106, 109, 111, 114, 116,
@@ -72,7 +72,7 @@ BASE_STATS = {
             1075, 1075, 2053, 2053, 2053, 2053, 2053, 2053, 2053, 2053, 3383
         ]
     },
-    CharacterClass.MAGE: {
+    CharacterClass.MAGE.value: {
         'agility': [
             10, 12, 12, 13, 13, 13, 14, 15, 16, 17, 18, 20, 21, 24, 25, 27, 28, 31, 33, 35, 36, 39, 40, 43,
             45, 46, 48, 51, 53, 54, 56, 57, 60, 62, 64, 66, 68, 69, 71, 73, 75, 77, 79, 80, 83, 86, 87, 89,
@@ -105,7 +105,7 @@ BASE_STATS = {
             1213, 1213, 1521, 1521, 1521, 1521, 1932, 2035, 2035, 2241
         ]
     },
-    CharacterClass.PALADIN: {
+    CharacterClass.PALADIN.value: {
         'agility': [
             5, 6, 6, 7, 7, 7, 7, 7, 8, 9, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 18, 20, 21, 22, 23,
             24, 24, 26, 27, 28, 29, 29, 30, 32, 33, 34, 35, 35, 37, 38, 39, 39, 40, 41, 43, 44, 45, 46,
@@ -139,7 +139,7 @@ BASE_STATS = {
             1512, 1656, 1800, 1944, 2088, 2232, 2377, 2521, 2665, 2809, 2953
         ]
     },
-    CharacterClass.PRIEST: {
+    CharacterClass.PRIEST.value: {
         'agility': [
             12, 14, 15, 16, 16, 16, 17, 17, 19, 20, 22, 24, 26, 28, 30, 32, 34, 37, 39, 42, 43, 47,
             48, 52, 54, 56, 57, 61, 63, 65, 67, 69, 71, 75, 77, 79, 81, 83, 86, 88, 91, 92, 95, 96,
@@ -173,7 +173,7 @@ BASE_STATS = {
             911, 911, 911, 911, 911, 911, 2620
         ]
     },
-    CharacterClass.ROGUE: {
+    CharacterClass.ROGUE.value: {
         'agility': [
             15, 17, 18, 19, 19, 19, 20, 21, 23, 24, 26, 29, 31, 34, 36, 39, 41, 45, 47, 50, 52, 56,
             58, 62, 65, 67, 69, 73, 76, 78, 81, 83, 86, 90, 93, 95, 98, 100, 103, 106, 109, 111, 114,
@@ -202,7 +202,7 @@ BASE_STATS = {
             61, 63, 63, 65, 65, 67, 72, 76, 81, 82, 83, 85, 85, 87, 87, 92
         ]
     },
-    CharacterClass.SHAMAN: {
+    CharacterClass.SHAMAN.value: {
         'agility': [
             15, 17, 18, 19, 19, 19, 20, 21, 23, 24, 26, 29, 31, 34, 36, 39, 41, 45, 47, 50, 52, 56,
             58, 62, 65, 67, 69, 73, 76, 78, 81, 83, 86, 90, 93, 95, 98, 100, 103, 106, 109, 111, 114,
@@ -236,7 +236,7 @@ BASE_STATS = {
             1520, 1664, 1808, 1951, 2095, 2239, 2383, 2527, 2670, 2814, 2958
         ]
     },
-    CharacterClass.WARLOCK: {
+    CharacterClass.WARLOCK.value: {
         'agility': [
             12, 13, 14, 15, 15, 15, 15, 16, 18, 18, 20, 22, 24, 26, 28, 30, 31, 35, 36, 38, 40, 43,
             45, 48, 50, 51, 53, 56, 58, 60, 62, 64, 66, 69, 71, 73, 75, 77, 79, 81, 84, 85, 87, 89,
@@ -270,7 +270,7 @@ BASE_STATS = {
             1522, 1522, 1522, 1522, 2871
         ]
     },
-    CharacterClass.WARRIOR: {
+    CharacterClass.WARRIOR.value: {
         'agility': [
             10, 12, 12, 13, 13, 13, 14, 15, 16, 17, 18, 20, 21, 24, 25, 27, 28, 31, 33, 35, 36, 39,
             40, 43, 45, 46, 48, 51, 53, 54, 56, 57, 60, 62, 64, 66, 68, 69, 71, 73, 75, 77, 79, 80,
@@ -305,16 +305,16 @@ BASE_STATS = {
 BASE_STATS_MOD = {
 
     # Alliance
-    CharacterRace.HUMAN: {'agility': 0, 'intellect': 0, 'strength': 0, 'stamina': 0, 'spirit': 0},
-    CharacterRace.DWARF: {'agility': -4, 'intellect': -1, 'strength': +5, 'stamina': 1, 'spirit': -1},
-    CharacterRace.NIGHT_ELF: {'agility': +4, 'intellect': 0, 'strength': -4, 'stamina': 0, 'spirit': 0},
-    CharacterRace.GNOME: {'agility': +2, 'intellect': +3, 'strength': -5, 'stamina': 0, 'spirit': 0},
-    CharacterRace.DRAENEI: {'agility': -3, 'intellect': 0, 'strength': +1, 'stamina': 0, 'spirit': +2},
+    CharacterRace.HUMAN.value: {'agility': 0, 'intellect': 0, 'strength': 0, 'stamina': 0, 'spirit': 0},
+    CharacterRace.DWARF.value: {'agility': -4, 'intellect': -1, 'strength': +5, 'stamina': 1, 'spirit': -1},
+    CharacterRace.NIGHT_ELF.value: {'agility': +4, 'intellect': 0, 'strength': -4, 'stamina': 0, 'spirit': 0},
+    CharacterRace.GNOME.value: {'agility': +2, 'intellect': +3, 'strength': -5, 'stamina': 0, 'spirit': 0},
+    CharacterRace.DRAENEI.value: {'agility': -3, 'intellect': 0, 'strength': +1, 'stamina': 0, 'spirit': +2},
 
     # Horde
-    CharacterRace.ORC: {'agility': -3, 'intellect': -3, 'strength': +3, 'stamina': +1, 'spirit': +2},
-    CharacterRace.TROLL: {'agility': +2, 'intellect': -4, 'strength': +1, 'stamina': 0, 'spirit': +1},
-    CharacterRace.UNDEAD: {'agility': -2, 'intellect': -2, 'strength': -1, 'stamina': 0, 'spirit': +5},
-    CharacterRace.TAUREN: {'agility': -4, 'intellect': -4, 'strength': +5, 'stamina': +1, 'spirit': +2},
-    CharacterRace.BLOOD_ELF: {'agility': +2, 'intellect': +3, 'strength': -3, 'stamina': 0, 'spirit': -2}
+    CharacterRace.ORC.value: {'agility': -3, 'intellect': -3, 'strength': +3, 'stamina': +1, 'spirit': +2},
+    CharacterRace.TROLL.value: {'agility': +2, 'intellect': -4, 'strength': +1, 'stamina': 0, 'spirit': +1},
+    CharacterRace.UNDEAD.value: {'agility': -2, 'intellect': -2, 'strength': -1, 'stamina': 0, 'spirit': +5},
+    CharacterRace.TAUREN.value: {'agility': -4, 'intellect': -4, 'strength': +5, 'stamina': +1, 'spirit': +2},
+    CharacterRace.BLOOD_ELF.value: {'agility': +2, 'intellect': +3, 'strength': -3, 'stamina': 0, 'spirit': -2}
 }

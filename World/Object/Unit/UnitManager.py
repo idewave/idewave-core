@@ -2,18 +2,20 @@ from World.Object.ObjectManager import ObjectManager
 from World.Object.Constants.UpdateObjectFields import UnitField
 from World.Object.Unit.model import Unit, UnitTemplate
 from World.Region.model import Region
-from World.Object.Unit.Builders.StatsBuilder import StatsBuilder
-from World.Object.Position import Position
+from World.Object.Unit.Constants.UnitFlags import UnitFlags
+from World.Object.Unit.Stats.Builders.UnitStatsBuilder import UnitStatsBuilder
 
 from Config.Run.config import Config
 
 
 class UnitManager(ObjectManager):
 
+    __slots__ = ('world_object', 'stats')
+
     def __init__(self, **kwargs):
         super(UnitManager, self).__init__(**kwargs)
         self.world_object = Unit()
-        self.stats_builder = None
+        self.stats = UnitStatsBuilder(world_object=self.world_object).build().get_stats()
 
     @property
     def unit(self):
@@ -21,36 +23,25 @@ class UnitManager(ObjectManager):
 
     def add_unit_fields(self):
 
-        # notice: world_object can be instance of Unit or Player here
-        stats = StatsBuilder(self.world_object).build().get_stats()
+        stats = self.stats
 
         self.set_object_field(UnitField.HEALTH, stats.health)
-        self.set_object_field(UnitField.POWER1, stats.mana)
-        self.set_object_field(UnitField.POWER2, stats.rage)
-        self.set_object_field(UnitField.POWER3, stats.focus)
-        self.set_object_field(UnitField.POWER4, stats.energy)
-        self.set_object_field(UnitField.POWER5, stats.happiness)
+        self.set_object_field(UnitField.POWER_MANA, stats.mana)
+        self.set_object_field(UnitField.POWER_RAGE, stats.rage)
+        self.set_object_field(UnitField.POWER_FOCUS, stats.focus)
+        self.set_object_field(UnitField.POWER_ENERGY, stats.energy)
+        self.set_object_field(UnitField.POWER_HAPPINESS, stats.happiness)
 
         self.set_object_field(UnitField.MAXHEALTH, stats.max_health)
-        self.set_object_field(UnitField.MAXPOWER1, stats.max_mana)
-        self.set_object_field(UnitField.MAXPOWER2, stats.max_rage)
-        self.set_object_field(UnitField.MAXPOWER3, stats.max_focus)
-        self.set_object_field(UnitField.MAXPOWER4, stats.max_energy)
-        self.set_object_field(UnitField.MAXPOWER5, stats.max_happiness)
+        self.set_object_field(UnitField.MAXPOWER_MANA, stats.max_mana)
+        self.set_object_field(UnitField.MAXPOWER_RAGE, stats.max_rage)
+        self.set_object_field(UnitField.MAXPOWER_FOCUS, stats.max_focus)
+        self.set_object_field(UnitField.MAXPOWER_ENERGY, stats.max_energy)
+        self.set_object_field(UnitField.MAXPOWER_HAPPINESS, stats.max_happiness)
 
-        if self.unit.race is not None and self.unit.char_class is not None and self.unit.gender is not None:
-            bytes0 = (
-                self.unit.race                       |
-                self.unit.char_class << 8            |
-                self.unit.gender << 16               |
-                stats.power_type << 24
-            )
-
-            self.set_object_field(UnitField.BYTES_0, bytes0)
-
-        self.set_object_field(UnitField.LEVEL, stats.level)
+        self.set_object_field(UnitField.LEVEL, self.unit.level)
         self.set_object_field(UnitField.FACTIONTEMPLATE, self.unit.faction_template)
-        self.set_object_field(UnitField.FLAGS, stats.unit_flags)
+        self.set_object_field(UnitField.FLAGS, UnitFlags.PLAYER_CONTROLLED.value)
 
         self.set_object_field(UnitField.BASEATTACKTIME, stats.attack_time_mainhand)
         self.set_object_field(UnitField.OFFHANDATTACKTIME, stats.attack_time_offhand)
@@ -92,12 +83,12 @@ class UnitManager(ObjectManager):
         self.set_object_field(UnitField.ATTACK_POWER, self.unit.attack_power)
         self.set_object_field(UnitField.BASE_MANA, self.unit.base_mana)
         self.set_object_field(UnitField.BASE_HEALTH, self.unit.base_health)
-        self.set_object_field(UnitField.ATTACK_POWER_MODS, stats.attack_power_mod)
+        self.set_object_field(UnitField.ATTACK_POWER_MODS, 0)
 
         self.set_object_field(UnitField.BYTES_2, self.unit.unit_bytes_2) # sheath, forms
 
         self.set_object_field(UnitField.RANGED_ATTACK_POWER, self.unit.ranged_attack_power)
-        self.set_object_field(UnitField.RANGED_ATTACK_POWER_MODS, stats.ranged_attack_power_mod)
+        self.set_object_field(UnitField.RANGED_ATTACK_POWER_MODS, 0)
         self.set_object_field(UnitField.MINRANGEDDAMAGE, self.unit.min_ranged_damage)
         self.set_object_field(UnitField.MAXRANGEDDAMAGE, self.unit.max_ranged_damage)
 
@@ -145,8 +136,9 @@ class UnitManager(ObjectManager):
         self.world_object.y = y
         self.world_object.z = z
 
-        self.stats_builder = StatsBuilder(unit_template)
-        self.set_stats()
+        # self.stats_builder = StatsBuilder(unit_template)
+        # self.set_stats()
+        self._set_stats()
 
         self._set_display_id()
         self._set_faction_template()
@@ -156,14 +148,23 @@ class UnitManager(ObjectManager):
     # inheritable
     def prepare(self):
         super(UnitManager, self).prepare()
+        self._init_stats()
         self.add_unit_fields()
         return self
 
-    def set_stats(self):
-        stats = self.stats_builder.build().get_stats()
+    # def set_stats(self):
+    #     stats = self.stats_builder.build().get_stats()
+    #     for key in stats:
+    #         setattr(self.world_object, key, getattr(stats, key))
+    #     return self
+    def _init_stats(self) -> None:
+        self.stats = UnitStatsBuilder(world_object=self.unit).build().get_stats()
+
+    def _set_stats(self) -> None:
+        self._init_stats()
+        stats = self.stats
         for key in stats:
             setattr(self.world_object, key, getattr(stats, key))
-        return self
 
     def _set_display_id(self):
         self.unit.display_id = self.unit.native_display_id = self.unit.unit_template.display_id_1
