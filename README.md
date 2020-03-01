@@ -2,6 +2,8 @@
 
 I'm very grateful to the Mangos community, in particular to Kyoril, for help and hints. 
 
+Also thanks to https://www.draw.io/ for handy diagramming tools.
+
 ## Before start
 This works on Python v3.x.
 
