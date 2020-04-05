@@ -5,7 +5,7 @@ from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Constants.UpdateObjectFields import UnitField, PlayerField
 from World.Region.model import Region
 from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
-from World.Region.Octree.OctreeNode import OctreeNode
+from World.Region.Octree.Node import ChildNode
 from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Object.Unit.Player.model import PlayerSkill
@@ -15,9 +15,10 @@ from World.Object.Unit.Player.Constants.CharacterClass import CharacterClass
 from Server.Connection.Connection import Connection
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.Object.Unit.Player.Constants.PlayerSpawnFields import PLAYER_SPAWN_FIELDS
+from Typings.Abstract import AbstractHandler
 
 
-class PlayerSpawn(object):
+class PlayerSpawn(AbstractHandler):
 
     __slots__ = ('data', 'connection', 'spawn_fields', 'update_flags')
 
@@ -72,54 +73,54 @@ class PlayerSpawn(object):
                 .build_update_packet()\
                 .get_update_packets()
 
-            ensure_future(QueuesRegistry.broadcast_callback_queue.put((
-                WorldOpCode.SMSG_UPDATE_OBJECT,
-                packets,
-                self._broadcast,
-            )))
+            # ensure_future(QueuesRegistry.broadcast_callback_queue.put((
+            #     WorldOpCode.SMSG_UPDATE_OBJECT,
+            #     packets,
+            #     self._broadcast,
+            # )))
 
             return WorldOpCode.SMSG_UPDATE_OBJECT, packets
 
-    def _broadcast(self, **kwargs) -> None:
-        opcode: WorldOpCode = kwargs.pop('opcode')
-        regions: Dict[int, Region] = kwargs.pop('regions')
-
-        player: Player = self.connection.player
-        current_region: Region = regions.get(player.region.id)
-        if current_region is None:
-            return None
-
-        root_node: OctreeNode = current_region.get_octree()
-        OctreeNodeManager.set_object(root_node, player)
-
-        current_node: OctreeNode = player.get_current_node()
-        if not current_node:
-            return None
-
-        # we get parent of parent because some of nearest nodes can lay in the another parent
-        node_to_notify: OctreeNode = current_node.parent_node.parent_node
-        guids = OctreeNodeManager.get_guids(node_to_notify)
-        guids: List[int] = [guid for guid in guids if not guid == player.guid]
-
-        if not guids:
-            return None
-
-        targets_to_notify: List[Player] = [
-            player
-            for player in current_region.players
-            if player.guid in guids
-        ]
-
-        if not targets_to_notify:
-            return None
-
-        target_packets: List[bytes] = PlayerSpawn.create_target_packets(targets=targets_to_notify)
-        for packet in target_packets:
-            PlayerManager.send_packet_to_player(player, opcode, packet)
-
-        player_packets: List[bytes] = PlayerSpawn.create_target_packets(targets=[player])
-        for packet in player_packets:
-            PlayerManager.broadcast(opcode, packet, targets_to_notify)
+    # def _broadcast(self, **kwargs) -> None:
+    #     opcode: WorldOpCode = kwargs.pop('opcode')
+    #     regions: Dict[int, Region] = kwargs.pop('regions')
+    #
+    #     player: Player = self.connection.player
+    #     current_region: Region = regions.get(player.region.id)
+    #     if current_region is None:
+    #         return None
+    #
+    #     root_node: ChildNode = current_region.get_octree()
+    #     OctreeNodeManager.set_object(root_node, player)
+    #
+    #     current_node: ChildNode = player.get_current_node()
+    #     if not current_node:
+    #         return None
+    #
+    #     # we get parent of parent because some of nearest nodes can lay in the another parent
+    #     node_to_notify: ChildNode = current_node.parent_node.parent_node
+    #     guids = OctreeNodeManager.get_guids(node_to_notify)
+    #     guids: List[int] = [guid for guid in guids if not guid == player.guid]
+    #
+    #     if not guids:
+    #         return None
+    #
+    #     targets_to_notify: List[Player] = [
+    #         player
+    #         for player in current_region.players
+    #         if player.guid in guids
+    #     ]
+    #
+    #     if not targets_to_notify:
+    #         return None
+    #
+    #     target_packets: List[bytes] = PlayerSpawn.create_target_packets(targets=targets_to_notify)
+    #     for packet in target_packets:
+    #         PlayerManager.send_packet_to_player(player, opcode, packet)
+    #
+    #     player_packets: List[bytes] = PlayerSpawn.create_target_packets(targets=[player])
+    #     for packet in player_packets:
+    #         PlayerManager.broadcast(opcode, packet, targets_to_notify)
 
     @staticmethod
     def create_target_packets(targets: List[Player]) -> List[bytes]:

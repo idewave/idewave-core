@@ -1,13 +1,9 @@
-import time
-
 from struct import pack
 
 from DB.Connection.RealmConnection import RealmConnection
 from Account.model import Account
 from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Player.Inventory.Equipment.EquipmentManager import EquipmentManager
-
-from Utils.Debug.Logger import Logger
 
 
 class CharacterManager(object):

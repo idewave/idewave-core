@@ -8,7 +8,7 @@ class ItemSlot(object):
         self.item = None
 
     def set_item(self, item: Item):
-        self.item = Item
+        self.item = item
 
     def is_empty(self):
         return self.item is None

@@ -10,9 +10,9 @@ class SRP(object):
 
     def __init__(self, **kwargs):
         self._generate_priv_ephemeral()
-        self.session_key = kwargs.pop('session_key', bytes())
-        self.client_proof = kwargs.pop('client_proof', bytes())
-        self.server_proof = kwargs.pop('server_proof', bytes())
+        self.session_key: bytes = kwargs.pop('session_key', bytes())
+        self.client_proof: bytes = kwargs.pop('client_proof', bytes())
+        self.server_proof: bytes = kwargs.pop('server_proof', bytes())
         self.serv_ephemeral = kwargs.pop('serv_ephemeral', None)
 
     def _generate_priv_ephemeral(self):
@@ -71,8 +71,8 @@ class SRP(object):
         self.server_proof = sha1(to_hash).digest()
 
     @staticmethod
-    def generate_verifier(ident, password, salt):
-        login_data = '{}:{}'.format(ident, password)
+    def generate_verifier(username, password, salt):
+        login_data = '{}:{}'.format(username, password)
         login_hash = sha1(login_data.encode('ascii')).digest()
         salted_hash = salt + login_hash
         salted_hash_bytes = sha1(salted_hash).digest()

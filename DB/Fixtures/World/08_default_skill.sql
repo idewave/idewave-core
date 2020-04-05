@@ -1,4 +1,4 @@
-INSERT INTO `default_skill` (`id`, `race`, `char_class`, `skill_template_id`) VALUES
+INSERT INTO `default_skills` (`id`, `race`, `char_class`, `skill_template_id`) VALUES
 (1, 1, NULL, 104),
 (2, 1, NULL, 18),
 (3, 2, NULL, 26),

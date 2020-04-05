@@ -54,6 +54,9 @@ class UpdatePacketBuilder(object):
         self.object_type = kwargs.pop('object_type')
         self.update_blocks_builder = UpdateBlocksBuilder()
 
+        # 1 for zeppelins, ships etc
+        self.has_transport: int = kwargs.pop('has_transport', 0)
+
         self.batches = []
         self.packets = []
 
@@ -172,9 +175,6 @@ class UpdatePacketBuilder(object):
         self.batches.append(batch)
 
     def build(self) -> None:
-        # TODO: should be fixed according to transport existence
-        has_transport = 0
-
         while self.batches:
             head_update_packet = self.batches.pop(0)
             count = 1
@@ -189,7 +189,7 @@ class UpdatePacketBuilder(object):
             header = pack(
                 '<IB',
                 count,
-                has_transport
+                self.has_transport
             )
 
             self.packets.append(header + head_update_packet)

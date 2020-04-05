@@ -1,20 +1,22 @@
 from struct import pack
-from typing import Union
+from typing import Optional
 
 from Server.Connection.Connection import Connection
 
-from World.WorldPacket.Constants.LoginOpCode import LoginOpCode
-from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
+from World.Observer import WorldObserver
+
+from World.WorldPacket.Constants import LoginOpCode, WorldOpCode, ANY_OPCODE
 from World.WorldPacket.Constants.MapHandlerToOpcode import MAP_HANDLER_TO_OPCODE
-from Utils.Debug.Logger import Logger
+from Utils.Debug import Logger
 
 
 class WorldPacketManager(object):
 
-    __slots__ = ('connection',)
+    __slots__ = ('connection', 'world_observer')
 
     def __init__(self, **kwargs):
         self.connection: Connection = kwargs.pop('connection')
+        self.world_observer: WorldObserver = kwargs.get('world_observer')
 
     async def process(self, **kwargs):
         size_bytes: bytes = kwargs.pop('size', None)
@@ -47,17 +49,18 @@ class WorldPacketManager(object):
             Logger.warning('[World Packet]: no handler for opcode = {}'.format(opcode.name))
             return None
 
-    async def _process_handler(self, handler, opcode: Union[LoginOpCode, WorldOpCode], data: bytes):
+    async def _process_handler(self, handler, opcode: ANY_OPCODE, data: bytes):
         opcode, response = await handler(
             opcode=opcode,
             data=data,
-            connection=self.connection
+            connection=self.connection,
+            world_observer=self.world_observer
         ).process()
 
         return opcode, response
 
     @staticmethod
-    def _get_opcode_from_bytes(opcode_bytes: bytes) -> Union[LoginOpCode, WorldOpCode, None]:
+    def _get_opcode_from_bytes(opcode_bytes: bytes) -> Optional[ANY_OPCODE]:
         opcode = int.from_bytes(opcode_bytes, 'little')
 
         if len(opcode_bytes) == 1:
@@ -79,7 +82,7 @@ class WorldPacketManager(object):
 
         return result
 
-    def generate_packet(self, opcode: Union[LoginOpCode, WorldOpCode], data: bytes) -> bytes:
+    def generate_packet(self, opcode: ANY_OPCODE, data: bytes) -> bytes:
         Logger.success('[World Packet]: respond with {}'.format(opcode.name))
 
         if isinstance(opcode, LoginOpCode):

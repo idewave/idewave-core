@@ -9,7 +9,7 @@ from World.Region.Weather.Constants.WeatherType import WeatherType
 from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
-from World.Region.Octree.OctreeNode import OctreeNode
+from World.Region.Octree.Node import ChildNode
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from Config.Run.config import Config
 
@@ -61,7 +61,7 @@ class WeatherManager(object):
         regions: Dict[int, Region] = kwargs.pop('regions')
 
         for region in regions.values():
-            root_node: OctreeNode = region.get_octree()
+            root_node: ChildNode = region.get_octree()
             guids = OctreeNodeManager.get_guids(root_node)
 
             if not guids:

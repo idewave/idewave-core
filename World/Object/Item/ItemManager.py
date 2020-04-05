@@ -1,12 +1,11 @@
-from World.Object.ObjectManager import ObjectManager
 from World.Object.Item.model import Item
 from World.Object.Constants.UpdateObjectFields import ItemField
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from World.Object.Item.model import ItemTemplate
-from Utils.Debug.Logger import Logger
+from Typings.Abstract import AbstractRealmManager
 
 
-class ItemManager(ObjectManager):
+class ItemManager(AbstractRealmManager):
 
     def __init__(self):
         super(ItemManager, self).__init__()
@@ -68,5 +67,5 @@ class ItemManager(ObjectManager):
     # inheritable
     def new(self):
         self.add_object_fields()
-        self.init_movement()
+        # self.init_movement()
         return self

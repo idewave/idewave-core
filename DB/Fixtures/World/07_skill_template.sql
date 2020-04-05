@@ -1,4 +1,4 @@
-INSERT INTO `skill_template` (`id`, `entry`, `name`, `min`, `max`) VALUES
+INSERT INTO `skill_templates` (`id`, `entry`, `name`, `min`, `max`) VALUES
 (1, 6, 'Frost', 1, 1),
 (2, 8, 'Fire', 1, 1),
 (3, 26, 'Arms', 1, 1),

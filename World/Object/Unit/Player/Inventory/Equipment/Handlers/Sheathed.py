@@ -1,7 +1,8 @@
 from Server.Connection.Connection import Connection
+from Typings.Abstract import AbstractHandler
 
 
-class Sheathed(object):
+class Sheathed(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.data = kwargs.pop('data', bytes())

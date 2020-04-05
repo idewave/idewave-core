@@ -6,10 +6,14 @@ class BaseServer(object):
 
     __slots__ = ('host', 'port', 'instance')
 
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
-        self.instance = asyncio.start_server(self.handle_connection, host=host, port=port)
+    def __init__(self, **kwargs):
+        self.host: str = kwargs.pop('host')
+        self.port: int = kwargs.pop('port')
+        self.instance = asyncio.start_server(
+            self.handle_connection,
+            host=self.host,
+            port=self.port
+        )
 
     async def handle_connection(self, reader: StreamReader, writer: StreamWriter):
         pass
@@ -22,4 +26,4 @@ class BaseServer(object):
 
     @staticmethod
     def create():
-        return BaseServer(None, None)
+        return BaseServer(host=None, port=None)

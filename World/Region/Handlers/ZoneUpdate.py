@@ -4,20 +4,18 @@ from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Region.RegionManager import RegionManager
 
 from Server.Connection.Connection import Connection
+from Typings.Abstract import AbstractHandler
 
-from Utils.Debug.Logger import Logger
+from Utils.Debug import Logger
 
 
-class ZoneUpdate(object):
+class ZoneUpdate(AbstractHandler):
 
     def __init__(self, **kwargs):
-        # sometimes with packet some garbage receives, so need to cut the packet
-        # self.packet = packet[:10]
         self.data = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
 
     async def process(self) -> tuple:
-        # identifier = unpack('<I', self.data[-4:])[0]
         identifier = unpack('<I', self.data[:4])[0]
 
         if not self.connection.player.region.identifier == identifier:

@@ -5,7 +5,7 @@
 # from World.Object.Item.model import Item
 # from World.Object.Item.ItemManager import ItemManager
 # from World.Character.Constants.CharacterEquipSlot import CharacterEquipSlot
-# from Utils.Debug.Logger import Logger
+# from Utils.Debug import Logger
 #
 #
 # class ItemSpawn(object):
@@ -44,7 +44,7 @@
 #
 #         Logger.error('[ItemSpawn]: {}'.format(response))
 #
-#         return WorldOpCode.SMSG_UPDATE_OBJECT, response
+#         return WorldOpCode.SMSG_UPDATE_OBJECT, [response]
 #
 #     def _create_test_item(self, entry: int):
 #         item = Item()

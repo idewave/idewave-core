@@ -1,8 +1,9 @@
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
+from Typings.Abstract import AbstractHandler
 
 
-class AuraDuration(object):
+class AuraDuration(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.data: bytes = kwargs.pop('data', bytes())

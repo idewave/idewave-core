@@ -5,9 +5,10 @@ from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Unit.Spell.Constants.SpellCastFlags import SpellCastFlags
 from Server.Connection.Connection import Connection
 from Utils.Timer import Timer
+from Typings.Abstract import AbstractHandler
 
 
-class SpellResult(object):
+class SpellResult(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.data = kwargs.pop('data', bytes())
@@ -17,7 +18,7 @@ class SpellResult(object):
         buf = BytesIO(self.data)
         player = self.connection.player
 
-        castFlags = (
+        cast_flags = (
             SpellCastFlags.CAST_FLAG_UNKNOWN2.value |
             SpellCastFlags.CAST_FLAG_PERSISTENT_AA.value
         )
@@ -30,7 +31,7 @@ class SpellResult(object):
         response += pack(
             '<IHI',
             spell_id,
-            castFlags,
+            cast_flags,
             Timer.get_ms_time(),
         )
 

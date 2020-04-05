@@ -10,13 +10,13 @@ from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Region.model import Region
 from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
-from World.Region.Octree.OctreeNode import OctreeNode
+from World.Region.Octree.Node import ChildNode
 from Server.Registry.QueuesRegistry import QueuesRegistry
-
+from Typings.Abstract import AbstractHandler
 from Server.Connection.Connection import Connection
 
 
-class MovementHandler(object):
+class MovementHandler(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.opcode: WorldOpCode = kwargs.pop('opcode')
@@ -44,50 +44,50 @@ class MovementHandler(object):
             player: Player = self.connection.player
             player.position = self.position
 
-            ensure_future(QueuesRegistry.broadcast_callback_queue.put((
-                self.opcode,
-                [self.data],
-                self._broadcast,
-            )))
+            # ensure_future(QueuesRegistry.broadcast_callback_queue.put((
+            #     self.opcode,
+            #     [self.data],
+            #     self._broadcast,
+            # )))
 
         return None, None
 
-    def _broadcast(self, **kwargs) -> None:
-        opcode: WorldOpCode = kwargs.pop('opcode')
-        packets: List[bytes] = kwargs.pop('packets')
-        regions: Dict[int, Region] = kwargs.pop('regions')
-
-        player: Player = self.connection.player
-        current_region: Region = regions.get(player.region.id)
-        if current_region is None:
-            return None
-
-        root_node: OctreeNode = current_region.get_octree()
-        OctreeNodeManager.set_object(root_node, player)
-
-        current_node: OctreeNode = player.get_current_node()
-        if not current_node:
-            return None
-
-        # we get parent of parent because some of nearest nodes can lay in the another parent
-        node_to_notify: OctreeNode = current_node.parent_node.parent_node
-        guids = OctreeNodeManager.get_guids(node_to_notify)
-        guids: List[int] = [guid for guid in guids if not guid == player.guid]
-
-        if not guids:
-            return None
-
-        targets_to_notify: List[Player] = [
-            player
-            for player in current_region.players
-            if player.guid in guids
-        ]
-
-        if not targets_to_notify:
-            return None
-
-        for packet in packets:
-            PlayerManager.broadcast(opcode, player.packed_guid + packet, targets_to_notify)
+    # def _broadcast(self, **kwargs) -> None:
+    #     opcode: WorldOpCode = kwargs.pop('opcode')
+    #     packets: List[bytes] = kwargs.pop('packets')
+    #     regions: Dict[int, Region] = kwargs.pop('regions')
+    #
+    #     player: Player = self.connection.player
+    #     current_region: Region = regions.get(player.region.id)
+    #     if current_region is None:
+    #         return None
+    #
+    #     root_node: ChildNode = current_region.get_octree()
+    #     OctreeNodeManager.set_object(root_node, player)
+    #
+    #     current_node: ChildNode = player.get_current_node()
+    #     if not current_node:
+    #         return None
+    #
+    #     # we get parent of parent because some of nearest nodes can lay in the another parent
+    #     node_to_notify: ChildNode = current_node.parent_node.parent_node
+    #     guids = OctreeNodeManager.get_guids(node_to_notify)
+    #     guids: List[int] = [guid for guid in guids if not guid == player.guid]
+    #
+    #     if not guids:
+    #         return None
+    #
+    #     targets_to_notify: List[Player] = [
+    #         player
+    #         for player in current_region.players
+    #         if player.guid in guids
+    #     ]
+    #
+    #     if not targets_to_notify:
+    #         return None
+    #
+    #     for packet in packets:
+    #         PlayerManager.broadcast(opcode, player.packed_guid + packet, targets_to_notify)
 
     def _is_movement_valid(self):
         return True

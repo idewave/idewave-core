@@ -1,37 +1,33 @@
 from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, ForeignKey, String
 
-from DB.BaseModel import BaseModel
+from DB.BaseModel import WorldModel
 
 from Config.Run.config import Config
 
 
-class SpellTemplate(BaseModel):
+class SpellTemplate(WorldModel):
 
-    __tablename__ = 'spell_template'
-
-    id                      = BaseModel.column(type='integer', primary_key=True)
-    entry                   = BaseModel.column(type='integer', unique=True)
-    name                    = BaseModel.column(type='string')
-    cost                    = BaseModel.column(type='integer')
-    school                  = BaseModel.column(type='integer')
-    range                   = BaseModel.column(type='integer')
-
-    __table_args__ = {
-        'schema': Config.Database.DBNames.world_db
-    }
+    id = Column(Integer, primary_key=True)
+    entry = Column(Integer, unique=True)
+    name = Column(String(128))
+    cost = Column(Integer)
+    school = Column(Integer)
+    range = Column(Integer)
 
 
-class DefaultSpell(BaseModel):
+class DefaultSpell(WorldModel):
 
-    __tablename__ = 'default_spell'
+    id = Column(Integer, primary_key=True)
+    race = Column(Integer, nullable=True)
+    char_class = Column(Integer, nullable=True)
 
-    race                    = BaseModel.column(type='integer', nullable=True)
-    char_class              = BaseModel.column(type='integer', nullable=True)
-
-    spell_template_id = BaseModel.column(type='integer',
-                                         foreign_key=Config.Database.DBNames.world_db + '.spell_template.id')
+    spell_template_id = Column(
+        Integer,
+        ForeignKey(
+            f'{Config.Database.DBNames.world_db}.{SpellTemplate.__tablename__}.id',
+            onupdate='CASCADE',
+            ondelete='CASCADE'
+        )
+    )
     spell_template = relationship('SpellTemplate')
-
-    __table_args__ = {
-        'schema': Config.Database.DBNames.world_db
-    }

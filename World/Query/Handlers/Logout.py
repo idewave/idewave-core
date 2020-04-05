@@ -4,9 +4,10 @@ from World.Object.Unit.Player.PlayerManager import PlayerManager
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
+from Typings.Abstract import AbstractHandler
 
 
-class Logout(object):
+class Logout(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.data = kwargs.pop('data', bytes())

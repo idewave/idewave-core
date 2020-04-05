@@ -1,8 +1,9 @@
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
+from Typings.Abstract import AbstractHandler
 
 
-class TutorialFlags(object):
+class TutorialFlags(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.data = kwargs.pop('data', bytes())

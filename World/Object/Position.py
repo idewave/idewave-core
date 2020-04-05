@@ -1,20 +1,28 @@
 from struct import pack
+from typing import Optional, Dict
 
 
 class Position(object):
 
     def __init__(self, **kwargs):
-        self.x = kwargs.pop('x', float(0))
-        self.y = kwargs.pop('y', float(0))
-        self.z = kwargs.pop('z', float(0))
-        self.orientation = kwargs.pop('orientation', float(0))
-        self.region_id = kwargs.pop('region_id', None)
-        self.map_id = kwargs.pop('map_id', None)
+        self.x: float = kwargs.pop('x', float(0))
+        self.y: float = kwargs.pop('y', float(0))
+        self.z: float = kwargs.pop('z', float(0))
+        self.orientation: float = kwargs.pop('orientation', float(0))
 
-    def to_bytes(self):
-        return pack('<4f', self.x, self.y, self.z, self.orientation)
+        self.region_id: Optional[int] = kwargs.pop('region_id', None)
+        self.map_id: Optional[int] = kwargs.pop('map_id', None)
 
-    def to_json(self):
+    def to_bytes(self) -> bytes:
+        return pack(
+            '<4f',
+            self.x,
+            self.y,
+            self.z,
+            self.orientation
+        )
+
+    def to_json(self) -> Dict[str, float]:
         return {
             'x': self.x,
             'y': self.y,

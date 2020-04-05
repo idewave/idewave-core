@@ -4,9 +4,10 @@ from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Unit.Player.CharacterManager import CharacterManager
 from World.Object.Unit.Player.Constants.CharDeleteResponseCode import CharDeleteResponseCode
 from Server.Connection.Connection import Connection
+from Typings.Abstract import AbstractHandler
 
 
-class CharacterDelete(object):
+class CharacterDelete(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.data = kwargs.pop('data', bytes())

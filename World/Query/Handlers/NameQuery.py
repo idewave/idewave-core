@@ -7,12 +7,13 @@ from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Region.model import Region
 from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
-from World.Region.Octree.OctreeNode import OctreeNode
+from World.Region.Octree.Node import ChildNode
 from Server.Connection.Connection import Connection
 from Server.Registry.QueuesRegistry import QueuesRegistry
+from Typings.Abstract import AbstractHandler
 
 
-class NameQuery(object):
+class NameQuery(AbstractHandler):
 
     __slots__ = ('data', 'connection')
 
@@ -55,12 +56,12 @@ class NameQuery(object):
         if current_region is None:
             return None
 
-        current_node: OctreeNode = player.get_current_node()
+        current_node: ChildNode = player.get_current_node()
         if not current_node:
             return None
 
         # we get parent of parent because some of nearest nodes can lay in the another parent
-        node_to_notify: OctreeNode = current_node.parent_node.parent_node
+        node_to_notify: ChildNode = current_node.parent_node.parent_node
         guids = OctreeNodeManager.get_guids(node_to_notify)
         guids: List[int] = [guid for guid in guids if not guid == player.guid]
 

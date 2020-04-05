@@ -2,10 +2,10 @@ from World.Object.model import Object
 from World.Object.Constants.UpdateObjectFields import ObjectField
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
 from World.WorldPacket.UpdatePacket.Builders.UpdatePacketBuilder import UpdatePacketBuilder
-from DB.Connection.RealmConnection import RealmConnection
+from Typings.Abstract import AbstractRealmManager
 
 
-class ObjectManager(object):
+class ObjectManager(AbstractRealmManager):
 
     def __init__(self, **kwargs):
         self.update_packet_builder = None
@@ -60,7 +60,7 @@ class ObjectManager(object):
         self.update_packet_builder.add_batch(batch)
         return self
 
-    def add_field(self, field, value, offset=0):
+    def add_field(self, field, value, offset: int = 0):
         self.update_packet_builder.add_field(field, value, offset)
         return self
 
@@ -85,8 +85,9 @@ class ObjectManager(object):
 
     # overridable
     def load(self, **kwargs):
-        id = kwargs.pop('id')
-        self.world_object = self.session.query(Object).filter_by(id=id).first()
+        self.world_object = self.session.query(Object)\
+            .filter_by(id=kwargs.pop('id'))\
+            .first()
         return self
 
     # overridable
@@ -109,14 +110,3 @@ class ObjectManager(object):
         )
 
         return self
-
-    # enter/exit are safe, should be used instead of __del__
-    def __enter__(self):
-        connection = RealmConnection()
-        self.session = connection.session
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.session.close()
-        # https://stackoverflow.com/a/58590249/5397119
-        return False

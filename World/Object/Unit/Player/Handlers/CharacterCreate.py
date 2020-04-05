@@ -9,11 +9,12 @@ from World.Object.Unit.Player.Constants.CharacterGender import CharacterGender
 from World.Object.Unit.Player.Constants.CharCreateResponseCode import CharCreateResponseCode
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
-from Utils.Debug.Logger import Logger
-from Utils.AccountNameParser import AccountNameParser
+from Utils.Debug import Logger
+from Utils import ByteStringParser
+from Typings.Abstract import AbstractHandler
 
 
-class CharacterCreate(object):
+class CharacterCreate(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.data = kwargs.pop('data', bytes())
@@ -52,7 +53,7 @@ class CharacterCreate(object):
 
         result = dict()
 
-        result['name'] = AccountNameParser.parse(tmp_buf)
+        result['name'] = ByteStringParser.parse(tmp_buf)
 
         char_data = unpack('<9B', tmp_buf.read(9))
         result['race'] = CharacterRace(char_data[0]).value

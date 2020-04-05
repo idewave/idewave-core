@@ -1,4 +1,4 @@
-INSERT INTO `spell_template` (`id`, `entry`, `name`, `cost`, `school`, `range`) VALUES
+INSERT INTO `spell_templates` (`id`, `entry`, `name`, `cost`, `school`, `range`) VALUES
 (1, 668, 'Language Common', 0, 0, 0),
 (2, 671, 'Language Darnassian', 0, 0, 0),
 (3, 815, 'Language Demon Tongue', 0, 0, 0),

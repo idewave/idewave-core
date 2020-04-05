@@ -1,18 +1,22 @@
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from Server.Connection.Connection import Connection
+from Typings.Abstract import AbstractHandler
+from World.Observer import WorldObserver
 
 
-class PlayerInit(object):
+class PlayerInit(AbstractHandler):
 
-    __slots__ = ('data', 'connection')
+    __slots__ = ('data', 'connection', 'world_observer')
 
     def __init__(self, **kwargs):
         self.data: bytes = kwargs.pop('data', bytes())
         self.connection: Connection = kwargs.pop('connection')
+        self.world_observer: WorldObserver = kwargs.pop('world_observer')
 
     async def process(self) -> tuple:
         self._load_player()
+        self.connection.player.subscribe(self.world_observer)
 
         await QueuesRegistry.connections_queue.put(self.connection)
 

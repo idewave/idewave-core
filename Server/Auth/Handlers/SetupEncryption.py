@@ -9,7 +9,7 @@ from Server.Connection.Connection import Connection
 
 from Server.Auth.Crypto.HeaderCrypt import HeaderCrypt
 
-from Utils.AccountNameParser import AccountNameParser
+from Utils import ByteStringParser
 
 
 class SetupEncryption(object):
@@ -44,7 +44,7 @@ class SetupEncryption(object):
         tmp_buf.read(2)
         # remove next 6 unknown null-bytes (\x00)
         tmp_buf.read(6)
-        account_name = AccountNameParser.parse(tmp_buf)
+        account_name = ByteStringParser.parse(tmp_buf)
 
         with AccountManager() as account_mgr:
             self.connection.account = account_mgr.get(name=account_name).account

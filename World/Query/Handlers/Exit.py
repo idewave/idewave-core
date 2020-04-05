@@ -1,10 +1,11 @@
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from Server.Registry.QueuesRegistry import QueuesRegistry
+from Typings.Abstract import AbstractHandler
 
 from Server.Connection.Connection import Connection
 
 
-class Exit(object):
+class Exit(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.data = kwargs.pop('data', bytes())

@@ -1,7 +1,8 @@
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
+from Typings.Abstract import AbstractHandler
 
 
-class ActionButtons(object):
+class ActionButtons(AbstractHandler):
 
     def __init__(self, packet: bytes):
         self.packet = packet

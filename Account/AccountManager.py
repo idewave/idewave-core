@@ -1,18 +1,19 @@
 from Account.model import Account
-from Utils.Debug.Logger import Logger
-from DB.Connection.LoginConnection import LoginConnection
+from Utils.Debug import Logger
+from Typings.Abstract import AbstractLoginManager
 
 
-class AccountManager(object):
+class AccountManager(AbstractLoginManager):
 
     def __init__(self):
         self.account = None
 
     def create(self, **kwargs):
-        name = kwargs.pop('name', '')
-        password = kwargs.pop('password', '')
+        name = kwargs.pop('name')
+        salt = kwargs.pop('salt')
+        verifier = kwargs.pop('verifier')
 
-        self.account = Account(name=name, password=password)
+        self.account = Account(name=name, salt=salt, verifier=verifier)
         self.session.add(self.account)
         self.session.commit()
 
@@ -47,12 +48,3 @@ class AccountManager(object):
     def delete_all(self):
         self.session.query(Account).delete()
         return self
-
-    # enter/exit are safe, should be used instead of __del__
-    def __enter__(self):
-        connection = LoginConnection()
-        self.session = connection.session
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.session.close()

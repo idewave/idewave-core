@@ -24,11 +24,11 @@ class Connection(object):
         self.player: Player = kwargs.pop('player', None)
         self.reader: StreamReader = kwargs.pop('reader', None)
         self.writer: StreamWriter = kwargs.pop('writer', None)
-        self.peername = kwargs.pop('peername', None)
+        self.peername: str = kwargs.pop('peername', None)
         self.header_crypt = kwargs.pop('header_crypt', None)
 
-        self.srp = SRP()
-        self.auth_seed = kwargs.pop('auth_seed', None)
+        self.srp: SRP = SRP()
+        self.auth_seed: bytes = kwargs.pop('auth_seed', None)
         self.session_keys = kwargs.pop('session_keys', None)
 
     def remove_auth_data(self):

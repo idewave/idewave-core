@@ -1,16 +1,18 @@
 from struct import pack
 
 from World.Object.Unit.Player.Constants.CharacterEquipSlot import CharacterEquipSlot
-from World.Object.ObjectManager import ObjectManager
 from World.Object.Unit.Player.Inventory.Equipment.model import Equipment, DefaultEquipment
 from World.Object.Unit.Player.Inventory.ItemSlot import ItemSlot
-from World.Object.Unit.Player.Inventory.Equipment.Constants.InventoryTypeItemSlotMap import INVENTORY_TYPE_ITEM_SLOT_MAP
-from World.Object.Unit.Player.Inventory.Equipment.Constants.InventoryType import InventoryType
+from World.Object.Unit.Player.Inventory.Equipment.Constants import (
+    INVENTORY_TYPE_ITEM_SLOT_MAP,
+    InventoryType
+)
 from World.Object.Item.model import Item
 from World.Object.Unit.Player.model import Player
+from Typings.Abstract import AbstractRealmManager
 
 
-class EquipmentManager(ObjectManager):
+class EquipmentManager(AbstractRealmManager):
 
     def __init__(self, **kwargs):
         super(EquipmentManager, self).__init__(**kwargs)

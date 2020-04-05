@@ -1,4 +1,4 @@
-INSERT INTO `default_spell` (`id`, `race`, `char_class`, `spell_template_id`) VALUES
+INSERT INTO `default_spells` (`id`, `race`, `char_class`, `spell_template_id`) VALUES
 (1, 1, NULL, 1),
 (2, 1, NULL, 18),
 (3, 1, NULL, 16),

@@ -1,9 +1,10 @@
 from World.Object.Constants.UpdateObjectFields import ObjectField, UnitField
 from World.WorldPacket.UpdatePacket.Builders.UpdatePacketBuilder import UpdatePacketBuilder
 from World.Object.Unit.NPC.Beast.Beast import Beast
+from Typings.Abstract import AbstractHandler
 
 
-class NPCSpawn(object):
+class NPCSpawn(AbstractHandler):
 
     SPAWN_FIELDS = [
         # Object fields

@@ -1,16 +1,16 @@
 from sqlalchemy import or_, and_
 from typing import List
 
-from DB.Connection.WorldConnection import WorldConnection
 from World.Object.Unit.Spell.model import SpellTemplate, DefaultSpell
 from World.Object.Unit.Player.model import Player, PlayerSpell
+from Typings.Abstract import AbstractWorldManager
 
 
-class SpellManager(object):
+class SpellManager(AbstractWorldManager):
 
     __slots__ = ('session', 'spell_object')
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         self.spell_object = None
 
     def create(self, **kwargs):
@@ -55,14 +55,6 @@ class SpellManager(object):
             )) \
             .all()
 
-        # default_spells: List[DefaultSpell] = self.session \
-        #     .query(DefaultSpell) \
-        #     .filter(
-        #     ((DefaultSpell.race == player.race) | (DefaultSpell.char_class == player.char_class)) |
-        #     ((DefaultSpell.race is None) & (DefaultSpell.char_class is None))
-        # ) \
-        #     .all()
-
         spells = []
 
         for default_spell in default_spells:
@@ -79,13 +71,3 @@ class SpellManager(object):
     def save(self):
         self.session.add(self.spell_object)
         self.session.commit()
-
-    # enter/exit are safe, should be used instead of __del__
-    def __enter__(self):
-        connection = WorldConnection()
-        self.session = connection.session
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.session.close()
-        return False

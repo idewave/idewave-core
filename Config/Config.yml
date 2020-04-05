@@ -41,10 +41,12 @@ Realm:
     motd: Welcome to the idewave-core server
 
 World:
+  Region:
+    # be careful when edit this option cause the smaller it is the more memory usage by octrees
+    octree_node_size: 200
+
   Gameplay:
     game_speed: 0.01666667
-    # be careful when edit this option cause the smaller it is the more memory usage by octrees
-    update_dist: 200
 
   Weather:
     change_weather_timeout: 300

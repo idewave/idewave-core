@@ -3,17 +3,13 @@ import asyncio
 from asyncio.streams import StreamReader, StreamWriter
 from asyncio import TimeoutError
 
-from Server.BaseServer import BaseServer
-from Server.Connection.Connection import Connection
+from Server import BaseServer, Connection
 from World.WorldPacket.WorldPacketManager import WorldPacketManager
-from Utils.Debug.Logger import Logger
+from Utils.Debug import Logger
 from Config.Run.config import Config
 
 
 class LoginServer(BaseServer):
-
-    def __init__(self, host, port):
-        super().__init__(host, port)
 
     async def handle_connection(self, reader: StreamReader, writer: StreamWriter):
         peername = writer.get_extra_info('peername')
@@ -31,8 +27,15 @@ class LoginServer(BaseServer):
                 await asyncio.sleep(Config.Realm.Settings.min_timeout)
 
     @staticmethod
-    async def process_request(reader: StreamReader, writer: StreamWriter, world_packet_mgr: WorldPacketManager):
-        request = await asyncio.wait_for(reader.read(4096), timeout=Config.Realm.Settings.min_timeout)
+    async def process_request(
+            reader: StreamReader,
+            writer: StreamWriter,
+            world_packet_mgr: WorldPacketManager
+    ):
+        request = await asyncio.wait_for(
+            reader.read(4096),
+            timeout=Config.Realm.Settings.min_timeout
+        )
         if request:
             opcode, data = request[:1], request[1:]
 
@@ -50,4 +53,8 @@ class LoginServer(BaseServer):
     @staticmethod
     def create():
         Logger.info('[Login Server]: init')
-        return LoginServer(Config.Realm.Connection.LoginServer.host, Config.Realm.Connection.LoginServer.port)
+
+        return LoginServer(
+            host=Config.Realm.Connection.LoginServer.host,
+            port=Config.Realm.Connection.LoginServer.port
+        )

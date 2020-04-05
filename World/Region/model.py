@@ -1,24 +1,20 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy import orm
+from sqlalchemy import orm, Column, Integer, Float, ForeignKey
 
-from DB.BaseModel import BaseModel
-from World.Region.Octree.OctreeNode import OctreeNode
+from DB.BaseModel import WorldModel
+from World.Region.Octree.Node import ChildNode
 from Config.Run.config import Config
 
 
-class Region(BaseModel):
+class Region(WorldModel):
 
-    id                      = BaseModel.column(type='integer', primary_key=True)
-    identifier              = BaseModel.column(type='integer', unique=True)
-    y1                      = BaseModel.column(type='float')
-    y2                      = BaseModel.column(type='float')
-    x1                      = BaseModel.column(type='float')
-    x2                      = BaseModel.column(type='float')
-    map_id                  = BaseModel.column(type='mediumint')
-
-    __table_args__ = {
-        'schema': Config.Database.DBNames.world_db
-    }
+    id = Column(Integer, primary_key=True)
+    identifier = Column(Integer, unique=True)
+    y1 = Column(Float)
+    y2 = Column(Float)
+    x1 = Column(Float)
+    x2 = Column(Float)
+    map_id = Column(Integer)
 
     def __init__(self):
         self.octree = None
@@ -29,33 +25,37 @@ class Region(BaseModel):
         self.octree = None
 
     # we can detect NPC by unit_template field which is NULL for players and NOT NULL for NPC
-    units = relationship('Unit', primaryjoin="and_((Region.id == Unit.region_id), (Unit.unit_template_id))")
+    units = relationship(
+        'Unit',
+        primaryjoin="and_((Region.id == Unit.region_id), (Unit.unit_template_id))"
+    )
 
     players = relationship('Player', lazy='joined')
 
-    def get_octree(self) -> OctreeNode:
+    def get_octree(self) -> ChildNode:
         return self.octree
 
-    def set_octree(self, node: OctreeNode) -> None:
+    def set_octree(self, node: ChildNode) -> None:
         self.octree = node
 
 
-class DefaultLocation(BaseModel):
+class DefaultLocation(WorldModel):
 
-    __tablename__ = 'default_location'
+    id = Column(Integer, primary_key=True)
+    x = Column(Float)
+    y = Column(Float)
+    z = Column(Float)
+    map_id = Column(Integer)
 
-    id                  = BaseModel.column(type='integer', primary_key=True)
-    x                   = BaseModel.column(type='float')
-    y                   = BaseModel.column(type='float')
-    z                   = BaseModel.column(type='float')
-    map_id              = BaseModel.column(type='mediumint')
+    race = Column(Integer)
 
-    race                = BaseModel.column(type='integer')
+    region_id = Column(
+        Integer,
+        ForeignKey(
+            f'{Config.Database.DBNames.world_db}.{Region.__tablename__}.id',
+            onupdate='CASCADE',
+            ondelete='CASCADE'
+        )
+    )
 
-    region_id           = BaseModel.column(type='integer', foreign_key=Config.Database.DBNames.world_db + '.region.id')
-
-    region              = relationship('Region', lazy='subquery')
-
-    __table_args__ = {
-        'schema': Config.Database.DBNames.world_db
-    }
+    region = relationship('Region', lazy='subquery')

@@ -96,7 +96,7 @@ class LoginChallenge(object):
             modulus,
             self.connection.account.salt,
             urandom(16),
-            0  # ?
+            0
         )
 
         return LoginOpCode.LOGIN_CHALL, [response]

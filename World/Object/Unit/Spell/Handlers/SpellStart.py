@@ -4,10 +4,10 @@ from io import BytesIO
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Unit.Spell.Constants.SpellCastFlags import SpellCastFlags
 from Server.Connection.Connection import Connection
-from Utils.Debug.Logger import Logger
+from Typings.Abstract import AbstractHandler
 
 
-class SpellStart(object):
+class SpellStart(AbstractHandler):
 
     __slots__ = ('data', 'connection')
 
@@ -18,7 +18,7 @@ class SpellStart(object):
     async def process(self):
         buf = BytesIO(self.data)
         player = self.connection.player
-        castFlags = SpellCastFlags.CAST_FLAG_UNKNOWN2.value
+        cast_flags = SpellCastFlags.CAST_FLAG_UNKNOWN2.value
 
         spell_id = int.from_bytes(buf.read(4), 'little')
 
@@ -29,7 +29,7 @@ class SpellStart(object):
             '<IBHI',
             spell_id,                               # spell id
             1,                                      # cast count, currently 1 (for test)
-            castFlags,
+            cast_flags,
             0,                                      # timer
         )
 

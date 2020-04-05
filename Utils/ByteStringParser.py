@@ -1,10 +1,10 @@
 from io import BytesIO
 
 
-class AccountNameParser(object):
+class ByteStringParser(object):
 
     @staticmethod
-    def parse(buffer: BytesIO):
+    def parse(buffer: BytesIO, decode=True):
         result = bytes()
 
         while True:
@@ -14,4 +14,7 @@ class AccountNameParser(object):
             else:
                 break
 
-        return result.decode('utf-8')
+        if decode:
+            result = result.decode('utf-8')
+
+        return result

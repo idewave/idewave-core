@@ -1,12 +1,12 @@
 from time import time
-from typing import List, Union, Callable, Dict
+from typing import List, Optional, Callable, Dict
 
 from World.Region.model import Region, DefaultLocation
 from World.Region.Octree.OctreeManager import OctreeManager
 
 from DB.Connection.WorldConnection import WorldConnection
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
-from Utils.Debug.Logger import Logger
+from Utils.Debug import Logger
 
 
 class RegionManager(object):
@@ -22,7 +22,7 @@ class RegionManager(object):
             connection = WorldConnection()
             self.session = connection.session
 
-        self.region: Union[Region, None] = None
+        self.region: Optional[Region] = None
         self.regions: Dict[int, Region] = self.load_all()
 
     # def get_regions_as_json(self):
@@ -105,7 +105,9 @@ class RegionManager(object):
     # TODO: store separately players, units and other objects
     @staticmethod
     def load_region_objects(region: Region):
-        return {unit.guid: unit for unit in region.units}
+        return {
+            unit.guid: unit for unit in region.units
+        }
 
     # @staticmethod
     # def send_despawn_packets(current_object: Player, guids: List[int]) -> None:

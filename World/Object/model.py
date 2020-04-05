@@ -1,40 +1,22 @@
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
-from sqlalchemy import orm
-from typing import List, Union
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import Column, Integer, Float
 
-from DB.BaseModel import BaseModel
-from World.Object.Constants.TypeMask import TypeMask
-from World.Object.Constants.ObjectType import ObjectType
-from World.Region.Octree.OctreeNode import OctreeNode
+from DB.BaseModel import RealmModel
+from World.Object.Constants import (
+    TypeMask,
+    ObjectType
+)
+from World.Observer.Mixins import ObservableMixin
 
 from Config.Run.config import Config
 
 
-class Object(BaseModel):
+class Object(ObservableMixin, RealmModel):
 
-    id                      = BaseModel.column(type='integer', primary_key=True)
-    entry                   = BaseModel.column(type='integer')
-    scale_x                 = BaseModel.column(type='float', default=Config.World.Object.Defaults.scale_x)
+    __abstract__ = True
 
-    __table_args__ = {
-        'schema': Config.Database.DBNames.realm_db
-    }
-
-    def __init__(self):
-        self._current_node: Union[OctreeNode, None] = None
-
-    # this uses on session.query() etc
-    @orm.reconstructor
-    def init_on_load(self):
-        self._current_node: Union[OctreeNode, None] = None
-
-    @hybrid_method
-    def get_current_node(self) -> OctreeNode:
-        return self._current_node
-
-    @hybrid_method
-    def set_current_node(self, node: OctreeNode) -> None:
-        self._current_node = node
+    entry = Column(Integer)
+    display_id = Column(Integer)
 
     @hybrid_property
     def object_type(self) -> int:
@@ -80,3 +62,15 @@ class Object(BaseModel):
             guid >>= 8
 
         return bytes(pack_guid[:size])
+
+
+class ObjectWithPosition(Object):
+
+    __abstract__ = True
+
+    x = Column(Float)
+    y = Column(Float)
+    z = Column(Float)
+    orientation = Column(Float)
+    map_id = Column(Integer)
+    scale_x = Column(Float, default=Config.World.Object.Defaults.scale_x)

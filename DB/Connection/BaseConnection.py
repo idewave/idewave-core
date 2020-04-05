@@ -7,7 +7,7 @@ from Config.Run.config import Config
 class BaseConnection(object):
 
     def __init__(self, user=None, password=None, host=None, db_name=None):
-        if not user or not password or not host or not db_name:
+        if not all([user, password, host, db_name]):
             raise Exception('[BaseConnection]: not enough params')
 
         connection_string = Config.Database.Connection.sqlalchemy_connection_string
@@ -24,6 +24,4 @@ class BaseConnection(object):
         self.engine = engine
 
         session_factory = sessionmaker(expire_on_commit=False, bind=self.engine)
-        Session = scoped_session(session_factory)
-
-        self.session = Session()
+        self.session = scoped_session(session_factory)()

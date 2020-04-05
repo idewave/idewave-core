@@ -1,4 +1,4 @@
-INSERT INTO `default_location` (`id`, `x`, `y`, `z`, `map_id`, `race`, `region_id`) VALUES
+INSERT INTO `default_locations` (`id`, `x`, `y`, `z`, `map_id`, `race`, `region_id`) VALUES
 (1, -8949.95, -132.493, 83.5312, 0, 1, 19),
 (2, -618.518, -4251.67, 38.718, 1, 2, 2),
 (3, -6240.32, 331.033, 382.758, 0, 3, 16),

@@ -1,23 +1,23 @@
-import traceback
-import base64
+import re
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
-from sqlalchemy.ext.declarative import AbstractConcreteBase, as_declarative, declared_attr
-from sqlalchemy import Column, ForeignKey
-from sqlalchemy.dialects.mysql import INTEGER, VARBINARY, FLOAT, VARCHAR, TINYINT, MEDIUMINT, SMALLINT
-from sqlalchemy.ext.hybrid import hybrid_method
-from sqlalchemy.orm.collections import InstrumentedList
-
-from Utils.Debug.Logger import Logger
+from Config.Run.config import Config
 
 
-@as_declarative()
-class BaseModel(AbstractConcreteBase):
+pattern = re.compile(r'(?<!^)(?=[A-Z])')
 
-    id = Column(INTEGER, primary_key=True)
+
+class Base(declarative_base()):
+
+    __abstract__ = True
 
     @declared_attr
     def __tablename__(cls):
-        return cls.__name__.lower()
+        """
+        Translates CamelCase table name into snake_case in lower case and adds 's' at the end for plural.
+        For some cases (to comply with literacy) we need manually set __tablename__ attribute
+        """
+        return f'{pattern.sub("_", cls.__name__).lower()}s'
 
     @declared_attr
     def __mapper_args__(cls):
@@ -25,71 +25,35 @@ class BaseModel(AbstractConcreteBase):
             'polymorphic_identity': cls.__tablename__
         }
 
-    @hybrid_method
-    def to_json(self):
-        exclude_keys = ['_sa_instance_state']
 
-        # TODO: I think this can be refactored in the future,
-        # this check need to avoid RecursionError
-        if type(self).__name__ in ['Unit', 'Player', 'Item']:
-            exclude_keys += ['region']
+class LoginModel(Base):
 
-        result = {}
-        try:
-            for key in self.__dict__:
-                if key not in exclude_keys:
-                    if isinstance(self.__dict__[key], InstrumentedList):
-                        result[key] = [obj.to_json() for obj in self.__dict__[key]]
-                    elif isinstance(self.__dict__[key], BaseModel):
-                        result[key] = self.__dict__[key].to_json()
-                    elif isinstance(self.__dict__[key], dict):
-                        sub_result = {}
-                        for _key in self.__dict__[key]:
-                            item = self.__dict__[key][_key]
-                            if isinstance(item, BaseModel):
-                                sub_result[_key] = item.to_json()
-                            else:
-                                sub_result[_key] = item
-                        result[key] = sub_result
-                    elif isinstance(self.__dict__[key], (bytes, bytearray)):
-                        pass
-                    else:
-                        result[key] = self.__dict__[key]
-        except AttributeError as e:
-            Logger.error('[BaseModel][Player]: {}'.format(e))
-            raise e
-        except RecursionError as e:
-            Logger.error('[BaseModel]: {}'.format(e))
-            raise e
-        except Exception as e:
-            raise e
-        else:
-            return result
+    __abstract__ = True
 
-    @staticmethod
-    def column(**kwargs):
-        _type = kwargs.pop('type', None)
+    @declared_attr
+    def __table_args__(cls):
+        return {
+            'schema': Config.Database.DBNames.login_db
+        }
 
-        if _type is None:
-            raise Exception('[DB/BaseModel]: type should be set')
 
-        # https://stackoverflow.com/a/1814594
-        length = kwargs.pop('length', 128)
+class WorldModel(Base):
 
-        col = {
-            'string': VARCHAR(length=length),
-            'integer': INTEGER,
-            'float': FLOAT,
-            'varbinary': VARBINARY(length=length),
-            'tinyint': TINYINT,
-            'mediumint': MEDIUMINT,
-            'smallint': SMALLINT,
-        }[_type]
+    __abstract__ = True
 
-        foreign_key = kwargs.pop('foreign_key', None)
+    @declared_attr
+    def __table_args__(cls):
+        return {
+            'schema': Config.Database.DBNames.world_db
+        }
 
-        if foreign_key:
-            foreign_key = ForeignKey(foreign_key, onupdate='CASCADE', ondelete='CASCADE')
-            return Column(col, foreign_key, **kwargs)
 
-        return Column(col, **kwargs)
+class RealmModel(Base):
+
+    __abstract__ = True
+
+    @declared_attr
+    def __table_args__(cls):
+        return {
+            'schema': Config.Database.DBNames.realm_db
+        }

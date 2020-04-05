@@ -1,9 +1,10 @@
 from World.Object.Unit.Spell.Constants.SpellCastResult import SpellCastResult
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
+from Typings.Abstract import AbstractHandler
 
 
-class SpellFailed(object):
+class SpellFailed(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.data = kwargs.pop('data', bytes())

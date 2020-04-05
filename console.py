@@ -1,5 +1,7 @@
 import argparse
 import json
+from os import urandom
+import traceback
 
 from DB.CreateDB import create_db, create_tables
 from DB.DropDB import drop_db
@@ -9,10 +11,12 @@ from Account.AccountManager import AccountManager
 from World.Object.Item.ItemManager import ItemManager
 from World.Object.Unit.Spell.SpellManager import SpellManager
 from World.Object.Unit.Player.Skill.SkillManager import SkillManager
-from World.Region.RegionManager import RegionManager
-from World.Object.Unit.UnitManager import UnitManager
+# from World.Region.RegionManager import RegionManager
+# from World.Object.Unit.UnitManager import UnitManager
 
-from Utils.Debug.Logger import Logger
+from Server.Auth.Crypto.SRP import SRP
+
+from Utils.Debug import Logger
 
 
 def process():
@@ -37,7 +41,7 @@ def process():
 
         elif subcommand == 'drop':
             drop_db()
-            Logger.warning('All db was dropped')
+            Logger.warning('Databases were dropped')
 
         elif subcommand == 'recreate':
             drop_db()
@@ -49,11 +53,15 @@ def process():
             load_world_data()
 
         elif subcommand == 'recreate_with_load':
-            drop_db()
-            create_db()
-            create_tables()
-            Logger.notify('DB was successfully re-created')
-            load_world_data()
+            try:
+                drop_db()
+                create_db()
+                create_tables()
+                Logger.notify('DB was successfully re-created')
+                load_world_data()
+            except Exception as e:
+                traceback.print_exc()
+                Logger.error(f'[Recreate DB]: exception: {e}')
 
 
     # accounts
@@ -68,7 +76,19 @@ def process():
     if parser_name == 'account':
         if subcommand == 'create':
             with AccountManager() as account_mgr:
-                account_mgr.create(name=args[0].name, password=args[0].password)
+                name = args[0].name
+                password = args[0].password
+                salt = urandom(32)
+                verifier = SRP.generate_verifier(
+                    username=name.upper(),
+                    password=password.upper(),
+                    salt=salt
+                )
+                account_mgr.create(
+                    name=name,
+                    salt=salt,
+                    verifier=verifier
+                )
                 Logger.success('Account "{}" created successfully!'.format(args[0].name))
 
     # items
@@ -212,77 +232,77 @@ def process():
             )
 
     # regions
-    region_parser = commands.add_parser('region')
-    region_parser.add_argument('-i', '--identifier')
-    region_parser.add_argument('--y1')
-    region_parser.add_argument('--y2')
-    region_parser.add_argument('--x1')
-    region_parser.add_argument('--x2')
-    region_parser.add_argument('-c', '--continent_id')
-
-    # # arguments for default region
-    region_parser.add_argument('-r', '--race')
-    region_parser.add_argument('-m', '--map_id')
-
-    # # arguments for region unit # #
-    region_parser.add_argument('-u', '--unit_entry')
-
-    # # arguments for both default region and region unit
-    region_parser.add_argument('-x')
-    region_parser.add_argument('-y')
-    region_parser.add_argument('-z')
-
-    region_parser.add_argument('--file')
-
-    args = region_parser.parse_known_args()
-    parser_name = args[1][0]
-    subcommand = args[1].pop()
-
-    if parser_name == 'region':
-        if subcommand == 'create':
-            with RegionManager() as region_mgr:
-                region_mgr.create(
-                    identifier=args[0].identifier,
-                    y1=args[0].y1,
-                    y2=args[0].y2,
-                    x1=args[0].x1,
-                    x2=args[0].x2,
-                    continent_id=args[0].continent_id,
-                ).save()
-
-                Logger.notify('Region "{}" created successfully!'.format(args[0].identifier))
-
-        elif subcommand == 'add_default_location':
-            with RegionManager() as region_mgr:
-                region_mgr.create_default_location(
-                    identifier=args[0].identifier,
-                    x=args[0].x,
-                    y=args[0].y,
-                    z=args[0].z,
-                    race=args[0].race,
-                    map_id=args[0].map_id
-                )
-
-                Logger.success('Default location ({}) for race "{}" successfully added'.format(
-                    args[0].identifier, args[0].race
-                ))
-
-        elif subcommand == 'add_units':
-            with open(args[0].file, 'r') as myfile:
-                data = myfile.read()
-
-            json_data = json.loads(data)
-
-            for item in json_data:
-                with UnitManager() as unit_mgr:
-                    unit_mgr.new(
-                        entry=item['entry'],
-                        identifier=item['identifier'],
-                        x=item['position_x'],
-                        y=item['position_y'],
-                        z=item['position_z']
-                    ).save()
-
-            Logger.success('Units successfully added')
+    # region_parser = commands.add_parser('region')
+    # region_parser.add_argument('-i', '--identifier')
+    # region_parser.add_argument('--y1')
+    # region_parser.add_argument('--y2')
+    # region_parser.add_argument('--x1')
+    # region_parser.add_argument('--x2')
+    # region_parser.add_argument('-c', '--continent_id')
+    #
+    # # # arguments for default region
+    # region_parser.add_argument('-r', '--race')
+    # region_parser.add_argument('-m', '--map_id')
+    #
+    # # # arguments for region unit # #
+    # region_parser.add_argument('-u', '--unit_entry')
+    #
+    # # # arguments for both default region and region unit
+    # region_parser.add_argument('-x')
+    # region_parser.add_argument('-y')
+    # region_parser.add_argument('-z')
+    #
+    # region_parser.add_argument('--file')
+    #
+    # args = region_parser.parse_known_args()
+    # parser_name = args[1][0]
+    # subcommand = args[1].pop()
+    #
+    # if parser_name == 'region':
+    #     if subcommand == 'create':
+    #         with RegionManager() as region_mgr:
+    #             region_mgr.create(
+    #                 identifier=args[0].identifier,
+    #                 y1=args[0].y1,
+    #                 y2=args[0].y2,
+    #                 x1=args[0].x1,
+    #                 x2=args[0].x2,
+    #                 continent_id=args[0].continent_id,
+    #             ).save()
+    #
+    #             Logger.notify('Region "{}" created successfully!'.format(args[0].identifier))
+    #
+    #     elif subcommand == 'add_default_location':
+    #         with RegionManager() as region_mgr:
+    #             region_mgr.create_default_location(
+    #                 identifier=args[0].identifier,
+    #                 x=args[0].x,
+    #                 y=args[0].y,
+    #                 z=args[0].z,
+    #                 race=args[0].race,
+    #                 map_id=args[0].map_id
+    #             )
+    #
+    #             Logger.success('Default location ({}) for race "{}" successfully added'.format(
+    #                 args[0].identifier, args[0].race
+    #             ))
+    #
+    #     elif subcommand == 'add_units':
+    #         with open(args[0].file, 'r') as myfile:
+    #             data = myfile.read()
+    #
+    #         json_data = json.loads(data)
+    #
+    #         for item in json_data:
+    #             with UnitManager() as unit_mgr:
+    #                 unit_mgr.new(
+    #                     entry=item['entry'],
+    #                     identifier=item['identifier'],
+    #                     x=item['position_x'],
+    #                     y=item['position_y'],
+    #                     z=item['position_z']
+    #                 ).save()
+    #
+    #         Logger.success('Units successfully added')
 
 process()

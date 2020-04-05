@@ -1,16 +1,15 @@
 from sqlalchemy import or_
 from typing import List
 
-from DB.Connection.WorldConnection import WorldConnection
 from World.Object.Unit.Player.Skill.model import SkillTemplate, DefaultSkill
 from World.Object.Unit.Player.model import Player, PlayerSkill
+from Typings.Abstract import AbstractWorldManager
+from Utils.Debug import Logger
 
-from Utils.Debug.Logger import Logger
 
+class SkillManager(AbstractWorldManager):
 
-class SkillManager(object):
-
-    def __init__(self, **kwargs):
+    def __init__(self):
         self.skill_object = None
 
     def create(self, **kwargs):
@@ -65,13 +64,3 @@ class SkillManager(object):
     def save(self):
         self.session.add(self.skill_object)
         self.session.commit()
-
-    # enter/exit are safe, should be used instead of __del__
-    def __enter__(self):
-        connection = WorldConnection()
-        self.session = connection.session
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.session.close()
-        return False

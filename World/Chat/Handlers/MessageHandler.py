@@ -8,13 +8,15 @@ from World.Region.model import Region
 from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
-from World.Region.Octree.OctreeNode import OctreeNode
-from Server.Registry.QueuesRegistry import QueuesRegistry
+from World.Region.Octree.Node import ChildNode
+from Utils import ByteStringParser
 
-from Server.Connection.Connection import Connection
+from Typings.Abstract import AbstractHandler
+
+from Server import Connection, QueuesRegistry
 
 
-class MessageHandler(object):
+class MessageHandler(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.data = kwargs.pop('data', bytes())
@@ -44,12 +46,12 @@ class MessageHandler(object):
         if current_region is None:
             return None
 
-        current_node: OctreeNode = player.get_current_node()
+        current_node: ChildNode = player.get_current_node()
         if not current_node:
             return None
 
         # we get parent of parent because some of nearest nodes can lay in the another parent
-        node_to_notify: OctreeNode = current_node.parent_node.parent_node
+        node_to_notify: ChildNode = current_node.parent_node.parent_node
         guids = OctreeNodeManager.get_guids(node_to_notify)
         guids = [guid for guid in guids if not guid == player.guid]
 
@@ -72,7 +74,7 @@ class MessageHandler(object):
         buf = BytesIO(self.data)
         message_type = int.from_bytes(buf.read(4), 'little')
         message_language = int.from_bytes(buf.read(4), 'little')
-        message_bytes = MessageHandler._parse_message(buf)
+        message_bytes = ByteStringParser.parse(buf, decode=False)
 
         self.chat_packet_builder = ChatPacketBuilder(
             message_type=message_type,
@@ -80,17 +82,3 @@ class MessageHandler(object):
             message_bytes=message_bytes,
             sender_guid=self.connection.player.guid
         )
-
-    # TODO: refactor Utils/AccountNameParser
-    @staticmethod
-    def _parse_message(buffer: BytesIO):
-        result = bytes()
-
-        while True:
-            char = buffer.read(1)
-            if char and char != b'\x00':
-                result += char
-            else:
-                break
-
-        return result

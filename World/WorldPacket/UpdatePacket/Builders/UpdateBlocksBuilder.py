@@ -4,7 +4,7 @@ from struct import Struct, error as StructError
 
 from World.Object.Constants.FieldType import FieldType, FIELD_TYPE_MAP
 
-from Utils.Debug.Logger import Logger
+from Utils.Debug import Logger
 
 
 class UpdateBlocksBuilder(object):

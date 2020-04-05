@@ -3,7 +3,8 @@ from sqlalchemy import create_engine
 from DB.Connection.LoginConnection import LoginConnection
 from DB.Connection.WorldConnection import WorldConnection
 from DB.Connection.RealmConnection import RealmConnection
-from DB.BaseModel import BaseModel
+from DB.BaseModel import Base
+from World.Object.StaticObject.model import StaticObject, StaticObjectTemplate
 
 from Config.Run.config import Config
 
@@ -29,6 +30,6 @@ def create_db():
 
 
 def create_tables():
-    BaseModel.metadata.create_all(LoginConnection().engine)
-    BaseModel.metadata.create_all(WorldConnection().engine)
-    BaseModel.metadata.create_all(RealmConnection().engine)
+    Base.metadata.create_all(LoginConnection().engine)
+    Base.metadata.create_all(WorldConnection().engine)
+    Base.metadata.create_all(RealmConnection().engine)

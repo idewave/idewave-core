@@ -35,7 +35,7 @@ from World.Query.Handlers.ActiveMover import ActiveMover
 
 from World.Object.Unit.Movement.Handlers.MovementHandler import MovementHandler
 
-from World.Chat.TextEmote import TextEmote
+from World.Chat.Handlers.TextEmote import TextEmote
 from World.Chat.Handlers.MessageHandler import MessageHandler
 
 from World.Object.Unit.Spell.Handlers.SpellStart import SpellStart

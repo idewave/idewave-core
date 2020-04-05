@@ -8,9 +8,12 @@ from Server.WorldServer import WorldServer
 
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldManager import WorldManager
-from World.Region.RegionManager import RegionManager
+# from World.Region.RegionManager import RegionManager
 
-from Utils.Debug.Logger import Logger
+from World.Observer import WorldObserver
+from World.Observer.Constants import *
+
+from Utils.Debug import Logger
 
 
 if __name__ == '__main__':
@@ -19,8 +22,18 @@ if __name__ == '__main__':
 
     loop = asyncio.get_event_loop()
 
+    world_observer = WorldObserver(handlers_map={
+        CHANGE_POSITION: [],
+        WEATHER_SET_FINE: [],
+        WEATHER_SET_RAIN: [],
+        WEATHER_SET_SNOW: [],
+        WEATHER_SET_STORM: [],
+        WEATHER_SET_THUNDERS: [],
+        WEATHER_SET_BLACK_RAIN: [],
+    })
+
     login_server = LoginServer.create()
-    world_server = WorldServer.create()
+    world_server = WorldServer.create(world_observer=world_observer)
     # websocket_server = WebsocketServer.create()
 
     # region_manager = RegionManager()
@@ -40,7 +53,8 @@ if __name__ == '__main__':
     QueuesRegistry.disconnect_queue = asyncio.Queue()
 
     QueuesRegistry.packets_queue = asyncio.Queue()
-    QueuesRegistry.broadcast_callback_queue = asyncio.Queue()
+    QueuesRegistry.broadcast_packets_queue = asyncio.Queue()
+    # QueuesRegistry.broadcast_callback_queue = asyncio.Queue()
 
     try:
         loop.run_until_complete(

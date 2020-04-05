@@ -1,4 +1,4 @@
-from Utils.Debug.Logger import Logger
+from Utils.Debug import Logger
 
 
 class QueuesRegistry:

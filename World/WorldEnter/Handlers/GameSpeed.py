@@ -4,11 +4,12 @@ from struct import pack
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
+from Typings.Abstract import AbstractHandler
 
 from Config.Run.config import Config
 
 
-class GameSpeed(object):
+class GameSpeed(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.data = kwargs.pop('data', bytes())

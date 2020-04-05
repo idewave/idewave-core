@@ -2,11 +2,12 @@ from struct import pack
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
+from Typings.Abstract import AbstractHandler
 
 from Utils.Timer import Timer
 
 
-class TimeQuery(object):
+class TimeQuery(AbstractHandler):
 
     __slots__ = ('data', 'connection')
 

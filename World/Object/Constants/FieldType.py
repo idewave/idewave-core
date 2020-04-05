@@ -1,5 +1,12 @@
 from enum import Enum
-from World.Object.Constants.UpdateObjectFields import ObjectField, ItemField, ContainerField, UnitField, PlayerField
+
+from World.Object.Constants.UpdateObjectFields import (
+    ObjectField,
+    ItemField,
+    ContainerField,
+    UnitField,
+    PlayerField
+)
 
 
 class FieldType(Enum):
@@ -446,7 +453,8 @@ FIELD_TYPE_MAP = {
 }
 
 # TODO: 128 should be moved to constants or replaced with Player.NUM_SKILLS
-for i in range(128):
+NUM_SKILLS = 128
+for i in range(NUM_SKILLS):
     FIELD_TYPE_MAP.update({
         PlayerField.SKILL_INFO_1_ID.value + i*3:         FieldType.INT32,
         PlayerField.SKILL_INFO_1_LEVEL.value + i*3:      FieldType.INT32,

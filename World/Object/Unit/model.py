@@ -1,158 +1,151 @@
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy import orm
+from sqlalchemy import orm, Column, Integer, Float, ForeignKey, String, SmallInteger
 
-from DB.BaseModel import BaseModel
-from World.Object.model import Object
-from World.Object.Constants.ObjectType import ObjectType
-from World.Object.Constants.HighGuid import HighGuid
-from World.Object.Constants.TypeMask import TypeMask
+from DB.BaseModel import WorldModel
+from World.Object.model import ObjectWithPosition
+from World.Object.Constants import (
+    ObjectType,
+    HighGuid,
+    TypeMask
+)
 from World.Object.Position import Position
+from World.Region.model import Region
 
 from Config.Run.config import Config
 
 
-class UnitTemplate(BaseModel):
+class UnitTemplate(WorldModel):
 
-    __tablename__ = 'unit_template'
-
-    id                          = BaseModel.column(type='integer', primary_key=True)
-    entry                       = BaseModel.column(type='integer', unique=True)
-    name                        = BaseModel.column(type='string')
-    sub_name                    = BaseModel.column(type='string')
-    min_level                   = BaseModel.column(type='integer')
-    max_level                   = BaseModel.column(type='integer')
-    display_id_1                = BaseModel.column(type='integer')
-    display_id_2                = BaseModel.column(type='integer')
-    display_id_3                = BaseModel.column(type='integer')
-    display_id_4                = BaseModel.column(type='integer')
-    faction_template            = BaseModel.column(type='integer')
-    scale_x                     = BaseModel.column(type='float', default=1.0)
-    family                      = BaseModel.column(type='integer')
-    creature_type               = BaseModel.column(type='integer')
-    inhabit_type                = BaseModel.column(type='integer')
-    regenerate_stats            = BaseModel.column(type='integer')
-    is_racial_leader            = BaseModel.column(type='tinyint')
-    npc_flags                   = BaseModel.column(type='integer')
-    unit_flags                  = BaseModel.column(type='integer')
-    dynamic_flags               = BaseModel.column(type='integer')
-    extra_flags                 = BaseModel.column(type='integer')
-    creature_type_flags         = BaseModel.column(type='integer')
-    speed_walk                  = BaseModel.column(type='float')
-    speed_run                   = BaseModel.column(type='float')
-    unit_class                  = BaseModel.column(type='tinyint')
-    rank                        = BaseModel.column(type='integer')
-    health_multiplier           = BaseModel.column(type='float')
-    power_multiplier            = BaseModel.column(type='float')
-    damage_multiplier           = BaseModel.column(type='float')
-    damage_variance             = BaseModel.column(type='float')
-    armor_multiplier            = BaseModel.column(type='float')
-    experience_multiplier       = BaseModel.column(type='float')
-    min_health                  = BaseModel.column(type='integer')
-    max_health                  = BaseModel.column(type='integer')
-    min_mana                    = BaseModel.column(type='integer')
-    max_mana                    = BaseModel.column(type='integer')
-    min_damage                  = BaseModel.column(type='integer')
-    max_damage                  = BaseModel.column(type='integer')
-    min_ranged_damage           = BaseModel.column(type='float')
-    max_ranged_damage           = BaseModel.column(type='float')
-    armor                       = BaseModel.column(type='integer')
-    melee_attack_power          = BaseModel.column(type='integer')
-    ranged_attack_power         = BaseModel.column(type='integer')
-    melee_base_attack_time      = BaseModel.column(type='integer')
-    ranged_base_attack_time     = BaseModel.column(type='integer')
-    damage_school               = BaseModel.column(type='tinyint')
-    min_loot_gold               = BaseModel.column(type='integer')
-    max_loot_gold               = BaseModel.column(type='integer')
-    mechanic_immune_mask        = BaseModel.column(type='integer')
-    resistance_holy             = BaseModel.column(type='integer')
-    resistance_fire             = BaseModel.column(type='integer')
-    resistance_nature           = BaseModel.column(type='integer')
-    resistance_frost            = BaseModel.column(type='integer')
-    resistance_shadow           = BaseModel.column(type='integer')
-    resistance_arcane           = BaseModel.column(type='integer')
-    movement_type               = BaseModel.column(type='tinyint')
-    trainer_type                = BaseModel.column(type='tinyint')
-    trainer_spell               = BaseModel.column(type='integer')
-    trainer_class               = BaseModel.column(type='tinyint')
-    trainer_race                = BaseModel.column(type='tinyint')
-    is_civilian                 = BaseModel.column(type='tinyint')
-
-    __table_args__ = {
-        'schema': Config.Database.DBNames.world_db
-    }
+    id = Column(Integer, primary_key=True)
+    entry = Column(Integer, unique=True)
+    name = Column(String(128))
+    sub_name = Column(String(128))
+    min_level = Column(Integer)
+    max_level = Column(Integer)
+    display_id_1 = Column(Integer)
+    display_id_2 = Column(Integer)
+    display_id_3 = Column(Integer)
+    display_id_4 = Column(Integer)
+    faction_template = Column(Integer)
+    scale_x = Column(Float, default=Config.World.Object.Defaults.scale_x)
+    family = Column(Integer)
+    creature_type = Column(Integer)
+    inhabit_type = Column(Integer)
+    regenerate_stats = Column(Integer)
+    is_racial_leader = Column(SmallInteger)
+    npc_flags = Column(Integer)
+    unit_flags = Column(Integer)
+    dynamic_flags = Column(Integer)
+    extra_flags = Column(Integer)
+    creature_type_flags = Column(Integer)
+    speed_walk = Column(Float)
+    speed_run = Column(Float)
+    unit_class = Column(SmallInteger)
+    rank = Column(Integer)
+    health_multiplier = Column(Float)
+    power_multiplier = Column(Float)
+    damage_multiplier = Column(Float)
+    damage_variance = Column(Float)
+    armor_multiplier = Column(Float)
+    experience_multiplier = Column(Float)
+    min_health = Column(Integer)
+    max_health = Column(Integer)
+    min_mana = Column(Integer)
+    max_mana = Column(Integer)
+    min_damage = Column(Integer)
+    max_damage = Column(Integer)
+    min_ranged_damage = Column(Float)
+    max_ranged_damage = Column(Float)
+    armor = Column(Integer)
+    melee_attack_power = Column(Integer)
+    ranged_attack_power = Column(Integer)
+    melee_base_attack_time = Column(Integer)
+    ranged_base_attack_time = Column(Integer)
+    damage_school = Column(SmallInteger)
+    min_loot_gold = Column(Integer)
+    max_loot_gold = Column(Integer)
+    mechanic_immune_mask = Column(Integer)
+    resistance_holy = Column(Integer)
+    resistance_fire = Column(Integer)
+    resistance_nature = Column(Integer)
+    resistance_frost = Column(Integer)
+    resistance_shadow = Column(Integer)
+    resistance_arcane = Column(Integer)
+    movement_type = Column(SmallInteger)
+    trainer_type = Column(SmallInteger)
+    trainer_spell = Column(Integer)
+    trainer_class = Column(SmallInteger)
+    trainer_race = Column(SmallInteger)
+    is_civilian = Column(SmallInteger)
 
 
-class Unit(Object):
+class AbstractUnit(ObjectWithPosition):
 
-    id                      = Object.column(type='integer',
-                                            foreign_key=Config.Database.DBNames.realm_db + '.object.id',
-                                            primary_key=True)
-    health                  = Object.column(type='integer')
-    max_health              = Object.column(type='integer')
-    mana                    = Object.column(type='integer')
-    max_mana                = Object.column(type='integer')
-    rage                    = Object.column(type='integer')
-    max_rage                = Object.column(type='integer')
-    focus                   = Object.column(type='integer')
-    max_focus               = Object.column(type='integer')
-    energy                  = Object.column(type='integer')
-    max_energy              = Object.column(type='integer')
-    happiness               = Object.column(type='integer')
-    max_happiness           = Object.column(type='integer')
-    race                    = Object.column(type='integer')
-    char_class              = Object.column(type='integer')
-    gender                  = Object.column(type='integer')
-    level                   = Object.column(type='integer', length=3)
-    unit_flags              = Object.column(type='integer')
-    display_id              = Object.column(type='integer')
-    native_display_id       = Object.column(type='integer')
-    faction_template        = Object.column(type='integer')
-    min_damage              = Object.column(type='integer')
-    max_damage              = Object.column(type='integer')
-    min_offhand_damage      = Object.column(type='integer')
-    max_offhand_damage      = Object.column(type='integer')
-    unit_bytes_1            = Object.column(type='integer')
-    mod_cast_speed          = Object.column(type='float')
-    strength                = Object.column(type='integer')
-    agility                 = Object.column(type='integer')
-    stamina                 = Object.column(type='integer')
-    intellect               = Object.column(type='integer')
-    spirit                  = Object.column(type='integer')
-    resistance_fire         = Object.column(type='integer')
-    resistance_nature       = Object.column(type='integer')
-    resistance_frost        = Object.column(type='integer')
-    resistance_shadow       = Object.column(type='integer')
-    resistance_arcane       = Object.column(type='integer')
-    armor                   = Object.column(type='integer')
-    attack_power            = Object.column(type='integer')
-    base_mana               = Object.column(type='integer')
-    base_health             = Object.column(type='integer')
-    unit_bytes_2            = Object.column(type='integer')
-    ranged_attack_power     = Object.column(type='integer')
-    min_ranged_damage       = Object.column(type='integer')
-    max_ranged_damage       = Object.column(type='integer')
-    x                       = Object.column(type='float')
-    y                       = Object.column(type='float')
-    z                       = Object.column(type='float')
-    orientation             = Object.column(type='float')
-    map_id                  = Object.column(type='integer')
-    power_type              = Object.column(type='integer')
+    __abstract__ = True
 
-    unit_template_id        = Object.column(type='integer',
-                                            foreign_key=Config.Database.DBNames.world_db + '.unit_template.id',
-                                            nullable=True)
+    level = Column(Integer)
+    health = Column(Integer)
+    max_health = Column(Integer)
+    mana = Column(Integer)
+    max_mana = Column(Integer)
+    resistance_fire = Column(Integer)
+    resistance_nature = Column(Integer)
+    resistance_frost = Column(Integer)
+    resistance_shadow = Column(Integer)
+    resistance_arcane = Column(Integer)
+    armor = Column(Integer)
+    base_mana = Column(Integer)
+    base_health = Column(Integer)
+    power_type = Column(Integer)
+    attack_power = Column(Integer)
+    ranged_attack_power = Column(Integer)
+    faction_template = Column(Integer)
+    unit_bytes_1 = Column(Integer)
+    unit_bytes_2 = Column(Integer)
 
-    region_id               = Object.column(type='integer',
-                                            foreign_key=Config.Database.DBNames.world_db + '.region.id',
-                                            nullable=True)
+    @declared_attr
+    def region_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{Config.Database.DBNames.world_db}.{Region.__tablename__}.id',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            ),
+            nullable=True
+        )
 
-    unit_template           = relationship('UnitTemplate', lazy='subquery')
-    region                  = relationship('Region', lazy='subquery')
+    @declared_attr
+    def region(self):
+        return relationship('Region', lazy='subquery')
 
-    __table_args__ = {
-        'schema': Config.Database.DBNames.realm_db
-    }
+
+class Unit(AbstractUnit):
+
+    unit_id = Column('id', Integer, primary_key=True)
+    native_display_id = Column(Integer)
+    min_damage = Column(Integer)
+    max_damage = Column(Integer)
+    min_offhand_damage = Column(Integer)
+    max_offhand_damage = Column(Integer)
+    min_ranged_damage = Column(Integer)
+    max_ranged_damage = Column(Integer)
+    mod_cast_speed = Column(Float)
+    unit_flags = Column(Integer)
+
+    unit_template_id = Column(
+        Integer,
+        ForeignKey(
+            f'{Config.Database.DBNames.world_db}.{UnitTemplate.__tablename__}.id',
+            onupdate='CASCADE',
+            ondelete='CASCADE'
+        ),
+        nullable=True
+    )
+
+    unit_template = relationship('UnitTemplate', lazy='subquery')
 
     def __init__(self):
         super().__init__()
@@ -161,7 +154,7 @@ class Unit(Object):
     # this uses on session.query() etc
     @orm.reconstructor
     def init_on_load(self):
-        super().init_on_load()
+        # super().init_on_load()
         self._target = None
 
     @hybrid_property
@@ -183,13 +176,6 @@ class Unit(Object):
     @hybrid_property
     def high_guid(self):
         return HighGuid.HIGHGUID_UNIT.value
-
-    @hybrid_property
-    def entry(self):
-        if self.unit_template is not None:
-            return self.unit_template.entry
-        else:
-            return None
 
     @hybrid_property
     def position(self):

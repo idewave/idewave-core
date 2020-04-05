@@ -1,7 +1,7 @@
 import subprocess
 from os import walk, path
 
-from Utils.Debug.Logger import Logger
+from Utils.Debug import Logger
 
 from Config.Run.config import Config
 

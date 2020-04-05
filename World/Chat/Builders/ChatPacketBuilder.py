@@ -3,7 +3,7 @@ from struct import pack
 from World.Chat.Constants.ChatMsgType import ChatMsgType
 from World.Chat.Constants.ChatTag import ChatTag
 
-from Utils.Debug.Logger import Logger
+from Utils.Debug import Logger
 
 
 class ChatPacketBuilder(object):

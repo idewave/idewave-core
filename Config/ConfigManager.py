@@ -4,7 +4,7 @@ import json
 from os import path
 from collections import namedtuple
 
-from Utils.Debug.Logger import Logger
+from Utils.Debug import Logger
 
 
 class ConfigManager(object):

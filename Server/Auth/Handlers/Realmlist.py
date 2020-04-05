@@ -1,9 +1,11 @@
 from struct import pack
 
 from World.WorldPacket.Constants.LoginOpCode import LoginOpCode
-from World.Realmlist.Sandbox.Sandbox import realm
 from Realm.Constants.RealmPopulation import RealmPopulation
 from Realm.Constants.RealmFlags import RealmFlags
+from Realm.Realm import Realm
+from Realm.Constants.RealmType import RealmType
+from Config.Run.config import Config
 
 
 class Realmlist(object):
@@ -16,6 +18,13 @@ class Realmlist(object):
         pass
 
     async def process(self) -> tuple:
+        realm = Realm(
+            Config.Realm.Connection.WorldServer.realm_name,
+            Config.Realm.Connection.WorldServer.host,
+            Config.Realm.Connection.WorldServer.port,
+            RealmType.NORMAL.value
+        )
+
         realm_packet = realm.get_state_packet(RealmFlags.NORMAL.value, RealmPopulation.LOW.value)
         realm_packet_as_bytes = b''.join([realm_packet])
 

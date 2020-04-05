@@ -1,50 +1,97 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import Column, Integer, Float, ForeignKey, String
 
-from DB.BaseModel import BaseModel
-from World.Object.Unit.model import Unit
-# import below need for correct SQLAlchemy importing when use relationship
-from World.Object.Unit.Player.Inventory.Equipment.model import Equipment
+from DB.BaseModel import RealmModel
+from Account.model import Account
+from World.Object.Unit.model import AbstractUnit, Unit
+from World.Object.Unit.Player.Skill.model import SkillTemplate
+from World.Object.Unit.Spell.model import SpellTemplate
+
 from World.Object.Constants.TypeMask import TypeMask
 from World.Object.Constants.ObjectType import ObjectType
 from World.Object.Constants.HighGuid import HighGuid
+from World.Region.model import Region
 
 from Config.Run.config import Config
 
 
-class Player(Unit):
+class AbstractPlayer(AbstractUnit):
 
-    id                      = Unit.column(type='integer',
-                                          foreign_key=Config.Database.DBNames.realm_db + '.unit.id',
-                                          primary_key=True)
-    name                    = Unit.column(type='string', unique=True, nullable=False)
-    player_flags            = Unit.column(type='integer')
-    skin                    = Unit.column(type='integer')
-    face                    = Unit.column(type='integer')
-    hair_style              = Unit.column(type='integer')
-    hair_color              = Unit.column(type='integer')
-    facial_hair             = Unit.column(type='integer')
-    xp                      = Unit.column(type='integer')
-    next_level_xp           = Unit.column(type='integer')
-    block                   = Unit.column(type='float')
-    dodge                   = Unit.column(type='float')
-    parry                   = Unit.column(type='float')
-    crit                    = Unit.column(type='float')
-    money                   = Unit.column(type='integer')
-    player_bytes            = Unit.column(type='integer')
+    __abstract__ = True
 
-    account_id              = Unit.column(type='integer',
-                                          foreign_key=Config.Database.DBNames.login_db + '.account.id')
+    name = Column(String(20), unique=True, nullable=False)
+    rage = Column(Integer)
+    max_rage = Column(Integer)
+    focus = Column(Integer)
+    max_focus = Column(Integer)
+    energy = Column(Integer)
+    max_energy = Column(Integer)
+    happiness = Column(Integer)
+    max_happiness = Column(Integer)
+    strength = Column(Integer)
+    agility = Column(Integer)
+    stamina = Column(Integer)
+    intellect = Column(Integer)
+    spirit = Column(Integer)
+    block = Column(Float)
+    dodge = Column(Float)
+    parry = Column(Float)
+    crit = Column(Float)
+    race = Column(Integer)
+    char_class = Column(Integer)
+    gender = Column(Integer)
+    skin = Column(Integer)
+    face = Column(Integer)
+    hair_style = Column(Integer)
+    hair_color = Column(Integer)
+    facial_hair = Column(Integer)
 
-    unit                    = relationship('Unit', lazy='subquery')
-    equipment               = relationship('Equipment', lazy='subquery')
-    skills                  = relationship('PlayerSkill', lazy='subquery')
-    spells                  = relationship('PlayerSpell', lazy='subquery')
-    account                 = relationship('Account', lazy='subquery')
 
-    __table_args__ = {
-        'schema': Config.Database.DBNames.realm_db
-    }
+class Player(AbstractPlayer):
+
+    player_id = Column('id', Integer, primary_key=True)
+
+    player_flags = Column(Integer)
+    player_bytes = Column(Integer)
+    xp = Column(Integer)
+    next_level_xp = Column(Integer)
+    money = Column(Integer)
+
+    account_id = Column(
+        Integer,
+        ForeignKey(
+            f'{Config.Database.DBNames.login_db}.{Account.__tablename__}.id',
+            onupdate='CASCADE',
+            ondelete='CASCADE'
+        )
+    )
+
+    unit_id = Column(
+        Integer,
+        ForeignKey(
+            f'{Config.Database.DBNames.realm_db}.{Unit.__tablename__}.id',
+            onupdate='CASCADE',
+            ondelete='CASCADE'
+        )
+    )
+
+    region_id = Column(
+        Integer,
+        ForeignKey(
+            f'{Config.Database.DBNames.world_db}.{Region.__tablename__}.id',
+            onupdate='CASCADE',
+            ondelete='CASCADE'
+        ),
+        nullable=True
+    )
+
+    equipment = relationship('Equipment', lazy='subquery')
+    unit = relationship('Unit', lazy='subquery')
+    skills = relationship('PlayerSkill', lazy='subquery')
+    spells = relationship('PlayerSpell', lazy='subquery')
+    account = relationship('Account', lazy='subquery')
+    region = relationship('Region', lazy='subquery')
 
     @hybrid_property
     def object_type(self):
@@ -59,37 +106,53 @@ class Player(Unit):
         return HighGuid.HIGHGUID_PLAYER.value
 
 
-class PlayerSkill(BaseModel):
+class PlayerSkill(RealmModel):
 
-    __tablename__ = 'player_skill'
+    id = Column(Integer, primary_key=True)
 
-    skill_template_id       = BaseModel.column(type='integer',
-                                               foreign_key=Config.Database.DBNames.world_db + '.skill_template.id')
+    skill_template_id = Column(
+        Integer,
+        ForeignKey(
+            f'{Config.Database.DBNames.world_db}.{SkillTemplate.__tablename__}.id',
+            onupdate='CASCADE',
+            ondelete='CASCADE'
+        )
+    )
 
-    player_id               = BaseModel.column(type='integer',
-                                               foreign_key=Config.Database.DBNames.realm_db + '.player.id')
+    player_id = Column(
+        Integer,
+        ForeignKey(
+            f'{Config.Database.DBNames.realm_db}.{Player.__tablename__}.id',
+            onupdate='CASCADE',
+            ondelete='CASCADE'
+        )
+    )
 
-    skill_template          = relationship('SkillTemplate', lazy='subquery')
-    player                  = relationship('Player', lazy='subquery')
-
-    __table_args__ = {
-        'schema': Config.Database.DBNames.realm_db
-    }
+    skill_template = relationship('SkillTemplate', lazy='subquery')
+    player = relationship('Player', lazy='subquery')
 
 
-class PlayerSpell(BaseModel):
+class PlayerSpell(RealmModel):
 
-    __tablename__ = 'player_spell'
+    id = Column(Integer, primary_key=True)
 
-    spell_template_id       = BaseModel.column(type='integer',
-                                               foreign_key=Config.Database.DBNames.world_db + '.spell_template.id')
+    spell_template_id = Column(
+        Integer,
+        ForeignKey(
+            f'{Config.Database.DBNames.world_db}.{SpellTemplate.__tablename__}.id',
+            onupdate='CASCADE',
+            ondelete='CASCADE'
+        )
+    )
 
-    player_id               = BaseModel.column(type='integer',
-                                               foreign_key=Config.Database.DBNames.realm_db + '.player.id')
+    player_id = Column(
+        Integer,
+        ForeignKey(
+            f'{Config.Database.DBNames.realm_db}.{Player.__tablename__}.id',
+            onupdate='CASCADE',
+            ondelete='CASCADE'
+        )
+    )
 
-    spell_template          = relationship('SpellTemplate', lazy='subquery')
-    player                  = relationship('Player', lazy='subquery')
-
-    __table_args__ = {
-        'schema': Config.Database.DBNames.realm_db
-    }
+    spell_template = relationship('SpellTemplate', lazy='subquery')
+    player = relationship('Player', lazy='subquery')

@@ -1,31 +1,43 @@
 from typing import List, AnyStr
 from os import urandom
 from asyncio.streams import StreamReader, StreamWriter
-from asyncio import TimeoutError, ensure_future, wait_for, sleep, gather
+from asyncio import (
+    TimeoutError,
+    ensure_future,
+    wait_for,
+    sleep,
+    gather
+)
 
-from Server.BaseServer import BaseServer
-from Utils.Debug.Logger import Logger
-from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
-from Server.Registry.QueuesRegistry import QueuesRegistry
-from World.WorldPacket.WorldPacketManager import WorldPacketManager
-from Server.Connection.Connection import Connection
+from Server import BaseServer, Connection, QueuesRegistry
+from Utils.Debug import Logger
+from World.WorldPacket import WorldOpCode, WorldPacketManager
+from World.Observer import WorldObserver
 from Config.Run.config import Config
 
 
 class WorldServer(BaseServer):
 
-    __slots__ = ('session_keys', 'connections')
+    __slots__ = (
+        'session_keys',
+        'connections',
+        'world_observer'
+    )
 
-    def __init__(self, host, port):
-        super().__init__(host, port)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.session_keys = {}
         self.connections = {}
+        self.world_observer: WorldObserver = kwargs.pop('world_observer')
 
     async def handle_connection(self, reader: StreamReader, writer: StreamWriter):
         self._register_tasks()
 
         connection = Connection(reader=reader, writer=writer, session_keys=self.session_keys)
-        world_packet_mgr = WorldPacketManager(connection=connection)
+        world_packet_mgr = WorldPacketManager(
+            connection=connection,
+            world_observer=self.world_observer
+        )
 
         # send auth challenge
         auth_seed: bytes = urandom(4)
@@ -121,6 +133,11 @@ class WorldServer(BaseServer):
                 await sleep(Config.Realm.Settings.min_timeout)
 
     @staticmethod
-    def create():
+    def create(**kwargs):
         Logger.info('[World Server]: init')
-        return WorldServer(Config.Realm.Connection.WorldServer.host, Config.Realm.Connection.WorldServer.port)
+
+        return WorldServer(
+            host=Config.Realm.Connection.WorldServer.host,
+            port=Config.Realm.Connection.WorldServer.port,
+            world_observer=kwargs.pop('world_observer')
+        )

@@ -1,7 +1,8 @@
 from Server.Connection.Connection import Connection
+from Typings.Abstract import AbstractHandler
 
 
-class PlayerTarget(object):
+class PlayerTarget(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.data = kwargs.pop('data', bytes())

@@ -10,7 +10,7 @@ from asyncio.futures import TimeoutError
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from Server.WebsocketServer.Constants.RequestType import RequestType
 
-from Utils.Debug.Logger import Logger
+from Utils.Debug import Logger
 from Config.Run.config import Config
 
 

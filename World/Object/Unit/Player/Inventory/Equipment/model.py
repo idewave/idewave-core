@@ -1,45 +1,58 @@
 from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, ForeignKey
 
-from World.Object.Item.model import Item
-from DB.BaseModel import BaseModel
+from DB.BaseModel import RealmModel, WorldModel
+from World.Object.Unit.Player.model import Player
+from World.Object.Item.model import Item, ItemTemplate
 
 from Config.Run.config import Config
 
 
-class Equipment(BaseModel):
+class Equipment(RealmModel):
 
-    ''' Contains equipment for each player '''
+    __tablename__ = 'equipment'
 
-    item_id             = Item.column(type='integer',
-                                        foreign_key=Config.Database.DBNames.realm_db + '.item.id')
+    id = Column(Integer, primary_key=True)
 
-    player_id           = Item.column(type='integer',
-                                        foreign_key=Config.Database.DBNames.realm_db + '.player.id')
+    item_id = Column(
+        Integer,
+        ForeignKey(
+            f'{Config.Database.DBNames.realm_db}.{Item.__tablename__}.id',
+            onupdate='CASCADE',
+            ondelete='CASCADE'
+        )
+    )
 
-    slot_id             = Item.column(type='integer')
+    player_id = Column(
+        Integer,
+        ForeignKey(
+            f'{Config.Database.DBNames.realm_db}.{Player.__tablename__}.id',
+            onupdate='CASCADE',
+            ondelete='CASCADE'
+        )
+    )
 
-    durability          = Item.column(type='integer')
+    slot_id = Column(Integer)
 
-    item                = relationship('Item', lazy='subquery')
-    player              = relationship('Player', lazy='subquery')
+    durability = Column(Integer)
 
-    __table_args__ = {
-        'schema': Config.Database.DBNames.realm_db
-    }
-
-
-class DefaultEquipment(BaseModel):
-
-    __tablename__       = 'default_equipment'
-
-    race                = BaseModel.column(type='integer')
-    char_class          = BaseModel.column(type='integer')
+    item = relationship('Item', lazy='subquery')
+    player = relationship('Player', lazy='subquery')
 
 
-    item_template_id    = BaseModel.column(type='integer',
-                                           foreign_key=Config.Database.DBNames.world_db + '.item_template.id')
-    item_template       = relationship('ItemTemplate')
+class DefaultEquipment(WorldModel):
 
-    __table_args__ = {
-        'schema': Config.Database.DBNames.world_db
-    }
+    __tablename__ = 'default_equipment'
+
+    id = Column(Integer, primary_key=True)
+
+    race = Column(Integer)
+    char_class = Column(Integer)
+
+    item_template_id = Column(
+        Integer,
+        ForeignKey(
+            f'{Config.Database.DBNames.world_db}.{ItemTemplate.__tablename__}.id'
+        )
+    )
+    item_template = relationship('ItemTemplate')

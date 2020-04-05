@@ -20,7 +20,6 @@ class LogParser(object):
 
         data = separator.join(bytes_str_with_spaces.split())
 
-        result = None
         if to_hex:
             result = unhexlify(data)
         else:
@@ -33,4 +32,4 @@ class LogParser(object):
         hex_data = hexlify(data)
         str_data = hex_data.decode(encoding='utf-8')
         # returns data in form 'AA BB 00 CC ...'
-        return ' '.join(a+b for a,b in zip(str_data, str_data))
+        return ' '.join(a + b for a, b in zip(str_data, str_data))
