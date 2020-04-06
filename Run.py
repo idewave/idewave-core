@@ -8,7 +8,7 @@ from Server.WorldServer import WorldServer
 
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldManager import WorldManager
-# from World.Region.RegionManager import RegionManager
+from World.Region.RegionManager import RegionManager
 
 from World.Observer import WorldObserver
 from World.Observer.Constants import *
@@ -30,7 +30,7 @@ if __name__ == '__main__':
         WEATHER_SET_STORM: [],
         WEATHER_SET_THUNDERS: [],
         WEATHER_SET_BLACK_RAIN: [],
-    })
+    }, coverage=RegionManager().regions)
 
     login_server = LoginServer.create()
     world_server = WorldServer.create(world_observer=world_observer)

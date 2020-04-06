@@ -5,12 +5,13 @@ from World.WorldPacket.UpdatePacket.Builders.UpdateBlocksBuilder import UpdateBl
 from World.Object.Unit.Movement.Constants.MovementFlags import MovementFlags
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from World.Object.Constants.ObjectType import ObjectType
+from Typings.Abstract import AbstractBuilder
 from Utils.Timer import Timer
 
 from Config.Run.config import Config
 
 
-class UpdatePacketBuilder(object):
+class UpdatePacketBuilder(AbstractBuilder):
 
     MAX_UPDATE_PACKETS_AS_ONE = 15
 
@@ -99,7 +100,7 @@ class UpdatePacketBuilder(object):
 
         builder_data = bytes()
         if self.update_type in self.TYPES_WITH_FIELDS:
-            builder_data = self.update_blocks_builder.to_bytes()
+            builder_data = self.update_blocks_builder.build()
 
         packet = header + object_type + object_movement + builder_data
 
@@ -129,7 +130,7 @@ class UpdatePacketBuilder(object):
 
         if self.update_flags & UpdateObjectFlags.UPDATEFLAG_HAS_POSITION.value:
             # TODO: check if transport
-            data += self.update_object.position.to_bytes()
+            data += self.update_object.position.build()
 
         if self.update_flags & UpdateObjectFlags.UPDATEFLAG_LIVING.value:
             # TODO: check transport, swimming and flying

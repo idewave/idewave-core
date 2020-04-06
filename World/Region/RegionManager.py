@@ -1,8 +1,10 @@
 from time import time
 from typing import List, Optional, Callable, Dict
 
+from World.Object.model import ObjectWithPosition
 from World.Region.model import Region, DefaultLocation
 from World.Region.Octree.OctreeManager import OctreeManager
+from World.Observer import RegionObserver
 
 from DB.Connection.WorldConnection import WorldConnection
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
@@ -24,9 +26,6 @@ class RegionManager(object):
 
         self.region: Optional[Region] = None
         self.regions: Dict[int, Region] = self.load_all()
-
-    # def get_regions_as_json(self):
-    #     return [region.to_json() for region in self.regions]
 
     # FIXME: get region from ALREADY loaded regions list
     def get_region(self, **kwargs) -> Region:
@@ -97,6 +96,10 @@ class RegionManager(object):
             region.set_octree(octree)
             result[region.id] = region
 
+            region.set_region_observer(
+                region_observer=RegionObserver(region=region)
+            )
+
         t1 = time()
         Logger.debug('[RegionMgr]: regions loaded in {}s'.format(t1 - t0))
 
@@ -104,10 +107,8 @@ class RegionManager(object):
 
     # TODO: store separately players, units and other objects
     @staticmethod
-    def load_region_objects(region: Region):
-        return {
-            unit.guid: unit for unit in region.units
-        }
+    def load_region_objects(region: Region) -> List[ObjectWithPosition]:
+        return region.units + region.players
 
     # @staticmethod
     # def send_despawn_packets(current_object: Player, guids: List[int]) -> None:

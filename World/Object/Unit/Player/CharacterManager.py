@@ -48,7 +48,7 @@ class CharacterManager(object):
 
         # Equipment: display_id - item_type - enchant
         with EquipmentManager() as equipment_mgr:
-            equipment = equipment_mgr.get_equipment(player).to_bytes()
+            equipment = equipment_mgr.get_equipment(player).build()
             return data + equipment
 
     def delete(self, **kwargs):

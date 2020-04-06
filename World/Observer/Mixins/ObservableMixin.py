@@ -9,12 +9,12 @@ class ObservableMixin(object):
         super().__init__(*args, **kwargs)
         self.subscriptions: List[WorldObserver] = []
 
-    def subscribe(self, observer: WorldObserver):
+    def subscribe(self, observer: WorldObserver) -> None:
         self.subscriptions.append(observer)
 
     def detach(self):
         pass
 
-    def notify(self, event_type: int, payload: Dict[str, Any]):
+    def notify(self, event_type: int, payload: Dict[str, Any]) -> None:
         for observer in self.subscriptions:
             observer.update(event_type, payload)

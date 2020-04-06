@@ -5,6 +5,7 @@ from World.Region.RegionManager import RegionManager
 
 from Server.Connection.Connection import Connection
 from Typings.Abstract import AbstractHandler
+from World.Observer.Constants import CHANGE_POSITION
 
 from Utils.Debug import Logger
 
@@ -18,12 +19,21 @@ class ZoneUpdate(AbstractHandler):
     async def process(self) -> tuple:
         identifier = unpack('<I', self.data[:4])[0]
 
-        if not self.connection.player.region.identifier == identifier:
+        player = self.connection.player
+
+        if not player.region.identifier == identifier:
+            old_region = player.region
             region = RegionManager().get_region(identifier=identifier)
-            self.connection.player.region = region
+            new_region = region
+            player.region = region
 
             with PlayerManager() as player_mgr:
-                player_mgr.set(self.connection.player).save()
-                Logger.notify('[Zone Update]: saving player')
+                player_mgr.set(player).save()
+                Logger.notify(f'[Zone Update]: saving player "{player.name}"')
+                player.notify(CHANGE_POSITION, {
+                    'object': player,
+                    'move_from': old_region,
+                    'move_to': new_region
+                })
 
         return None, None

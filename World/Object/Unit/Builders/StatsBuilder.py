@@ -10,6 +10,7 @@ from World.Object.Unit.Constants.UnitFlags import UnitFlags
 from World.Object.Unit.model import Unit, UnitTemplate
 from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Constants.UnitPower import UnitPower
+from Typings.Abstract import AbstractBuilder
 
 from Config.Run.config import Config
 
@@ -24,7 +25,7 @@ class StatsStorage(SimpleNamespace):
         yield from self.__dict__
 
 
-class StatsBuilder(object):
+class StatsBuilder(AbstractBuilder):
 
     BASE_STAMINA_LIMIT = 20
 

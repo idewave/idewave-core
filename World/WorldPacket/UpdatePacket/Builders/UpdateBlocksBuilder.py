@@ -3,11 +3,12 @@ from enum import Enum
 from struct import Struct, error as StructError
 
 from World.Object.Constants.FieldType import FieldType, FIELD_TYPE_MAP
+from Typings.Abstract import AbstractBuilder
 
 from Utils.Debug import Logger
 
 
-class UpdateBlocksBuilder(object):
+class UpdateBlocksBuilder(AbstractBuilder):
 
     FIELD_BIN_MAP = {
         FieldType.INT32.value:        Struct('<i'),
@@ -64,7 +65,7 @@ class UpdateBlocksBuilder(object):
         update_block = field_struct.pack(value)
         self.update_blocks[field_index] = update_block
 
-    def to_bytes(self):
+    def build(self):
         num_mask_blocks_bytes = int.to_bytes(len(self.mask_blocks), 1, 'little')
         mask_blocks = [int.to_bytes(b, 4, 'little') for b in self.mask_blocks]
         mask_bytes = b''.join(mask_blocks)

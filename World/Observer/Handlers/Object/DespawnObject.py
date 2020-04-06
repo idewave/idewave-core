@@ -6,7 +6,7 @@ from World.Region.model import Region
 from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
 
 
-class SpawnObject(AbstractHandler):
+class DespawnObject(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.subscribers: List[ObjectWithPosition] = kwargs.pop('subscribers')
@@ -14,4 +14,4 @@ class SpawnObject(AbstractHandler):
         self.region: Region = kwargs.pop('region')
 
     async def process(self):
-        OctreeNodeManager.add_object(root_node=self.region.get_octree(), obj=self.object)
+        OctreeNodeManager.remove_object(root_node=self.region.get_octree(), obj=self.object)

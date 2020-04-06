@@ -14,13 +14,11 @@ from Server.Auth.Handlers.SetupEncryption import SetupEncryption
 from Server.Auth.Handlers.AuthResponse import AuthResponse
 from Server.Auth.Handlers.AddonInfo import AddonInfo
 
-from World.WorldEnter.Handlers.LoginVerifyWorld import LoginVerifyWorld
-from World.WorldEnter.Handlers.TutorialFlags import TutorialFlags
-from World.WorldEnter.Handlers.AccountDataTimes import AccountDataTimes
-from World.WorldEnter.Handlers.TimeSync import TimeSync
-from World.WorldEnter.Handlers.GameSpeed import GameSpeed
-from World.WorldEnter.Handlers.MOTD import MOTD
-from World.WorldEnter.Handlers.InitialSpells import InitialSpells
+from World.Object.Unit.Player.Handlers.WorldEnter import TutorialFlags, LoginVerifyWorld, InitialSpells, \
+    AccountDataTimes
+from World.Object.Unit.Player.Handlers.WorldEnter.TimeSync import TimeSync
+from World.Object.Unit.Player.Handlers.WorldEnter.GameSpeed import GameSpeed
+from World.Object.Unit.Player.Handlers.WorldEnter.MOTD import MOTD
 
 from World.Object.Unit.Player.Handlers.PlayerInit import PlayerInit
 from World.Object.Unit.Player.Handlers.PlayerSpawn import PlayerSpawn

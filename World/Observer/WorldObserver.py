@@ -1,13 +1,9 @@
-from typing import List, Dict, Any
+from World.Observer import BaseObserver
+from Typings.Constants import REGIONS_MAP
 
 
-class WorldObserver(object):
+class WorldObserver(BaseObserver):
 
     def __init__(self, **kwargs):
-        self.handlers_map: Dict[int, List[Any]] = kwargs.pop('handlers_map')
-        self.subscribers: List[Any] = []
-
-    def update(self, event_type: int, payload: Dict[str, Any]) -> None:
-        handlers = self.handlers_map[event_type]
-        for handler in handlers:
-            handler(self.subscribers, payload)
+        super().__init__(**kwargs)
+        self.regions: REGIONS_MAP = kwargs.pop('regions')

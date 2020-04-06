@@ -1,7 +1,7 @@
 # Object Events
 CHANGE_POSITION = 1
 SPAWN = 2
-DEATH = 3
+DESPAWN = 3
 
 # Region Events
 WEATHER_SET_FINE = 4

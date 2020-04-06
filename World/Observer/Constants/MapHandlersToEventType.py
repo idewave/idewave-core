@@ -1,8 +1,11 @@
 from World.Observer.Constants import *
+from World.Observer.Handlers.Object.ChangePosition import ChangePosition
 
 
 MAP_HANDLERS_TO_EVENT_TYPE = {
-    CHANGE_POSITION: [],
+    CHANGE_POSITION: [
+        ChangePosition
+    ],
     WEATHER_SET_FINE: [],
     WEATHER_SET_RAIN: [],
     WEATHER_SET_SNOW: [],

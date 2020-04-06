@@ -1,8 +1,8 @@
 from typing import Optional, List
 
-from Typings.Constants import CREATURE
 from World.Region.Octree.Node import RootNode, ChildNode, LeafNode
 from Typings.Constants import ANY_NODE, CHILD_NODE
+from World.Object.model import ObjectWithPosition
 from World.Region.Octree.Constants.Config import MAX_CHILD_NODES
 
 
@@ -22,7 +22,7 @@ class OctreeNodeManager(object):
         return result
 
     @staticmethod
-    def get_current_node(root_node: RootNode, obj: CREATURE) -> LeafNode:
+    def get_node(root_node: RootNode, obj: ObjectWithPosition) -> LeafNode:
         node: ANY_NODE = root_node
 
         while node.child_nodes:
@@ -31,25 +31,17 @@ class OctreeNodeManager(object):
         return node
 
     @staticmethod
-    def remove_object(root_node: RootNode, obj: CREATURE) -> None:
-        node: ANY_NODE = root_node
-
-        while node.child_nodes:
-            node: CHILD_NODE = OctreeNodeManager._get_nearest_child_node(node, obj)
-
+    def remove_object(root_node: RootNode, obj: ObjectWithPosition) -> None:
+        node: LeafNode = OctreeNodeManager.get_node(root_node, obj)
         node.guids.remove(obj.guid)
 
     @staticmethod
-    def add_object(root_node: RootNode, obj: CREATURE) -> None:
-        node: ANY_NODE = root_node
-
-        while node.child_nodes:
-            node: CHILD_NODE = OctreeNodeManager._get_nearest_child_node(node, obj)
-
+    def add_object(root_node: RootNode, obj: ObjectWithPosition) -> None:
+        node: LeafNode = OctreeNodeManager.get_node(root_node, obj)
         node.guids.append(obj.guid)
 
     @staticmethod
-    def _get_nearest_child_node(node: ChildNode, obj: CREATURE) -> Optional[ChildNode]:
+    def _get_nearest_child_node(node: ChildNode, obj: ObjectWithPosition) -> Optional[ChildNode]:
         for i in range(0, MAX_CHILD_NODES):
             if OctreeNodeManager.should_contain_object(node.child_nodes[i], obj):
                 return node.child_nodes[i]
@@ -57,11 +49,24 @@ class OctreeNodeManager(object):
         return None
 
     @staticmethod
-    def should_contain_object(node: ChildNode, obj: CREATURE) -> bool:
+    def should_contain_object(node: ChildNode, obj: ObjectWithPosition) -> bool:
         return (node.x0 <= obj.x <= node.x1 and
                 node.y0 <= obj.y <= node.y1 and
                 node.z0 <= obj.z <= node.z1)
 
     @staticmethod
-    def get_nodes_by_range(root_node: RootNode, center: float, radius: float) -> List[ANY_NODE]:
-        pass
+    def get_guids_in_range(root_node: RootNode, obj: ObjectWithPosition, distance: int) -> List[int]:
+        guids: List[int] = []
+
+        node: LeafNode = OctreeNodeManager.get_node(root_node, obj)
+
+        if node.parent_node:
+            parent: ANY_NODE = node.parent_node
+
+            if parent.parent_node:
+                parent = parent.parent_node
+
+            for node in parent.child_nodes:
+                OctreeNodeManager.get_guids(node, guids)
+
+        return guids

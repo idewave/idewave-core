@@ -3,11 +3,12 @@ from typing import Dict, List
 from World.Region.Octree.Node import RootNode, ChildNode, LeafNode
 from World.Region.Octree.Constants import MAX_CHILD_NODES
 from Typings.Constants import NON_LEAF_NODE, CHILD_NODE
+from Typings.Abstract import AbstractBuilder
 
 from Config.Run.config import Config
 
 
-class OctreeBuilder(object):
+class OctreeBuilder(AbstractBuilder):
 
     __slots__ = ('x0', 'x1', 'y0', 'y1', 'z0', 'z1', 'root_node', 'objects')
 

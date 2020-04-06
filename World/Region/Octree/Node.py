@@ -19,7 +19,7 @@ class Node(object):
         self.y1: float = kwargs.pop('y1')
         self.z0: float = kwargs.pop('z0')
         self.z1: float = kwargs.pop('z1')
-        self.parent_node: Optional['Node'] = kwargs.get('parent_node')
+        self.parent_node: Optional[Union[RootNode, ChildNode]] = kwargs.get('parent_node')
 
 
 class RootNode(Node):

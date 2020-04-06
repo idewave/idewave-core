@@ -20,6 +20,10 @@ class OctreeManager(object):
         root_node: RootNode = builder.build()
 
         for obj in objects.values():
-            OctreeNodeManager.set_object(root_node, obj)
+            OctreeNodeManager.add_object(root_node, obj)
 
         return root_node
+
+    @staticmethod
+    def build_octree_map(**kwargs):
+        pass

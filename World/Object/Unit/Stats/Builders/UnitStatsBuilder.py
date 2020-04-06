@@ -1,8 +1,9 @@
 from World.Object.Unit.model import Unit
 from World.Object.Unit.Stats.UnitStats import UnitStats
+from Typings.Abstract import AbstractBuilder
 
 
-class UnitStatsBuilder(object):
+class UnitStatsBuilder(AbstractBuilder):
 
     __slots__ = ('world_object', 'stats')
 
