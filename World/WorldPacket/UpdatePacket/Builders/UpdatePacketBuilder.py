@@ -55,7 +55,7 @@ class UpdatePacketBuilder(AbstractBuilder):
         self.object_type = kwargs.pop('object_type')
         self.update_blocks_builder = UpdateBlocksBuilder()
 
-        # 1 for zeppelins, ships etc
+        # 1 for TRANSPORT: zeppelins, ships, elevators etc
         self.has_transport: int = kwargs.pop('has_transport', 0)
 
         self.batches = []

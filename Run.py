@@ -30,7 +30,7 @@ if __name__ == '__main__':
         WEATHER_SET_STORM: [],
         WEATHER_SET_THUNDERS: [],
         WEATHER_SET_BLACK_RAIN: [],
-    }, coverage=RegionManager().regions)
+    })
 
     login_server = LoginServer.create()
     world_server = WorldServer.create(world_observer=world_observer)

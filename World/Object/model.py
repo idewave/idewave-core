@@ -31,7 +31,7 @@ class Object(ObservableMixin, RealmModel):
         return None
 
     @hybrid_property
-    def guid(self):
+    def guid(self) -> int:
         _guid = self.id
 
         if hasattr(self, 'low_guid'):

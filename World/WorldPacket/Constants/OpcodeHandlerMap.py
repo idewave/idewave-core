@@ -49,7 +49,7 @@ from World.Region.Handlers.ZoneUpdate import ZoneUpdate
 from Realm.Handlers.RealmSplit import RealmSplit
 
 
-MAP_HANDLER_TO_OPCODE = {
+OPCODE_HANDLER_MAP = {
     WorldOpCode.CMSG_PING: [PingHandler],
 
     # Character

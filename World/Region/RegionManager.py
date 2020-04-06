@@ -3,40 +3,41 @@ from typing import List, Optional, Callable, Dict
 
 from World.Object.model import ObjectWithPosition
 from World.Region.model import Region, DefaultLocation
-from World.Region.Octree.OctreeManager import OctreeManager
+# from World.Region.Octree.OctreeManager import OctreeManager
 from World.Observer import RegionObserver
 
 from DB.Connection.WorldConnection import WorldConnection
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
+from Typings.Abstract import AbstractWorldManager
 from Utils.Debug import Logger
 
 
-class RegionManager(object):
+class RegionManager(AbstractWorldManager):
 
-    __slots__ = ('external_session', 'session', 'region', 'regions')
+    # __slots__ = ('external_session', 'session', 'region', 'regions')
 
     def __init__(self, **kwargs):
-        external_session = kwargs.pop('session', None)
-
-        if external_session:
-            self.session = external_session
-        else:
-            connection = WorldConnection()
-            self.session = connection.session
+        # external_session = kwargs.pop('session', None)
+        #
+        # if external_session:
+        #     self.session = external_session
+        # else:
+        #     connection = WorldConnection()
+        #     self.session = connection.session
 
         self.region: Optional[Region] = None
-        self.regions: Dict[int, Region] = self.load_all()
+        # self.regions: Dict[int, Region] = self.load_regions()
 
     # FIXME: get region from ALREADY loaded regions list
-    def get_region(self, **kwargs) -> Region:
-        # TODO: fix args receiving
-        identifier = kwargs.pop('identifier', None)
-        try:
-            region = self.session.query(Region).filter_by(identifier=identifier).first()
-        except Exception as e:
-            raise Exception('[Region Manager]: get_region exception "{}"'.format(e))
-        else:
-            return region
+    # def get_region(self, **kwargs) -> Region:
+    #     # TODO: fix args receiving
+    #     identifier = kwargs.pop('identifier', None)
+    #     try:
+    #         region = self.session.query(Region).filter_by(identifier=identifier).first()
+    #     except Exception as e:
+    #         raise Exception('[Region Manager]: get_region exception "{}"'.format(e))
+    #     else:
+    #         return region
 
     def create(self, **kwargs):
         identifier = kwargs.pop('identifier', None)
@@ -77,38 +78,41 @@ class RegionManager(object):
         self.session.add(default_location)
         self.session.commit()
 
-    def load_all(self) -> Dict[int, Region]:
-        Logger.debug('[RegionMgr]: Loading regions')
-        regions = self.session.query(Region).all()
-        t0 = time()
+    def load_regions(self) -> Dict[int, Region]:
+        return self.session.query(Region).all()
 
-        result: Dict[int, Region] = {}
+    # def load_all(self) -> Dict[int, Region]:
+    #     Logger.debug('[RegionMgr]: Loading regions')
+    #     regions = self.session.query(Region).all()
+    #     t0 = time()
+    #
+    #     result: Dict[int, Region] = {}
+    #
+    #     for region in regions:
+    #         objects = RegionManager.load_region_objects(region)
+    #         octree = OctreeManager.create_octree(
+    #             x0=region.x2,
+    #             x1=region.x1,
+    #             y0=region.y2,
+    #             y1=region.y1,
+    #             objects=objects
+    #         )
+    #         region.set_octree(octree)
+    #         result[region.id] = region
+    #
+    #         region.set_region_observer(
+    #             region_observer=RegionObserver(region=region)
+    #         )
+    #
+    #     t1 = time()
+    #     Logger.debug('[RegionMgr]: regions loaded in {}s'.format(t1 - t0))
+    #
+    #     return result
 
-        for region in regions:
-            objects = RegionManager.load_region_objects(region)
-            octree = OctreeManager.create_octree(
-                x0=region.x2,
-                x1=region.x1,
-                y0=region.y2,
-                y1=region.y1,
-                objects=objects
-            )
-            region.set_octree(octree)
-            result[region.id] = region
-
-            region.set_region_observer(
-                region_observer=RegionObserver(region=region)
-            )
-
-        t1 = time()
-        Logger.debug('[RegionMgr]: regions loaded in {}s'.format(t1 - t0))
-
-        return result
-
-    # TODO: store separately players, units and other objects
-    @staticmethod
-    def load_region_objects(region: Region) -> List[ObjectWithPosition]:
-        return region.units + region.players
+    # # TODO: store separately players, units and other objects
+    # @staticmethod
+    # def load_region_objects(region: Region) -> List[ObjectWithPosition]:
+    #     return region.units + region.players
 
     # @staticmethod
     # def send_despawn_packets(current_object: Player, guids: List[int]) -> None:
@@ -125,15 +129,15 @@ class RegionManager(object):
         self.session.commit()
         return self
 
-    def broadcast(self, opcode: WorldOpCode, packets: List[bytes], callback: Callable):
-        callback(opcode=opcode, packets=packets, regions=self.regions)
+    # def broadcast(self, opcode: WorldOpCode, packets: List[bytes], callback: Callable):
+    #     callback(opcode=opcode, packets=packets, regions=self.regions)
 
     # enter/exit are safe, should be used instead of __del__
-    def __enter__(self):
-        connection = WorldConnection()
-        self.session = connection.session
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.session.close()
-        return False
+    # def __enter__(self):
+    #     connection = WorldConnection()
+    #     self.session = connection.session
+    #     return self
+    #
+    # def __exit__(self, exc_type, exc_val, exc_tb):
+    #     self.session.close()
+    #     return False

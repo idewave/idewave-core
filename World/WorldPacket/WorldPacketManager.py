@@ -6,7 +6,7 @@ from Server.Connection.Connection import Connection
 from World.Observer import WorldObserver
 
 from World.WorldPacket.Constants import LoginOpCode, WorldOpCode, ANY_OPCODE
-from World.WorldPacket.Constants.MapHandlerToOpcode import MAP_HANDLER_TO_OPCODE
+from World.WorldPacket.Constants.OpcodeHandlerMap import OPCODE_HANDLER_MAP
 from Utils.Debug import Logger
 
 
@@ -32,9 +32,9 @@ class WorldPacketManager(object):
         if opcode is None:
             return None
 
-        if opcode in MAP_HANDLER_TO_OPCODE:
+        if opcode in OPCODE_HANDLER_MAP:
             Logger.notify('[World Packet]: processing {} opcode'.format(opcode.name))
-            handlers = MAP_HANDLER_TO_OPCODE[opcode]
+            handlers = OPCODE_HANDLER_MAP[opcode]
             packets = []
 
             for handler in handlers:

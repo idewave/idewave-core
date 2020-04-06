@@ -9,7 +9,10 @@ from World.Region.Octree.Constants.Config import MAX_CHILD_NODES
 class OctreeNodeManager(object):
 
     @staticmethod
-    def get_guids(node: ANY_NODE, result: Optional[List[int]]) -> List[int]:
+    def get_guids(
+            node: ANY_NODE,
+            result: Optional[List[ObjectWithPosition]]
+    ) -> List[ObjectWithPosition]:
         if result is None:
             result = []
 
@@ -17,7 +20,7 @@ class OctreeNodeManager(object):
             for child in node.child_nodes:
                 OctreeNodeManager.get_guids(child, result)
         else:
-            result += node.guids
+            result += node.objects
 
         return result
 
@@ -33,12 +36,14 @@ class OctreeNodeManager(object):
     @staticmethod
     def remove_object(root_node: RootNode, obj: ObjectWithPosition) -> None:
         node: LeafNode = OctreeNodeManager.get_node(root_node, obj)
-        node.guids.remove(obj.guid)
+        node.objects.remove(obj)
+        del root_node.guid_octree_map[obj.guid]
 
     @staticmethod
     def add_object(root_node: RootNode, obj: ObjectWithPosition) -> None:
         node: LeafNode = OctreeNodeManager.get_node(root_node, obj)
-        node.guids.append(obj.guid)
+        node.objects.append(obj)
+        root_node.guid_octree_map[obj.guid] = node
 
     @staticmethod
     def _get_nearest_child_node(node: ChildNode, obj: ObjectWithPosition) -> Optional[ChildNode]:
@@ -55,8 +60,12 @@ class OctreeNodeManager(object):
                 node.z0 <= obj.z <= node.z1)
 
     @staticmethod
-    def get_guids_in_range(root_node: RootNode, obj: ObjectWithPosition, distance: int) -> List[int]:
-        guids: List[int] = []
+    def get_guids_in_range(
+            root_node: RootNode,
+            obj: ObjectWithPosition,
+            distance: int
+    ) -> List[ObjectWithPosition]:
+        objects: List[ObjectWithPosition] = []
 
         node: LeafNode = OctreeNodeManager.get_node(root_node, obj)
 
@@ -67,6 +76,6 @@ class OctreeNodeManager(object):
                 parent = parent.parent_node
 
             for node in parent.child_nodes:
-                OctreeNodeManager.get_guids(node, guids)
+                OctreeNodeManager.get_guids(node, objects)
 
-        return guids
+        return objects
