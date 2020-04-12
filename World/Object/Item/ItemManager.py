@@ -2,7 +2,7 @@ from World.Object.Item.model import Item
 from World.Object.Constants.UpdateObjectFields import ItemField
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from World.Object.Item.model import ItemTemplate
-from Typings.Abstract import AbstractRealmManager
+from Typings.Abstract.AbstractRealmManager import AbstractRealmManager
 
 
 class ItemManager(AbstractRealmManager):

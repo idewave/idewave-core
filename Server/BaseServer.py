@@ -1,10 +1,11 @@
 import asyncio
 from asyncio.streams import StreamReader, StreamWriter
+from abc import abstractmethod
 
-from Config.Mixins import ConfigurableMixin
+from Typings.Abstract.AbstractBase import AbstractBase
 
 
-class BaseServer(ConfigurableMixin):
+class BaseServer(AbstractBase):
 
     __slots__ = ('host', 'port', 'instance')
 
@@ -17,6 +18,7 @@ class BaseServer(ConfigurableMixin):
             port=self.port
         )
 
+    @abstractmethod
     async def handle_connection(self, reader: StreamReader, writer: StreamWriter):
         pass
 

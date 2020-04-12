@@ -1,10 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-from Config.Mixins import ConfigurableMixin
+from Typings.Abstract.AbstractBase import AbstractBase
 
 
-class BaseConnection(ConfigurableMixin):
+class BaseConnection(AbstractBase):
 
     def __init__(self, **kwargs):
 

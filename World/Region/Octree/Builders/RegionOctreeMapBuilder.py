@@ -4,7 +4,7 @@ from World.Region.model import Region
 from World.Region.Octree.Node import RootNode
 from World.Region.Octree.Builders.OctreeBuilder import OctreeBuilder
 from World.Object.model import ObjectWithPosition
-from Typings.Abstract import AbstractBuilder
+from Typings.Abstract.AbstractBuilder import AbstractBuilder
 from Typings.Constants import REGION_IDENTIFIER
 
 

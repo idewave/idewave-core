@@ -1,6 +1,6 @@
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 
 
 class AccountDataTimes(AbstractHandler):

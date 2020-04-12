@@ -1,7 +1,7 @@
 from World.Object.Unit.Spell.Constants.SpellCastResult import SpellCastResult
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 
 
 class SpellFailed(AbstractHandler):

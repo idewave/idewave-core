@@ -3,7 +3,7 @@ from enum import Enum
 from struct import Struct, error as StructError
 
 from World.Object.Constants.FieldType import FieldType, FIELD_TYPE_MAP
-from Typings.Abstract import AbstractBuilder
+from Typings.Abstract.AbstractBuilder import AbstractBuilder
 
 from Utils.Debug import Logger
 

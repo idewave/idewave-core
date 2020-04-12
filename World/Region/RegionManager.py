@@ -8,7 +8,7 @@ from World.Observer import RegionObserver
 
 from DB.Connection.WorldConnection import WorldConnection
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
-from Typings.Abstract import AbstractWorldManager
+from Typings.Abstract.AbstractWorldManager import AbstractWorldManager
 from Typings.Constants import REGION_IDENTIFIER
 from Utils.Debug import Logger
 

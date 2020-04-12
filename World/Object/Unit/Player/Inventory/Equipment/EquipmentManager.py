@@ -9,7 +9,7 @@ from World.Object.Unit.Player.Inventory.Equipment.Constants import (
 )
 from World.Object.Item.model import Item
 from World.Object.Unit.Player.model import Player
-from Typings.Abstract import AbstractRealmManager
+from Typings.Abstract.AbstractRealmManager import AbstractRealmManager
 
 
 class EquipmentManager(AbstractRealmManager):

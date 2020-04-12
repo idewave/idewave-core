@@ -4,7 +4,7 @@ from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Region.RegionManager import RegionManager
 
 from Server.Connection.Connection import Connection
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 from World.Observer.Constants import CHANGE_POSITION
 
 from Utils.Debug import Logger

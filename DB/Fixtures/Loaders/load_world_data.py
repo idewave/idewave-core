@@ -1,12 +1,11 @@
 import subprocess
 from os import walk, path
 
-from Typings.Abstract import AbstractLoader
+from Typings.Abstract.AbstractLoader import AbstractLoader
 from Utils.Debug import Logger
-from Config.Mixins import ConfigurableMixin
 
 
-class DataLoader(AbstractLoader, ConfigurableMixin):
+class DataLoader(AbstractLoader):
 
     def load(self, **kwargs):
         db_name: str = kwargs.pop('db_name')

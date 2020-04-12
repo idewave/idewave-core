@@ -11,10 +11,10 @@ from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
 from World.Region.Octree.Node import ChildNode
 from Server.Registry.QueuesRegistry import QueuesRegistry
-from Config.Mixins import ConfigurableMixin
+from Typings.Abstract.AbstractBase import AbstractBase
 
 
-class WeatherManager(ConfigurableMixin):
+class WeatherManager(AbstractBase):
 
     __slots__ = ('weather_types', 'current_weather_type', 'instant_change')
 

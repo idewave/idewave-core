@@ -1,9 +1,8 @@
-from abc import ABC
-
+from Typings.Abstract.AbstractBase import AbstractBase
 from DB.Connection.LoginConnection import LoginConnection
 
 
-class AbstractLoginManager(ABC):
+class AbstractLoginManager(AbstractBase):
 
     # enter/exit are safe, should be used instead of __del__
     def __enter__(self):

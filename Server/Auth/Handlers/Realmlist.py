@@ -5,10 +5,10 @@ from Realm.Constants.RealmPopulation import RealmPopulation
 from Realm.Constants.RealmFlags import RealmFlags
 from Realm.Realm import Realm
 from Realm.Constants.RealmType import RealmType
-from Config.Mixins import ConfigurableMixin
+from Typings.Abstract.AbstractHandler import AbstractHandler
 
 
-class Realmlist(ConfigurableMixin):
+class Realmlist(AbstractHandler):
 
     REALMLIST_RESPONSE_HEADER_FORMAT = '<HIH'
     REALMLIST_RESPONSE_FOOTER_FORMAT = '<B'

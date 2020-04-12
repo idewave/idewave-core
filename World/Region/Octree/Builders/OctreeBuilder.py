@@ -3,14 +3,13 @@ from typing import List
 from World.Region.Octree.Node import RootNode, ChildNode, LeafNode
 from World.Region.Octree.Constants import MAX_CHILD_NODES
 from Typings.Constants import NON_LEAF_NODE, CHILD_NODE
-from Typings.Abstract import AbstractBuilder
+from Typings.Abstract.AbstractBuilder import AbstractBuilder
 
 from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
 from World.Object.model import ObjectWithPosition
-from Config.Mixins import ConfigurableMixin
 
 
-class OctreeBuilder(AbstractBuilder, ConfigurableMixin):
+class OctreeBuilder(AbstractBuilder):
 
     __slots__ = (
         'x0',

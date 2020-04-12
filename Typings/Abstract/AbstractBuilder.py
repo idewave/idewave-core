@@ -1,7 +1,9 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+
+from Typings.Abstract.AbstractBase import AbstractBase
 
 
-class AbstractBuilder(ABC):
+class AbstractBuilder(AbstractBase):
 
     @abstractmethod
     def build(self, **kwargs):

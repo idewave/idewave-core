@@ -1,15 +1,15 @@
 from typing import List, Any, Dict
 
-from World.Observer import WorldObserver
+from Typings.Abstract.AbstractObserver import AbstractObserver
 
 
 class ObservableMixin(object):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.subscriptions: List[WorldObserver] = []
+        self.subscriptions: List[AbstractObserver] = []
 
-    def subscribe(self, observer: WorldObserver) -> None:
+    def subscribe(self, observer: AbstractObserver) -> None:
         self.subscriptions.append(observer)
 
     def detach(self):

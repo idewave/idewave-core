@@ -4,7 +4,7 @@ from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
 from Server.CustomExceptions.CharactersLimitError import CharactersLimitError
 from World.Object.Unit.Player.CharacterManager import CharacterManager
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 
 
 class CharacterEnum(AbstractHandler):

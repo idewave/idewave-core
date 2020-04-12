@@ -1,6 +1,6 @@
 from World.Object.Unit.Player.PlayerManager import PlayerManager
 from Server.Registry.QueuesRegistry import QueuesRegistry
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 
 from Server.Connection.Connection import Connection
 

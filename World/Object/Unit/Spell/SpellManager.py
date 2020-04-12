@@ -3,7 +3,7 @@ from typing import List
 
 from World.Object.Unit.Spell.model import SpellTemplate, DefaultSpell
 from World.Object.Unit.Player.model import Player, PlayerSpell
-from Typings.Abstract import AbstractWorldManager
+from Typings.Abstract.AbstractWorldManager import AbstractWorldManager
 
 
 class SpellManager(AbstractWorldManager):

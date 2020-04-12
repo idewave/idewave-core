@@ -4,10 +4,11 @@ from Utils.Timer import Timer
 from World.Region.RegionManager import RegionManager
 from World.Region.Weather.WeatherManager import WeatherManager
 from Server.Registry.QueuesRegistry import QueuesRegistry
-from Config.Mixins import ConfigurableMixin
+from Typings.Abstract.AbstractBase import AbstractBase
 
 
-class WorldManager(ConfigurableMixin):
+# TODO: this should be refactored into another class type, not manager
+class WorldManager(AbstractBase):
 
     __slots__ = ('last_update', 'region_mgr', 'weather_mgr')
 

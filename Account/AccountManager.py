@@ -1,6 +1,6 @@
 from Account.model import Account
 from Utils.Debug import Logger
-from Typings.Abstract import AbstractLoginManager
+from Typings.Abstract.AbstractLoginManager import AbstractLoginManager
 
 
 class AccountManager(AbstractLoginManager):

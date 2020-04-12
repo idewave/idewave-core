@@ -10,7 +10,7 @@ from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
 from World.Region.Octree.Node import ChildNode
 from Server.Connection.Connection import Connection
 from Server.Registry.QueuesRegistry import QueuesRegistry
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 
 
 class NameQuery(AbstractHandler):

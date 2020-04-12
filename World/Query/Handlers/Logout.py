@@ -4,7 +4,7 @@ from World.Object.Unit.Player.PlayerManager import PlayerManager
 
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 
 
 class Logout(AbstractHandler):

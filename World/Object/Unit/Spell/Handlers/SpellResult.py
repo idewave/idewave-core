@@ -5,7 +5,7 @@ from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Unit.Spell.Constants.SpellCastFlags import SpellCastFlags
 from Server.Connection.Connection import Connection
 from Utils.Timer import Timer
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 
 
 class SpellResult(AbstractHandler):

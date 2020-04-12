@@ -15,7 +15,7 @@ from World.Object.Unit.Player.Constants.CharacterClass import CharacterClass
 from Server.Connection.Connection import Connection
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.Object.Unit.Player.Constants.PlayerSpawnFields import PLAYER_SPAWN_FIELDS
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 
 
 class PlayerSpawn(AbstractHandler):

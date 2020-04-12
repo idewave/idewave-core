@@ -11,10 +11,10 @@ from Server.Registry.QueuesRegistry import QueuesRegistry
 from Server.WebsocketServer.Constants.RequestType import RequestType
 
 from Utils.Debug import Logger
-from Config.Mixins import ConfigurableMixin
+from Typings.Abstract.AbstractBase import AbstractBase
 
 
-class WebsocketServer(ConfigurableMixin):
+class WebsocketServer(AbstractBase):
 
     def __init__(self, host, port):
         self.instance = websockets.serve(self.handle_connection, host, port)

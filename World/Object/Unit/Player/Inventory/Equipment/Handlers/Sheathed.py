@@ -1,5 +1,5 @@
 from Server.Connection.Connection import Connection
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 
 
 class Sheathed(AbstractHandler):

@@ -12,7 +12,7 @@ from World.Region.model import Region
 from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
 from World.Region.Octree.Node import ChildNode
 from Server.Registry.QueuesRegistry import QueuesRegistry
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 from Server.Connection.Connection import Connection
 
 

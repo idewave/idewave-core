@@ -1,7 +1,9 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+
+from Typings.Abstract.AbstractBase import AbstractBase
 
 
-class AbstractHandler(ABC):
+class AbstractHandler(AbstractBase):
 
     @abstractmethod
     async def process(self):

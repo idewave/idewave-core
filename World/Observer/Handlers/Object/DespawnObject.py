@@ -1,6 +1,6 @@
 from typing import List
 
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 from World.Object.model import ObjectWithPosition
 from World.Region.model import Region
 from World.Region.Octree.OctreeNodeManager import OctreeNodeManager

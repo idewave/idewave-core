@@ -2,11 +2,10 @@ from World.Object.model import Object
 from World.Object.Constants.UpdateObjectFields import ObjectField
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
 from World.WorldPacket.UpdatePacket.Builders.UpdatePacketBuilder import UpdatePacketBuilder
-from Typings.Abstract import AbstractRealmManager
-from Config.Mixins import ConfigurableMixin
+from Typings.Abstract.AbstractRealmManager import AbstractRealmManager
 
 
-class ObjectManager(AbstractRealmManager, ConfigurableMixin):
+class ObjectManager(AbstractRealmManager):
 
     def __init__(self, **kwargs):
         self.update_packet_builder = None

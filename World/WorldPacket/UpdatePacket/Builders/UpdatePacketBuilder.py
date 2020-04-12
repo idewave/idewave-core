@@ -6,12 +6,11 @@ from World.WorldPacket.UpdatePacket.Builders.UpdateBlocksBuilder import UpdateBl
 from World.Object.Unit.Movement.Constants.MovementFlags import MovementFlags
 from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from World.Object.Constants.ObjectType import ObjectType
-from Typings.Abstract import AbstractBuilder
+from Typings.Abstract.AbstractBuilder import AbstractBuilder
 from Utils.Timer import Timer
-from Config.Mixins import ConfigurableMixin
 
 
-class UpdatePacketBuilder(AbstractBuilder, ConfigurableMixin):
+class UpdatePacketBuilder(AbstractBuilder):
 
     MAX_UPDATE_PACKETS_AS_ONE = 15
 

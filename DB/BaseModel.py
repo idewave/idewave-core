@@ -1,13 +1,13 @@
 import re
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
-from Config.Mixins import ConfigurableMixin
+from Typings.Abstract.AbstractObservable import AbstractObservable
 
 
 pattern = re.compile(r'(?<!^)(?=[A-Z])')
 
 
-class Base(declarative_base(), ConfigurableMixin):
+class Base(declarative_base(), AbstractObservable):
 
     __abstract__ = True
 

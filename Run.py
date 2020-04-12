@@ -7,7 +7,6 @@ from colorama import init
 from Server.Init.servers import login_server, world_server
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldManager import WorldManager
-
 from Utils.Debug import Logger
 
 

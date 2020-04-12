@@ -1,11 +1,13 @@
 import yaml
-from os import path
+from os import path, listdir
 
-from Typings.Abstract import AbstractLoader
+from Typings.Abstract.AbstractLoader import AbstractLoader
 from Utils.Debug import Logger
 
 
 class ConfigLoader(AbstractLoader):
+
+    CONFIG_DIR = 'Config'
 
     def load(self, **kwargs):
         current_dir = path.dirname(__file__)

@@ -7,11 +7,9 @@ from World.Object.Constants import (
     TypeMask,
     ObjectType
 )
-from World.Observer.Mixins import ObservableMixin
-from Config.Mixins import ConfigurableMixin
 
 
-class Object(ObservableMixin, RealmModel, ConfigurableMixin):
+class Object(RealmModel):
 
     __abstract__ = True
 

@@ -3,7 +3,7 @@ from typing import List
 
 from World.Object.Unit.Player.Skill.model import SkillTemplate, DefaultSkill
 from World.Object.Unit.Player.model import Player, PlayerSkill
-from Typings.Abstract import AbstractWorldManager
+from Typings.Abstract.AbstractWorldManager import AbstractWorldManager
 from Utils.Debug import Logger
 
 

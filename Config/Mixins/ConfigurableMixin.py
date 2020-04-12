@@ -14,7 +14,7 @@ class ConfigurableMixin(object):
         if delimiter not in composite_key:
             raise Exception(
                 f'{composite_key} is incorrect format of key, '
-                f'keys should be divided by {delimiter}.'
+                f'keys should be separated by {delimiter}.'
             )
 
         keys = composite_key.split(delimiter)

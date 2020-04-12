@@ -1,5 +1,5 @@
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 
 
 class ActionButtons(AbstractHandler):

@@ -11,7 +11,7 @@ from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
 from Utils.Debug import Logger
 from Utils import ByteStringParser
-from Typings.Abstract import AbstractHandler
+from Typings.Abstract.AbstractHandler import AbstractHandler
 
 
 class CharacterCreate(AbstractHandler):

@@ -1,9 +1,9 @@
-from abc import ABC
+from Typings.Abstract.AbstractBase import AbstractBase
 
 from DB.Connection.RealmConnection import RealmConnection
 
 
-class AbstractRealmManager(ABC):
+class AbstractRealmManager(AbstractBase):
 
     # enter/exit are safe, should be used instead of __del__
     def __enter__(self):

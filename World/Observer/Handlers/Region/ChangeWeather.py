@@ -1,7 +1,7 @@
 from typing import List
 
-from World.Object import Object
-from Typings.Abstract import AbstractHandler
+from World.Object.model import Object
+from Typings.Abstract.AbstractHandler import AbstractHandler
 
 
 class ChangeWeather(AbstractHandler):

@@ -1,10 +1,10 @@
 import asyncio_redis
 import json
 
-from Config.Mixins import ConfigurableMixin
+from Typings.Abstract.AbstractBase import AbstractBase
 
 
-class RedisConnection(ConfigurableMixin):
+class RedisConnection(AbstractBase):
 
     def __init__(self, host: str, port: int):
         self.host = host
@@ -25,6 +25,6 @@ class RedisConnection(ConfigurableMixin):
     @staticmethod
     def create():
         return RedisConnection(
-            RedisConnection.from_config('server:connection:redis_server:host'),
-            RedisConnection.from_config('server:connection:redis_server:port'),
+            host=RedisConnection.from_config('server:connection:redis_server:host'),
+            port=RedisConnection.from_config('server:connection:redis_server:port'),
         )

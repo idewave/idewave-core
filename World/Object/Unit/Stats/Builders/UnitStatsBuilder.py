@@ -1,6 +1,6 @@
 from World.Object.Unit.model import Unit
 from World.Object.Unit.Stats.UnitStats import UnitStats
-from Typings.Abstract import AbstractBuilder
+from Typings.Abstract.AbstractBuilder import AbstractBuilder
 
 
 class UnitStatsBuilder(AbstractBuilder):
