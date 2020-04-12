@@ -9,6 +9,7 @@ from World.Observer import RegionObserver
 from DB.Connection.WorldConnection import WorldConnection
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Typings.Abstract import AbstractWorldManager
+from Typings.Constants import REGION_IDENTIFIER
 from Utils.Debug import Logger
 
 
@@ -78,8 +79,12 @@ class RegionManager(AbstractWorldManager):
         self.session.add(default_location)
         self.session.commit()
 
-    def load_regions(self) -> Dict[int, Region]:
-        return self.session.query(Region).all()
+    def load_regions(self) -> Dict[REGION_IDENTIFIER, Region]:
+        regions = self.session.query(Region).all()
+        return {
+            region.identifier: region
+            for region in regions
+        }
 
     # def load_all(self) -> Dict[int, Region]:
     #     Logger.debug('[RegionMgr]: Loading regions')

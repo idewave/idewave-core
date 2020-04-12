@@ -11,10 +11,10 @@ from World.Object.Unit.Player.PlayerManager import PlayerManager
 from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
 from World.Region.Octree.Node import ChildNode
 from Server.Registry.QueuesRegistry import QueuesRegistry
-from Config.Run.config import Config
+from Config.Mixins import ConfigurableMixin
 
 
-class WeatherManager(object):
+class WeatherManager(ConfigurableMixin):
 
     __slots__ = ('weather_types', 'current_weather_type', 'instant_change')
 
@@ -34,7 +34,7 @@ class WeatherManager(object):
 
     def _change_state(self) -> None:
         chance_to_change = randint(1, 100)
-        chances = Config.World.Weather.Chances
+        chances: Dict[str, int] = WeatherManager.from_config('region:weather:change_chance')
 
         allowed_weather_types: List[int] = [
             wtype.value

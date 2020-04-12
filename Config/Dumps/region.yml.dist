@@ -1,0 +1,17 @@
+generation:
+  # be careful to change this value,
+  # the lower this value the more memory will be occupied
+  octree_node_size: 200
+
+weather:
+  change_weather_timeout: 300
+  # 0 - False, 1 - True, 2 - Random
+  instant_change: 0
+  # percentage
+  change_chance:
+    fine: 100
+    rain: 50
+    snow: 50
+    storm: 10
+    thunders: 30
+    blackrain: 0

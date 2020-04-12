@@ -6,7 +6,6 @@ from asyncio import TimeoutError
 from Server import BaseServer, Connection
 from World.WorldPacket.WorldPacketManager import WorldPacketManager
 from Utils.Debug import Logger
-from Config.Run.config import Config
 
 
 class LoginServer(BaseServer):
@@ -24,7 +23,7 @@ class LoginServer(BaseServer):
             except TimeoutError:
                 continue
             finally:
-                await asyncio.sleep(Config.Realm.Settings.min_timeout)
+                await asyncio.sleep(LoginServer.from_config('server:settings:min_timeout'))
 
     @staticmethod
     async def process_request(
@@ -34,7 +33,7 @@ class LoginServer(BaseServer):
     ):
         request = await asyncio.wait_for(
             reader.read(4096),
-            timeout=Config.Realm.Settings.min_timeout
+            timeout=LoginServer.from_config('server:settings:min_timeout')
         )
         if request:
             opcode, data = request[:1], request[1:]
@@ -42,7 +41,7 @@ class LoginServer(BaseServer):
             if data:
                 response = await asyncio.wait_for(
                     world_packet_mgr.process(opcode=opcode, data=data),
-                    timeout=Config.Realm.Settings.min_timeout
+                    timeout=LoginServer.from_config('server:settings:min_timeout')
                 )
 
                 if response:
@@ -55,6 +54,6 @@ class LoginServer(BaseServer):
         Logger.info('[Login Server]: init')
 
         return LoginServer(
-            host=Config.Realm.Connection.LoginServer.host,
-            port=Config.Realm.Connection.LoginServer.port
+            host=LoginServer.from_config('server:connection:login_server:host'),
+            port=LoginServer.from_config('server:connection:login_server:port')
         )

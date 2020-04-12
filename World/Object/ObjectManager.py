@@ -3,9 +3,10 @@ from World.Object.Constants.UpdateObjectFields import ObjectField
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
 from World.WorldPacket.UpdatePacket.Builders.UpdatePacketBuilder import UpdatePacketBuilder
 from Typings.Abstract import AbstractRealmManager
+from Config.Mixins import ConfigurableMixin
 
 
-class ObjectManager(AbstractRealmManager):
+class ObjectManager(AbstractRealmManager, ConfigurableMixin):
 
     def __init__(self, **kwargs):
         self.update_packet_builder = None

@@ -1,12 +1,12 @@
 import asyncio_redis
 import json
 
-from Config.Run.config import Config
+from Config.Mixins import ConfigurableMixin
 
 
-class RedisConnection(object):
+class RedisConnection(ConfigurableMixin):
 
-    def __init__(self, host, port):
+    def __init__(self, host: str, port: int):
         self.host = host
         self.port = port
         self.connection = None
@@ -24,4 +24,7 @@ class RedisConnection(object):
 
     @staticmethod
     def create():
-        return RedisConnection(Config.RedisServer.Connection.host, Config.RedisServer.Connection.port)
+        return RedisConnection(
+            RedisConnection.from_config('server:connection:redis_server:host'),
+            RedisConnection.from_config('server:connection:redis_server:port'),
+        )

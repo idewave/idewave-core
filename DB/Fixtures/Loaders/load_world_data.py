@@ -1,10 +1,19 @@
 import subprocess
 from os import walk, path
 
+from Typings.Abstract import AbstractLoader
 from Utils.Debug import Logger
+from Config.Mixins import ConfigurableMixin
 
-from Config.Run.config import Config
 
+class DataLoader(AbstractLoader, ConfigurableMixin):
+
+    def load(self, **kwargs):
+        db_name: str = kwargs.pop('db_name')
+        db_name = DataLoader.from_config(f'database:names:{db_name}')
+
+
+# TODO: refactor it into loader class -> WorldDataLoader above
 MAP_DIRNAME_TO_DBNAME = {
     0: {
         'dir_name': 'World',

@@ -4,24 +4,26 @@ from Utils.Timer import Timer
 from World.Region.RegionManager import RegionManager
 from World.Region.Weather.WeatherManager import WeatherManager
 from Server.Registry.QueuesRegistry import QueuesRegistry
-from Config.Run.config import Config
+from Config.Mixins import ConfigurableMixin
 
 
-class WorldManager(object):
+class WorldManager(ConfigurableMixin):
 
     __slots__ = ('last_update', 'region_mgr', 'weather_mgr')
 
     def __init__(self):
         self.last_update = None
         self.region_mgr = RegionManager()
-        self.weather_mgr = WeatherManager(instant_change=Config.World.Weather.instant_change)
+        self.weather_mgr = WeatherManager(
+            instant_change=WorldManager.from_config('region:weather:instant_change')
+        )
 
     async def run(self):
         self._register_tasks()
 
         while True:
             self.last_update = Timer.get_ms_time()
-            await sleep(Config.Realm.Settings.min_timeout)
+            await sleep(WorldManager.from_config('server:settings:min_timeout'))
 
     def _register_tasks(self):
         gather(
@@ -39,9 +41,9 @@ class WorldManager(object):
             else:
                 self.region_mgr.broadcast(opcode, packets, callback)
             finally:
-                await sleep(Config.Realm.Settings.min_timeout)
+                await sleep(WorldManager.from_config('server:settings:min_timeout'))
 
     async def change_weather(self):
         while True:
             self.weather_mgr.set_weather()
-            await sleep(Config.World.Weather.change_weather_timeout)
+            await sleep(WorldManager.from_config('region:weather:change_weather_timeout'))

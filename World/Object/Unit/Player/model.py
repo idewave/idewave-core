@@ -1,5 +1,6 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import Column, Integer, Float, ForeignKey, String
 
 from DB.BaseModel import RealmModel
@@ -11,9 +12,7 @@ from World.Object.Unit.Spell.model import SpellTemplate
 from World.Object.Constants.TypeMask import TypeMask
 from World.Object.Constants.ObjectType import ObjectType
 from World.Object.Constants.HighGuid import HighGuid
-from World.Region.model import Region
-
-from Config.Run.config import Config
+# from World.Region.model import Region
 
 
 class AbstractPlayer(AbstractUnit):
@@ -58,40 +57,46 @@ class Player(AbstractPlayer):
     next_level_xp = Column(Integer)
     money = Column(Integer)
 
-    account_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.login_db}.{Account.__tablename__}.id',
-            onupdate='CASCADE',
-            ondelete='CASCADE'
+    @declared_attr
+    def account_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{self.from_config("database:names:login_db")}.{Account.__tablename__}.id',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            )
         )
-    )
 
-    unit_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.realm_db}.{Unit.__tablename__}.id',
-            onupdate='CASCADE',
-            ondelete='CASCADE'
+    @declared_attr
+    def unit_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{self.from_config("database:names:realm_db")}.{Unit.__tablename__}.id',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            )
         )
-    )
 
-    region_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.world_db}.{Region.__tablename__}.id',
-            onupdate='CASCADE',
-            ondelete='CASCADE'
-        ),
-        nullable=True
-    )
+    # @declared_attr
+    # def region_id(self):
+    #     return Column(
+    #         Integer,
+    #         ForeignKey(
+    #             f'{self.from_config("database:names:world_db")}.{Region.__tablename__}.id',
+    #             onupdate='CASCADE',
+    #             ondelete='CASCADE'
+    #         ),
+    #         nullable=True
+    #     )
 
     equipment = relationship('Equipment', lazy='subquery')
     unit = relationship('Unit', lazy='subquery')
     skills = relationship('PlayerSkill', lazy='subquery')
     spells = relationship('PlayerSpell', lazy='subquery')
     account = relationship('Account', lazy='subquery')
-    region = relationship('Region', lazy='subquery')
+    # region = relationship('Region', lazy='subquery')
 
     @hybrid_property
     def object_type(self):
@@ -110,23 +115,27 @@ class PlayerSkill(RealmModel):
 
     id = Column(Integer, primary_key=True)
 
-    skill_template_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.world_db}.{SkillTemplate.__tablename__}.id',
-            onupdate='CASCADE',
-            ondelete='CASCADE'
+    @declared_attr
+    def skill_template_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{self.from_config("database:names:world_db")}.{SkillTemplate.__tablename__}.id',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            )
         )
-    )
 
-    player_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.realm_db}.{Player.__tablename__}.id',
-            onupdate='CASCADE',
-            ondelete='CASCADE'
+    @declared_attr
+    def player_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{self.from_config("database:names:realm_db")}.{Player.__tablename__}.id',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            )
         )
-    )
 
     skill_template = relationship('SkillTemplate', lazy='subquery')
     player = relationship('Player', lazy='subquery')
@@ -136,23 +145,27 @@ class PlayerSpell(RealmModel):
 
     id = Column(Integer, primary_key=True)
 
-    spell_template_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.world_db}.{SpellTemplate.__tablename__}.id',
-            onupdate='CASCADE',
-            ondelete='CASCADE'
+    @declared_attr
+    def spell_template_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{self.from_config("database:names:world_db")}.{SpellTemplate.__tablename__}.id',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            )
         )
-    )
 
-    player_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.realm_db}.{Player.__tablename__}.id',
-            onupdate='CASCADE',
-            ondelete='CASCADE'
+    @declared_attr
+    def player_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{self.from_config("database:names:realm_db")}.{Player.__tablename__}.id',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            )
         )
-    )
 
     spell_template = relationship('SpellTemplate', lazy='subquery')
     player = relationship('Player', lazy='subquery')

@@ -5,10 +5,10 @@ from Realm.Constants.RealmPopulation import RealmPopulation
 from Realm.Constants.RealmFlags import RealmFlags
 from Realm.Realm import Realm
 from Realm.Constants.RealmType import RealmType
-from Config.Run.config import Config
+from Config.Mixins import ConfigurableMixin
 
 
-class Realmlist(object):
+class Realmlist(ConfigurableMixin):
 
     REALMLIST_RESPONSE_HEADER_FORMAT = '<HIH'
     REALMLIST_RESPONSE_FOOTER_FORMAT = '<B'
@@ -19,9 +19,9 @@ class Realmlist(object):
 
     async def process(self) -> tuple:
         realm = Realm(
-            Config.Realm.Connection.WorldServer.realm_name,
-            Config.Realm.Connection.WorldServer.host,
-            Config.Realm.Connection.WorldServer.port,
+            Realmlist.from_config('realm:settings:name'),
+            Realmlist.from_config('server:connection:world_server:host'),
+            Realmlist.from_config('server:connection:world_server:port'),
             RealmType.NORMAL.value
         )
 

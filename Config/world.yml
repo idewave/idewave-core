@@ -1,0 +1,7 @@
+gameplay:
+  game_speed: 0.01666667
+
+chat:
+  range:
+    say: 25
+    yell: 300

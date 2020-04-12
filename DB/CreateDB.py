@@ -6,9 +6,8 @@ from DB.Connection.RealmConnection import RealmConnection
 from DB.BaseModel import Base
 from World.Object.StaticObject.model import StaticObject, StaticObjectTemplate
 
-from Config.Run.config import Config
 
-
+# TODO: refactor into class
 def create_db():
     connection_string = Config.Database.Connection.sqlalchemy_connection_string
 

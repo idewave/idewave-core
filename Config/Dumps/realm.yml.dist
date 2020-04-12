@@ -1,0 +1,4 @@
+settings:
+  name: Idewave Core
+  # Message of the day ('@' for the newline)
+  motd: Welcome to the idewave-core server

@@ -13,8 +13,6 @@ from World.Object.Constants import (
 from World.Object.Position import Position
 from World.Region.model import Region
 
-from Config.Run.config import Config
-
 
 class UnitTemplate(WorldModel):
 
@@ -29,7 +27,11 @@ class UnitTemplate(WorldModel):
     display_id_3 = Column(Integer)
     display_id_4 = Column(Integer)
     faction_template = Column(Integer)
-    scale_x = Column(Float, default=Config.World.Object.Defaults.scale_x)
+
+    @declared_attr
+    def scale_x(self):
+        return Column(Float, default=self.from_config("object:default:scale_x"))
+
     family = Column(Integer)
     creature_type = Column(Integer)
     inhabit_type = Column(Integer)
@@ -110,7 +112,7 @@ class AbstractUnit(ObjectWithPosition):
         return Column(
             Integer,
             ForeignKey(
-                f'{Config.Database.DBNames.world_db}.{Region.__tablename__}.id',
+                f'{self.from_config("database:names:world_db")}.{Region.__tablename__}.id',
                 onupdate='CASCADE',
                 ondelete='CASCADE'
             ),
@@ -135,15 +137,17 @@ class Unit(AbstractUnit):
     mod_cast_speed = Column(Float)
     unit_flags = Column(Integer)
 
-    unit_template_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.world_db}.{UnitTemplate.__tablename__}.id',
-            onupdate='CASCADE',
-            ondelete='CASCADE'
-        ),
-        nullable=True
-    )
+    @declared_attr
+    def unit_template_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{self.from_config("database:names:world_db")}.{UnitTemplate.__tablename__}.id',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            ),
+            nullable=True
+        )
 
     unit_template = relationship('UnitTemplate', lazy='subquery')
 

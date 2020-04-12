@@ -1,0 +1,41 @@
+connection:
+  host: 127.0.0.1
+  username: wowdb
+  password: wowdb
+  # default mysql 3306, postgresql 5432, sqlite don't need port
+  port: 3306
+  # for correct values see section validation: supported_dialects
+  dialect: mysql
+  # for correct values see section validation: supported_drivers
+  # or set null if you want to use default
+  driver: pymysql
+  charset: utf8mb4
+
+  # ATTENTION! currently this feature is experimental, need to be debugged
+  # only used with sqlite, if true the db will not be saved
+  # ATTENTION! before set this to true be sure you have enough memory
+  in_memory: false
+  # only used with sqlite. Before set this value set "in_memory" option to false
+  absolute_path_to_db: ''
+
+# ATTENTION! currently this feature is experimental, need to be debugged
+validation:
+  supported_dialects:
+    - mysql
+    - postgresql
+    - sqlite
+
+  supported_drivers:
+    mysql:
+      - mysqldb
+      - pymysql
+      - pyodbc
+    postgresql:
+      - psycopg2
+      - pg8000
+      - pygresql
+
+names:
+  login_db: wowdb_login
+  world_db: wowdb_world
+  realm_db: wowdb_realm

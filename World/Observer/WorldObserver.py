@@ -6,4 +6,4 @@ class WorldObserver(BaseObserver):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.regions: REGIONS_MAP = kwargs.pop('regions')
+        self.region_octree_map: REGIONS_MAP = kwargs.pop('regions')

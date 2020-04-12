@@ -21,7 +21,7 @@ class RegionOctreeMapBuilder(AbstractBuilder):
                 x1=region.x1,
                 y0=region.y2,
                 y1=region.y1,
-                objects=RegionOctreeMapBuilder.get_objects_with_position(region)
+                objects=RegionOctreeMapBuilder._get_objects_with_position(region)
             ).build()
 
             region_octree_map[region.identifier] = octree
@@ -29,5 +29,5 @@ class RegionOctreeMapBuilder(AbstractBuilder):
         return region_octree_map
 
     @staticmethod
-    def get_objects_with_position(region: Region) -> List[ObjectWithPosition]:
+    def _get_objects_with_position(region: Region) -> List[ObjectWithPosition]:
         return region.units

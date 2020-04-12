@@ -1,0 +1,22 @@
+connection:
+  login_server:
+    host: 0.0.0.0
+    port: 3724
+
+  world_server:
+    # if located on vps or any another external server, you should set external ip instead of localhost
+    host: 127.0.0.1
+    port: 8085
+
+  redis_server:
+    host: 127.0.0.1
+    port: 6379
+
+  websocket_server:
+    # if located on vps or any another external server, you should set external ip instead of localhost
+    host: 127.0.0.1
+    port: 9001
+
+settings:
+  # Server delay
+  min_timeout: 0.01

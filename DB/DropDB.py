@@ -1,8 +1,6 @@
 from sqlalchemy import create_engine
 
-from Config.Run.config import Config
-
-
+# refactor into class
 def drop_db():
     connection_string = Config.Database.Connection.sqlalchemy_connection_string
 

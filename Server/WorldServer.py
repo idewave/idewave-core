@@ -13,7 +13,6 @@ from Server import BaseServer, Connection, QueuesRegistry
 from Utils.Debug import Logger
 from World.WorldPacket import WorldOpCode, WorldPacketManager
 from World.Observer import WorldObserver
-from Config.Run.config import Config
 
 
 class WorldServer(BaseServer):
@@ -56,11 +55,14 @@ class WorldServer(BaseServer):
             except TimeoutError:
                 continue
             finally:
-                await sleep(Config.Realm.Settings.min_timeout)
+                await sleep(WorldServer.from_config('server:settings:min_timeout'))
 
     @staticmethod
     async def process_request(reader: StreamReader, writer: StreamWriter, world_packet_mgr: WorldPacketManager):
-        request: bytes = await wait_for(reader.read(4096), timeout=Config.Realm.Settings.min_timeout)
+        request: bytes = await wait_for(
+            reader.read(4096),
+            timeout=WorldServer.from_config('server:settings:min_timeout')
+        )
         if request:
             size, opcode, data = request[:2], request[2:6], request[6:]
 
@@ -70,7 +72,7 @@ class WorldServer(BaseServer):
                     opcode=opcode,
                     data=data
                 ),
-                timeout=Config.Realm.Settings.min_timeout
+                timeout=WorldServer.from_config('server:settings:min_timeout')
             )
 
             if response:
@@ -91,7 +93,7 @@ class WorldServer(BaseServer):
             connection: Connection = await QueuesRegistry.connections_queue.get()
             self.connections[connection.player.name] = connection
             Logger.info('[World Server]: added connection for player "{}"'.format(connection.player.name))
-            await sleep(Config.Realm.Settings.min_timeout)
+            await sleep(WorldServer.from_config('server:settings:min_timeout'))
 
     async def remove_connection(self):
         while True:
@@ -104,14 +106,14 @@ class WorldServer(BaseServer):
         while True:
             key, value = await QueuesRegistry.session_keys_queue.get()
             self.session_keys[key] = value
-            await sleep(Config.Realm.Settings.min_timeout)
+            await sleep(WorldServer.from_config('server:settings:min_timeout'))
 
     async def broadcast_packets(self):
         while True:
             try:
                 player_name, opcode, data = await wait_for(
                     QueuesRegistry.packets_queue.get(),
-                    timeout=Config.Realm.Settings.min_timeout
+                    timeout=WorldServer.from_config('server:settings:min_timeout')
                 )
             except TimeoutError:
                 pass
@@ -130,14 +132,14 @@ class WorldServer(BaseServer):
                     writer.write(response)
                     await writer.drain()
             finally:
-                await sleep(Config.Realm.Settings.min_timeout)
+                await sleep(WorldServer.from_config('server:settings:min_timeout'))
 
     @staticmethod
     def create(**kwargs):
         Logger.info('[World Server]: init')
 
         return WorldServer(
-            host=Config.Realm.Connection.WorldServer.host,
-            port=Config.Realm.Connection.WorldServer.port,
+            host=WorldServer.from_config('server:connection:world_server:host'),
+            port=WorldServer.from_config('server:connection:world_server:port'),
             world_observer=kwargs.pop('world_observer')
         )

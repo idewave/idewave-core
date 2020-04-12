@@ -1,4 +1,5 @@
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import Column, Integer, Float
 
 from DB.BaseModel import RealmModel
@@ -7,11 +8,10 @@ from World.Object.Constants import (
     ObjectType
 )
 from World.Observer.Mixins import ObservableMixin
+from Config.Mixins import ConfigurableMixin
 
-from Config.Run.config import Config
 
-
-class Object(ObservableMixin, RealmModel):
+class Object(ObservableMixin, RealmModel, ConfigurableMixin):
 
     __abstract__ = True
 
@@ -73,4 +73,7 @@ class ObjectWithPosition(Object):
     z = Column(Float)
     orientation = Column(Float)
     map_id = Column(Integer)
-    scale_x = Column(Float, default=Config.World.Object.Defaults.scale_x)
+
+    @declared_attr
+    def scale_x(self):
+        return Column(Float, default=self.from_config("object:default:scale_x"))

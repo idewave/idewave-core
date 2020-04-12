@@ -1,4 +1,5 @@
 from struct import pack
+from typing import Dict
 
 from World.WorldPacket.UpdatePacket.Constants.ObjectUpdateType import ObjectUpdateType
 from World.WorldPacket.UpdatePacket.Builders.UpdateBlocksBuilder import UpdateBlocksBuilder
@@ -7,11 +8,10 @@ from World.Object.Constants.UpdateObjectFlags import UpdateObjectFlags
 from World.Object.Constants.ObjectType import ObjectType
 from Typings.Abstract import AbstractBuilder
 from Utils.Timer import Timer
+from Config.Mixins import ConfigurableMixin
 
-from Config.Run.config import Config
 
-
-class UpdatePacketBuilder(AbstractBuilder):
+class UpdatePacketBuilder(AbstractBuilder, ConfigurableMixin):
 
     MAX_UPDATE_PACKETS_AS_ONE = 15
 
@@ -136,18 +136,18 @@ class UpdatePacketBuilder(AbstractBuilder):
             # TODO: check transport, swimming and flying
             data += pack('<I', 0)  # last fall time
 
-            movement = Config.World.Object.Unit.Player.Defaults.Movement
+            movement_speed: Dict[str, float] = UpdatePacketBuilder.from_config('player:movement:speed')
 
             data += pack(
                 '<8f',
-                movement.speed_walk,
-                movement.speed_run,
-                movement.speed_run_back,
-                movement.speed_swim,
-                movement.speed_swim_back,
-                movement.speed_flight,
-                movement.speed_flight_back,
-                movement.speed_turn
+                movement_speed['walk'],
+                movement_speed['run'],
+                movement_speed['run_back'],
+                movement_speed['swim'],
+                movement_speed['swim_back'],
+                movement_speed['flight'],
+                movement_speed['flight_back'],
+                movement_speed['turn']
             )
 
         if self.update_flags & UpdateObjectFlags.UPDATEFLAG_LOWGUID.value:

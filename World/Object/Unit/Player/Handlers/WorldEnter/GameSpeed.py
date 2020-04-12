@@ -5,11 +5,10 @@ from struct import pack
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from Server.Connection.Connection import Connection
 from Typings.Abstract import AbstractHandler
+from Config.Mixins import ConfigurableMixin
 
-from Config.Run.config import Config
 
-
-class GameSpeed(AbstractHandler):
+class GameSpeed(AbstractHandler, ConfigurableMixin):
 
     def __init__(self, **kwargs):
         self.data = kwargs.pop('data', bytes())
@@ -18,8 +17,8 @@ class GameSpeed(AbstractHandler):
     async def process(self) -> tuple:
         response = pack(
             '<2f',
-            GameSpeed._secs_to_time_bit_fields(),           # game time (secs) to bit
-            Config.World.Gameplay.game_speed                # game speed
+            GameSpeed._secs_to_time_bit_fields(),                   # game time (secs) to bit
+            GameSpeed.from_config('world:gameplay:game_speed')      # game speed
         )
         return WorldOpCode.SMSG_LOGIN_SETTIMESPEED, [response]
 

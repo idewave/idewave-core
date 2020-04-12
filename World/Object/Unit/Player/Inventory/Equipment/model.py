@@ -1,11 +1,10 @@
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import Column, Integer, ForeignKey
 
 from DB.BaseModel import RealmModel, WorldModel
 from World.Object.Unit.Player.model import Player
 from World.Object.Item.model import Item, ItemTemplate
-
-from Config.Run.config import Config
 
 
 class Equipment(RealmModel):
@@ -14,23 +13,27 @@ class Equipment(RealmModel):
 
     id = Column(Integer, primary_key=True)
 
-    item_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.realm_db}.{Item.__tablename__}.id',
-            onupdate='CASCADE',
-            ondelete='CASCADE'
+    @declared_attr
+    def item_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{self.from_config("database:names:realm_db")}.{Item.__tablename__}.id',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            )
         )
-    )
 
-    player_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.realm_db}.{Player.__tablename__}.id',
-            onupdate='CASCADE',
-            ondelete='CASCADE'
+    @declared_attr
+    def player_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{self.from_config("database:names:realm_db")}.{Player.__tablename__}.id',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            )
         )
-    )
 
     slot_id = Column(Integer)
 
@@ -49,10 +52,13 @@ class DefaultEquipment(WorldModel):
     race = Column(Integer)
     char_class = Column(Integer)
 
-    item_template_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.world_db}.{ItemTemplate.__tablename__}.id'
+    @declared_attr
+    def item_template_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{self.from_config("database:names:world_db")}.{ItemTemplate.__tablename__}.id'
+            )
         )
-    )
+
     item_template = relationship('ItemTemplate')

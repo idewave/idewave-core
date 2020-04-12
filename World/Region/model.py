@@ -1,11 +1,11 @@
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import orm, Column, Integer, Float, ForeignKey
 # from typing import Optional
 
 from DB.BaseModel import WorldModel
 # from World.Region.Octree.Node import RootNode
 # from World.Observer import WorldObserver
-from Config.Run.config import Config
 
 
 class Region(WorldModel):
@@ -59,13 +59,15 @@ class DefaultLocation(WorldModel):
 
     race = Column(Integer)
 
-    region_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.world_db}.{Region.__tablename__}.id',
-            onupdate='CASCADE',
-            ondelete='CASCADE'
+    @declared_attr
+    def region_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{self.from_config("database:names:world_db")}.{Region.__tablename__}.id',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            )
         )
-    )
 
     region = relationship('Region', lazy='subquery')

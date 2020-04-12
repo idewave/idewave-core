@@ -1,8 +1,10 @@
 import asyncio
 from asyncio.streams import StreamReader, StreamWriter
 
+from Config.Mixins import ConfigurableMixin
 
-class BaseServer(object):
+
+class BaseServer(ConfigurableMixin):
 
     __slots__ = ('host', 'port', 'instance')
 

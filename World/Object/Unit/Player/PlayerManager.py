@@ -5,12 +5,9 @@ from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
 from World.Object.Unit.UnitManager import UnitManager
 from World.Object.Unit.Player.Stats.Builders.PlayerStatsBuilder import PlayerStatsBuilder
 from World.Object.Unit.Player.model import Player
-
 from World.Object.Constants.UpdateObjectFields import UnitField, PlayerField
-
 from World.Object.Unit.Player.Skill.SkillManager import SkillManager
 from World.Object.Unit.Spell.SpellManager import SpellManager
-
 from World.Object.Unit.Player.Inventory.Equipment.model import Equipment
 from World.Object.Unit.Player.Inventory.Equipment.EquipmentManager import EquipmentManager
 
@@ -19,12 +16,9 @@ from World.Object.Unit.Player.Constants.CharacterGender import CharacterGender
 from World.Object.Unit.Player.Constants.CharacterEquipSlot import CharacterEquipSlot
 from World.Object.Unit.Player.Constants.CharacterDisplayId import CHARACTER_DISPLAY_ID
 from World.Object.Unit.Player.Constants.PowerTypeToCharClass import POWER_TYPE
-
 from World.Region.model import DefaultLocation
 
 from Server.Registry.QueuesRegistry import QueuesRegistry
-
-from Config.Run.config import Config
 
 
 class PlayerManager(UnitManager):
@@ -93,12 +87,12 @@ class PlayerManager(UnitManager):
         self.set_object_field(PlayerField.RANGED_CRIT_PERCENTAGE, stats.ranged_crit)
 
         self.set_object_field(PlayerField.REST_STATE_EXPERIENCE, stats.rest_state_exp)
-        self.set_object_field(PlayerField.COINAGE, Config.World.Object.Unit.Player.Defaults.start_money)
+        self.set_object_field(PlayerField.COINAGE, PlayerManager.from_config('player:default:start_money'))
 
         # TODO: set to actual
         self.set_object_field(PlayerField.WATCHED_FACTION_INDEX, -1)
         self.set_object_field(PlayerField.BYTES, 0)
-        self.set_object_field(PlayerField.MAX_LEVEL, Config.World.Object.Unit.Player.Defaults.max_level)
+        self.set_object_field(PlayerField.MAX_LEVEL, PlayerManager.from_config('player:default:max_level'))
 
         # equipment
         for slot in range(CharacterEquipSlot.HEAD.value, CharacterEquipSlot.BAG1.value):
@@ -189,7 +183,7 @@ class PlayerManager(UnitManager):
         self.player.hair_color = kwargs.pop('hair_color')
         self.player.facial_hair = kwargs.pop('facial_hair')
 
-        self.player.level = Config.World.Object.Unit.Player.Defaults.min_level
+        self.player.level = PlayerManager.from_config('player:default:min_level')
 
         self.player.account = self.session.merge(kwargs.pop('account'))
 

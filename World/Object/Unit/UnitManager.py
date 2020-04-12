@@ -5,8 +5,6 @@ from World.Region.model import Region
 from World.Object.Unit.Constants.UnitFlags import UnitFlags
 from World.Object.Unit.Stats.Builders.UnitStatsBuilder import UnitStatsBuilder
 
-from Config.Run.config import Config
-
 
 class UnitManager(ObjectManager):
 
@@ -46,8 +44,8 @@ class UnitManager(ObjectManager):
         self.set_object_field(UnitField.BASEATTACKTIME, stats.attack_time_mainhand)
         self.set_object_field(UnitField.OFFHANDATTACKTIME, stats.attack_time_offhand)
 
-        self.set_object_field(UnitField.BOUNDINGRADIUS, Config.World.Object.Unit.Defaults.bounding_radius)
-        self.set_object_field(UnitField.COMBATREACH, Config.World.Object.Unit.Defaults.combat_reach)
+        self.set_object_field(UnitField.BOUNDINGRADIUS, UnitManager.from_config('unit:default:bounding_radius'))
+        self.set_object_field(UnitField.COMBATREACH, UnitManager.from_config('unit:default:combat_reach'))
 
         if isinstance(self.unit, Unit):
             self.set_object_field(UnitField.DISPLAYID, self.unit.display_id)

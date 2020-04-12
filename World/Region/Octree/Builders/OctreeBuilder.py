@@ -7,11 +7,10 @@ from Typings.Abstract import AbstractBuilder
 
 from World.Region.Octree.OctreeNodeManager import OctreeNodeManager
 from World.Object.model import ObjectWithPosition
+from Config.Mixins import ConfigurableMixin
 
-from Config.Run.config import Config
 
-
-class OctreeBuilder(AbstractBuilder):
+class OctreeBuilder(AbstractBuilder, ConfigurableMixin):
 
     __slots__ = (
         'x0',
@@ -89,7 +88,7 @@ class OctreeBuilder(AbstractBuilder):
 
     @staticmethod
     def can_contain_child_nodes(node: ChildNode) -> bool:
-        octree_node_size = Config.World.Region.octree_node_size
+        octree_node_size = OctreeBuilder.from_config('region:generation:octree_node_size')
 
         return ((node.x1 - node.x0) > octree_node_size and
                 (node.y1 - node.y0) > octree_node_size and

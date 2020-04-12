@@ -11,10 +11,10 @@ from Server.Registry.QueuesRegistry import QueuesRegistry
 from Server.WebsocketServer.Constants.RequestType import RequestType
 
 from Utils.Debug import Logger
-from Config.Run.config import Config
+from Config.Mixins import ConfigurableMixin
 
 
-class WebsocketServer(object):
+class WebsocketServer(ConfigurableMixin):
 
     def __init__(self, host, port):
         self.instance = websockets.serve(self.handle_connection, host, port)
@@ -77,6 +77,6 @@ class WebsocketServer(object):
     def create():
         Logger.info('[Websocket Server]: init')
         return WebsocketServer(
-            Config.WebsocketServer.Connection.host,
-            Config.WebsocketServer.Connection.port
+            host=WebsocketServer.from_config('server:connection:websocket_server:host'),
+            port=WebsocketServer.from_config('server:connection:websocket_server:port')
         )

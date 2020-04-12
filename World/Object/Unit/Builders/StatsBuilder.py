@@ -11,8 +11,7 @@ from World.Object.Unit.model import Unit, UnitTemplate
 from World.Object.Unit.Player.model import Player
 from World.Object.Unit.Constants.UnitPower import UnitPower
 from Typings.Abstract import AbstractBuilder
-
-from Config.Run.config import Config
+from Config.Mixins import ConfigurableMixin
 
 
 class StatsStorage(SimpleNamespace):
@@ -25,7 +24,7 @@ class StatsStorage(SimpleNamespace):
         yield from self.__dict__
 
 
-class StatsBuilder(AbstractBuilder):
+class StatsBuilder(AbstractBuilder, ConfigurableMixin):
 
     BASE_STAMINA_LIMIT = 20
 
@@ -58,11 +57,11 @@ class StatsBuilder(AbstractBuilder):
         self.stats.spirit = StatsBuilder._get_spirit(player)
 
         self.stats.power_type = StatsBuilder._set_power_type(player)
-        self._set_power_depend_on_type(player)
+        self._set_power_depend_on_type()
 
         self.stats.level = player.level
 
-        self.stats.money = Config.World.Object.Unit.Player.Defaults.start_money
+        self.stats.money = StatsBuilder.from_config('player:default:start_money')
         self.stats.block = self._get_block()
         self.stats.parry = self._get_parry()
 
@@ -120,12 +119,12 @@ class StatsBuilder(AbstractBuilder):
 
     def _get_block(self):
         # TODO: need check if has shield
-        block = Config.World.Object.Unit.Defaults.base_block
+        block = StatsBuilder.from_config('unit:default:base_block')
         return block
 
     def _get_parry(self):
         # TODO: need check if has weapon
-        parry = Config.World.Object.Unit.Defaults.base_parry
+        parry = StatsBuilder.from_config('unit:default:base_parry')
         return parry
 
     @staticmethod
@@ -217,7 +216,7 @@ class StatsBuilder(AbstractBuilder):
         else:
             return UnitPower.MANA.value
 
-    def _set_power_depend_on_type(self, player: Player):
+    def _set_power_depend_on_type(self):
         if self.stats.power_type == UnitPower.MANA.value:
             self.stats.mana = 0
             self.stats.max_mana = 0

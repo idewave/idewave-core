@@ -5,7 +5,7 @@ import traceback
 
 from DB.CreateDB import create_db, create_tables
 from DB.DropDB import drop_db
-from DB.Fixtures.Loader.load_world_data import load_world_data
+from DB.Fixtures.Loaders.load_world_data import load_world_data
 
 from Account.AccountManager import AccountManager
 from World.Object.Item.ItemManager import ItemManager

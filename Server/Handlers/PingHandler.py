@@ -1,7 +1,8 @@
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode
+from Typings.Abstract import AbstractHandler
 
 
-class PingHandler(object):
+class PingHandler(AbstractHandler):
 
     def __init__(self, **kwargs):
         self.data = kwargs.pop('data', bytes())

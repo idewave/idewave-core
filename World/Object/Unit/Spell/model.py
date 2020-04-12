@@ -1,9 +1,8 @@
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import Column, Integer, ForeignKey, String
 
 from DB.BaseModel import WorldModel
-
-from Config.Run.config import Config
 
 
 class SpellTemplate(WorldModel):
@@ -22,12 +21,15 @@ class DefaultSpell(WorldModel):
     race = Column(Integer, nullable=True)
     char_class = Column(Integer, nullable=True)
 
-    spell_template_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.world_db}.{SpellTemplate.__tablename__}.id',
-            onupdate='CASCADE',
-            ondelete='CASCADE'
+    @declared_attr
+    def spell_template_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{self.from_config("database:names:world_db")}.{SpellTemplate.__tablename__}.id',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            )
         )
-    )
+
     spell_template = relationship('SpellTemplate')

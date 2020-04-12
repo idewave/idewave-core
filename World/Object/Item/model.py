@@ -1,5 +1,6 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import Column, Integer, Float, ForeignKey, String, SmallInteger
 
 from DB.BaseModel import WorldModel
@@ -8,8 +9,6 @@ from World.Object.model import Object
 from World.Object.Constants.TypeMask import TypeMask
 from World.Object.Constants.ObjectType import ObjectType
 from World.Object.Constants.HighGuid import HighGuid
-
-from Config.Run.config import Config
 
 
 class ItemTemplate(WorldModel):
@@ -90,14 +89,16 @@ class Item(Object):
 
     id = Column(Integer, primary_key=True)
 
-    item_template_id = Column(
-        Integer,
-        ForeignKey(
-            f'{Config.Database.DBNames.world_db}.{ItemTemplate.__tablename__}.id',
-            onupdate='CASCADE',
-            ondelete='CASCADE'
+    @declared_attr
+    def item_template_id(self):
+        return Column(
+            Integer,
+            ForeignKey(
+                f'{self.from_config("database:names:world_db")}.{ItemTemplate.__tablename__}.id',
+                onupdate='CASCADE',
+                ondelete='CASCADE'
+            )
         )
-    )
 
     stack_count = Column(Integer, default=1)
 
