@@ -4,6 +4,9 @@ generation:
   octree_node_size: 200
 
 weather:
+  # 0 - False (different for each region), 1 - True (same for all regions)
+  # TODO: support this option
+  global_weather: 1
   change_weather_timeout: 300
   # 0 - False, 1 - True, 2 - Random
   instant_change: 0

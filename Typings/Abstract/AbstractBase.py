@@ -1,7 +1,7 @@
-from abc import ABCMeta
+from abc import ABC
 
 from Config.Mixins.ConfigurableMixin import ConfigurableMixin
 
 
-class AbstractBase(ABCMeta, ConfigurableMixin):
+class AbstractBase(ConfigurableMixin, ABC):
     pass

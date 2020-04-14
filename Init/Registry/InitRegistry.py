@@ -1,28 +1,16 @@
-from Utils.Debug import Logger
+from Typings.Abstract.AbstractRegistry import AbstractRegistry
 
 
-class RestrictExtraFieldsMetaclass(type):
+class InitRegistry(AbstractRegistry):
 
-    ALLOWED_FIELDS = ()
+    main_config = None
 
-    def __setattr__(self, key, value):
-        if key not in self.ALLOWED_FIELDS:
-            pass
+    login_server = None
 
-    def __getattr__(self, item):
-        Logger.warning(f'[{self.__class__.__name__}]: Trying to get unresolved attr {item}')
-        pass
+    world_server = None
 
+    world_observer = None
 
-# Since classes are instances of type, we can create parent metaclass with a __setattr__ method
-# https://stackoverflow.com/questions/39708662/how-does-setattr-work-with-class-attributes
-class InitRegistry(metaclass=RestrictExtraFieldsMetaclass):
+    identifier_region_map = None
 
-    ALLOWED_FIELDS = (
-        'main_config',
-        'login_server',
-        'world_server',
-        'world_observer',
-        'identifier_region_map',
-        'region_octree_map',
-    )
+    region_octree_map = None

@@ -10,11 +10,11 @@ from Typings.Abstract.AbstractBase import AbstractBase
 # TODO: this should be refactored into another class type, not manager
 class WorldManager(AbstractBase):
 
-    __slots__ = ('last_update', 'region_mgr', 'weather_mgr')
+    __slots__ = ('last_update', 'weather_mgr')
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.last_update = None
-        self.region_mgr = RegionManager()
         self.weather_mgr = WeatherManager(
             instant_change=WorldManager.from_config('region:weather:instant_change')
         )
@@ -28,21 +28,21 @@ class WorldManager(AbstractBase):
 
     def _register_tasks(self):
         gather(
-            ensure_future(self.process_broadcast()),
+            # ensure_future(self.process_broadcast()),
             ensure_future(self.change_weather()),
         )
 
-    async def process_broadcast(self):
-        while True:
-            try:
-                # notice: second parameter (packets) should be list, not string
-                opcode, packets, callback = QueuesRegistry.broadcast_callback_queue.get_nowait()
-            except QueueEmpty:
-                pass
-            else:
-                self.region_mgr.broadcast(opcode, packets, callback)
-            finally:
-                await sleep(WorldManager.from_config('server:settings:min_timeout'))
+    # async def process_broadcast(self):
+    #     while True:
+    #         try:
+    #             # notice: second parameter (packets) should be list, not string
+    #             opcode, packets, callback = QueuesRegistry.broadcast_callback_queue.get_nowait()
+    #         except QueueEmpty:
+    #             pass
+    #         else:
+    #             self.region_mgr.broadcast(opcode, packets, callback)
+    #         finally:
+    #             await sleep(WorldManager.from_config('server:settings:min_timeout'))
 
     async def change_weather(self):
         while True:
