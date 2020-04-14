@@ -2,7 +2,7 @@ from World.Object.Unit.Player.PlayerManager import PlayerManager
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from Server.Connection.Connection import Connection
 from Typings.Abstract.AbstractHandler import AbstractHandler
-from World.Observer import WorldObserver
+from World.Observer.WorldObserver import WorldObserver
 
 
 class PlayerInit(AbstractHandler):

@@ -1,6 +1,6 @@
 from typing import Any
 
-from Config.Init.configs import main_config
+from Init.Registry.InitRegistry import InitRegistry
 
 
 class ConfigurableMixin(object):
@@ -26,7 +26,7 @@ class ConfigurableMixin(object):
         transition_keys = keys[1:-1]
         destination_key = keys[-1]
 
-        config = main_config[config_name]
+        config = InitRegistry.main_config[config_name]
 
         for key in transition_keys:
             config = config[key]

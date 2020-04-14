@@ -7,12 +7,16 @@ from colorama import init
 from Server.Init.servers import login_server, world_server
 from Server.Registry.QueuesRegistry import QueuesRegistry
 from World.WorldManager import WorldManager
+from Init.Loaders.InitLoader import InitLoader
 from Utils.Debug import Logger
 
 
 if __name__ == '__main__':
     # initialize colorama for make ansi codes works in Windows
     init()
+
+    # import from Init into global Registry
+    InitLoader.load()
 
     loop = asyncio.get_event_loop()
 

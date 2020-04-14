@@ -1,4 +1,4 @@
-from World.Observer import WorldObserver
+from World.Observer.WorldObserver import WorldObserver
 from World.Observer.Constants import *
 
 

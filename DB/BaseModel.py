@@ -1,5 +1,6 @@
 import re
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy.ext.declarative.api import DeclarativeMeta
 
 from Typings.Abstract.AbstractObservable import AbstractObservable
 
@@ -7,7 +8,13 @@ from Typings.Abstract.AbstractObservable import AbstractObservable
 pattern = re.compile(r'(?<!^)(?=[A-Z])')
 
 
-class Base(declarative_base(), AbstractObservable):
+# https://stackoverflow.com/questions/28799089/python-abc-multiple-inheritance
+# https://stackoverflow.com/a/100146/5397119 (about type)
+class BaseModelMetaclass(DeclarativeMeta, type(AbstractObservable)):
+    pass
+
+
+class BaseModel(declarative_base(), AbstractObservable, metaclass=BaseModelMetaclass):
 
     __abstract__ = True
 
@@ -28,7 +35,7 @@ class Base(declarative_base(), AbstractObservable):
         }
 
 
-class LoginModel(Base):
+class LoginModel(BaseModel):
 
     __abstract__ = True
 
@@ -39,7 +46,7 @@ class LoginModel(Base):
         }
 
 
-class WorldModel(Base):
+class WorldModel(BaseModel):
 
     __abstract__ = True
 
@@ -50,7 +57,7 @@ class WorldModel(Base):
         }
 
 
-class RealmModel(Base):
+class RealmModel(BaseModel):
 
     __abstract__ = True
 

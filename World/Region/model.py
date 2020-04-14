@@ -5,7 +5,7 @@ from sqlalchemy import orm, Column, Integer, Float, ForeignKey
 
 from DB.BaseModel import WorldModel
 # from World.Region.Octree.Node import RootNode
-# from World.Observer import WorldObserver
+# from World.Observer.WorldObserver import WorldObserver
 
 
 class Region(WorldModel):

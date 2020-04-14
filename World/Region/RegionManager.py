@@ -4,7 +4,7 @@ from typing import List, Optional, Callable, Dict
 from World.Object.model import ObjectWithPosition
 from World.Region.model import Region, DefaultLocation
 # from World.Region.Octree.OctreeManager import OctreeManager
-from World.Observer import RegionObserver
+from World.Observer.RegionObserver import RegionObserver
 
 from DB.Connection.WorldConnection import WorldConnection
 from World.WorldPacket.Constants.WorldOpCode import WorldOpCode

@@ -12,7 +12,7 @@ from asyncio import (
 from Server import BaseServer, Connection, QueuesRegistry
 from Utils.Debug import Logger
 from World.WorldPacket import WorldOpCode, WorldPacketManager
-from World.Observer import WorldObserver
+from World.Observer.WorldObserver import WorldObserver
 
 
 class WorldServer(BaseServer):

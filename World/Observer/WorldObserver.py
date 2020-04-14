@@ -1,4 +1,4 @@
-from World.Observer import BaseObserver
+from World.Observer.BaseObserver import BaseObserver
 from Typings.Constants import REGIONS_MAP
 
 

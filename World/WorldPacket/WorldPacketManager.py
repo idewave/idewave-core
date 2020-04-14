@@ -3,7 +3,7 @@ from typing import Optional
 
 from Server.Connection.Connection import Connection
 
-from World.Observer import WorldObserver
+from World.Observer.WorldObserver import WorldObserver
 
 from World.WorldPacket.Constants import LoginOpCode, WorldOpCode, ANY_OPCODE
 from World.WorldPacket.Constants.OpcodeHandlerMap import OPCODE_HANDLER_MAP
