@@ -58,6 +58,6 @@ Finally, you can run the server, just call from the root of project:
 
 
 ## You want participate
-You can add PR. To communicate join https://discord.gg/y6746sm
+You can add PR. To communicate join https://discord.gg/FNpUU6bG
 
 See also [project's wiki](https://github.com/sergio-ivanuzzo/idewave-core/wiki).
